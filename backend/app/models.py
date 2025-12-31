@@ -28,6 +28,9 @@ class Character(Base):
     class_name = Column("class", String(64), nullable=False)
     level = Column(Integer, nullable=False)
     power = Column(IntegerType, nullable=False)
+    power_index = Column(Integer, nullable=True)  # 사이트 고유 투력 지표
+    tier_rank = Column(String(16), nullable=True)  # D1~S5 랭크
+    percentile = Column(Integer, nullable=True)  # 퍼센타일 (0-100)
     updated_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_seen_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -59,6 +62,22 @@ class RankSnapshot(Base):
     snapshot_json = Column(JSONType)
     generated_at = Column(DateTime(timezone=True), server_default=func.now())
     expires_at = Column(DateTime(timezone=True))
+
+class ServerAverageStats(Base):
+    __tablename__ = "server_average_stats"
+
+    id = Column(IntegerType, primary_key=True, index=True)
+    server = Column(String(64), nullable=False, unique=True, index=True)
+    avg_attack = Column(Integer, nullable=False, default=0)
+    avg_damage_amp = Column(Integer, nullable=False, default=0)
+    avg_crit_rate = Column(Integer, nullable=False, default=0)
+    avg_crit_damage = Column(Integer, nullable=False, default=0)
+    avg_attack_speed = Column(Integer, nullable=False, default=0)
+    avg_defense = Column(Integer, nullable=False, default=0)
+    avg_damage_reduction = Column(Integer, nullable=False, default=0)
+    avg_hp = Column(Integer, nullable=False, default=0)
+    sample_size = Column(Integer, nullable=False, default=0)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 def init_db():
     Base.metadata.create_all(bind=engine)
