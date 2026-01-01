@@ -273,18 +273,46 @@ class DummySourceAdapter(BaseSourceAdapter):
         seed = hash(f"{server}:{name}") % 10000
         random.seed(seed)
 
+        # Generate raw payload (as if from external source)
+        raw_payload = {
+            "characterName": name,
+            "serverName": server,
+            "className": random.choice(classes),
+            "level": str(random.randint(1, 100)),
+            "combatPower": f"{random.randint(10000, 500000):,}",
+            "stats": {
+                "attack": f"{random.randint(300, 1200):,}",
+                "damageAmp": f"{random.randint(50, 300)}",
+                "critRate": f"{random.randint(20, 100)}%",
+                "critDamage": f"{random.randint(150, 300)}%",
+                "attackSpeed": f"{random.randint(80, 150)}",
+                "defense": f"{random.randint(300, 1200):,}",
+                "damageReduction": f"{random.randint(30, 100)}%",
+                "hp": f"{random.randint(5000, 20000):,}",
+            }
+        }
+
+        # Normalize to stats_payload (parse numbers, remove commas, units)
+        stats_payload = {
+            "attack": int(raw_payload["stats"]["attack"].replace(",", "")),
+            "damage_amp": int(raw_payload["stats"]["damageAmp"]),
+            "crit_rate": int(raw_payload["stats"]["critRate"].replace("%", "")),
+            "crit_damage": int(raw_payload["stats"]["critDamage"].replace("%", "")),
+            "attack_speed": int(raw_payload["stats"]["attackSpeed"]),
+            "defense": int(raw_payload["stats"]["defense"].replace(",", "")),
+            "damage_reduction": int(raw_payload["stats"]["damageReduction"].replace("%", "")),
+            "hp": int(raw_payload["stats"]["hp"].replace(",", "")),
+        }
+
         character = CharacterDTO(
             name=name,
             server=server,
-            class_name=random.choice(classes),
-            level=random.randint(1, 100),
-            power=random.randint(10000, 500000),
+            class_name=raw_payload["className"],
+            level=int(raw_payload["level"]),
+            power=int(raw_payload["combatPower"].replace(",", "")),
             updated_at=datetime.now(),
-            stats_json={
-                "attack": random.randint(100, 1000),
-                "defense": random.randint(100, 1000),
-                "hp": random.randint(500, 5000),
-            }
+            raw_payload=raw_payload,
+            stats_payload=stats_payload
         )
 
         logger.info(f"✓ Generated dummy data: {server}:{name}")
@@ -396,64 +424,286 @@ class ExternalSourceAdapter(BaseSourceAdapter):
     )
     def _fetch_with_retry(self, server: str, name: str) -> CharacterDTO:
         """
-        Fetch using Playwright to handle Client-Side Rendering (CSR)
+        Fetch with Playwright, handling redirects and dynamic content.
+        Tries to navigate to Detail Page.
+        Falls back to Search Result Parsing if Detail Page fails (Page Error).
         """
         from playwright.sync_api import sync_playwright
 
-        try:
-            url = f"https://aion.plaync.com/ranking/battle?world=classic"
-            logger.info(f"→ Scaping (Headless): {url} for '{name}'")
+        # Mock Response Class for Parser Compatibility
+        class MockResponse:
+            def __init__(self, text):
+                self.text = text
+                self.headers = {"content-type": "text/html"}
 
-            with sync_playwright() as p:
-                # Use Chromium
-                browser = p.chromium.launch(headless=True)
-                page = browser.new_page(
-                    user_agent=AdapterConfig.USER_AGENT
-                )
-                
-                try:
-                    # 1. Go to Ranking Page
-                    page.goto(url, wait_until="domcontentloaded", timeout=AdapterConfig.READ_TIMEOUT * 1000)
-                    page.wait_for_timeout(2000) # Wait for initial load
+        # Construct URL
+        # Server Mapping (Name -> ID)
+        SERVER_ID_MAP = {
+            "Israphel": "55", # 이스라펠
+            "Siel": "30",     # 시엘
+            "Ex": "54",       # 엑스
+        }
+        server_id = SERVER_ID_MAP.get(server)
+        
+        base_url = "https://aion.plaync.com/ranking/battle"
+        if server_id:
+            # Direct navigation with search params
+            from urllib.parse import quote
+            encoded_name = quote(name)
+            url = f"{base_url}?world=classic&serverId={server_id}&characterName={encoded_name}"
+        else:
+            # Fallback
+            url = f"{base_url}?world=classic"
 
-                    # 2. Type Name into Search Input
-                    # Selector found: input.search_input
-                    search_input_selector = "input.search_input"
+        retries = AdapterConfig.MAX_RETRY_ATTEMPTS # Use the same retry count as the decorator
+        last_error = None
+
+        for attempt in range(retries):
+            try:
+                logger.info(f"→ Scaping (Headless): {url} for '{name}'")
+
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=True)
+                    context = browser.new_context(user_agent=AdapterConfig.USER_AGENT)
+                    page = context.new_page()
                     
-                    if page.is_visible(search_input_selector):
-                        logger.info("Found search input, typing name...")
-                        page.fill(search_input_selector, name)
-                        page.press(search_input_selector, "Enter")
+                    try:
+                        page.goto(url, wait_until="domcontentloaded", timeout=AdapterConfig.READ_TIMEOUT * 1000)
+                        page.wait_for_timeout(2000) 
+
+                        # Wait for search results
+                        page.wait_for_selector(".ranking_table tbody tr", timeout=10000)
                         
-                        # 3. Wait for results
-                        # Wait for the table to (hopefully) update. 
-                        # We can look for the specific name in the table text?
-                        page.wait_for_timeout(2000)
-                    else:
-                        logger.warning("Search input not found, scraping default list")
+                        # Use Korean name for validation if needed
+                        SERVER_MAP = {
+                            "Israphel": "이스라펠",
+                            "Siel": "시엘", 
+                            "Ex": "엑스"
+                        }
+                        korean_server_name = SERVER_MAP.get(server, server)
+                        
+                        logger.info(f"Looking for character: '{name}' on server: '{korean_server_name}'")
 
-                    content = page.content()
-                    
-                except Exception as e:
-                    logger.error(f"Playwright navigation error: {e}")
-                    raise ExternalSourceTimeoutError(f"Navigation failed: {e}")
-                finally:
-                    browser.close()
+                        # Find the correct row
+                        target_row_locator = None
+                        rows = page.locator(".ranking_table tbody tr")
+                        count = rows.count()
+                        
+                        for i in range(count):
+                            row = rows.nth(i)
+                            try:
+                                row_name_el = row.locator(".title .text")
+                                if not row_name_el.is_visible(): continue
+                                row_name = row_name_el.inner_text().strip()
+                                
+                                row_server_el = row.locator(".server")
+                                if not row_server_el.is_visible(): continue
+                                row_server = row_server_el.inner_text().strip()
+                                
+                                # Log for debugging
+                                with open("debug_rows.txt", "a", encoding="utf-8") as df:
+                                    df.write(f"Row {i}: Name='{row_name}', Server='{row_server}' | Search='{name}'\n")
 
-            # Pass the rendered HTML to parser
-            # Mock a response object compatible with existing parser
-            class MockResponse:
-                def __init__(self, text):
-                    self.text = text
-                    self.headers = {"content-type": "text/html"}
+                                if name.lower() == row_name.lower():
+                                    if korean_server_name == row_server:
+                                         logger.info(f"Found match: {row_name} @ {row_server}")
+                                         target_row_locator = row
+                                         break
+                            except Exception as e:
+                                logger.warning(f"Row parsing error: {e}")
+                                continue
 
-            return self._parse_html_response(MockResponse(content), server, name)
+                        if target_row_locator:
+                            # 1. Capture Search Content & Basic Data (Backup)
+                            search_content = page.content()
+                            
+                            img_loc = target_row_locator.locator("img")
+                            img_src = img_loc.get_attribute("src") if img_loc.is_visible() else ""
+                            
+                            # 2. Extract charKey for Navigation
+                            import re
+                            char_key = None
+                            if img_src:
+                                match = re.search(r"charKey=(\d+)", img_src)
+                                if match:
+                                    char_key = match.group(1)
 
-        except ExternalSourceTimeoutError:
-            raise
+                            if char_key:
+                                # Construct detail URL
+                                # server_id is needed here, which was determined in get_character
+                                SERVER_ID_MAP = {
+                                    "Israphel": "55", # 이스라펠
+                                    "Siel": "30",     # 시엘
+                                    "Ex": "54",       # 엑스
+                                }
+                                server_id = SERVER_ID_MAP.get(server)
+                                # FIX: world=classic (lowercase)
+                                detail_url = f"https://aion.plaync.com/characters/view?world=classic&serverId={server_id}&characterId={char_key}"
+                                logger.info(f"Navigating to detail URL: {detail_url}")
+                                
+                                try:
+                                    # Increase timeout to 30s
+                                    page.goto(detail_url, wait_until="domcontentloaded", timeout=30000)
+                                    
+                                    # Wait for either Success (.status_list) or Failure (.page_error)
+                                    try:
+                                        page.wait_for_selector(".status-list, .page-error, .header-title", timeout=5000)
+                                    except:
+                                        pass # Just proceed to check content
+                                    
+                                    detail_content = page.content()
+                                    with open("/app/debug_detail_success.html", "w", encoding="utf-8") as f:
+                                        f.write(detail_content)
+
+                                    # 3. Attempt to Parse Detail Page
+                                    detail_dto = self._parse_detail_page(MockResponse(detail_content), server, name)
+                                    
+                                    if detail_dto:
+                                        logger.info("✓ Successfully parsed Detail Page.")
+                                        # Enrich with avatar if missing (though _parse_detail_page should find it)
+                                        if not detail_dto.character_image_url and img_src:
+                                            detail_dto.character_image_url = img_src
+                                        return detail_dto
+                                    
+                                    logger.warning("Detail page parsing returned None (Page Error or Invalid). Falling back to Search Results.")
+                                    
+                                except Exception as nav_e:
+                                    logger.warning(f"Detail navigation/parsing failed: {nav_e}. Falling back.")
+                            
+                            else:
+                                logger.warning("Could not extract charKey. Falling back to Search Results.")
+
+                            # 4. Fallback: Parse Search Page
+                            return self._parse_html_response(MockResponse(search_content), server, name, img_src_override=img_src)
+                                
+                        else:
+                            logger.warning(f"Character '{name}' on '{korean_server_name}' not found in search results.")
+                            # Fallback using whatever content we have (will likely fail parse, but correct flow)
+                            content = page.content()
+                            return self._parse_html_response(MockResponse(content), server, name)
+
+                    except Exception as e:
+                        logger.error(f"Playwright navigation error: {e}")
+                        try:
+                            with open("/app/debug_detail_error.html", "w", encoding="utf-8") as f:
+                                f.write(page.content())
+                        except: pass
+                        raise ExternalSourceTimeoutError(f"Navigation failed: {e}")
+                    finally:
+                        browser.close()
+
+            except ExternalSourceTimeoutError:
+                raise
+            except Exception as e:
+                logger.error(f"✗ Scraping error for {server}:{name}: {e}")
+                raise ExternalSourceHTTPError(f"Scraping failed: {e}") from e
+
+    def _parse_detail_page(self, response: object, server: str, name: str) -> Optional[CharacterDTO]:
+        """
+        Parses the specific character detail page HTML.
+        Returns None if 'Page Error' is detected.
+        """
+        try:
+            from bs4 import BeautifulSoup
+            import re
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            # Check for error page
+            if "페이지를 찾을 수 없습니다" in response.text or soup.select_one(".page_error"):
+                logger.warning("Detail page shows 'Page Error'.")
+                return None
+            
+            # 1. Profile Image
+            profile_img_url = ""
+            # Try multiple generic selectors for profile image
+            img_el = soup.select_one(".character-frame img, .profile_img img, .character_img img")
+            if img_el and img_el.has_attr('src'):
+                profile_img_url = img_el['src']
+
+            # 2. Stats
+            stats_map = {}
+            status_list = soup.select(".status_list li")
+            for li in status_list:
+                tit = li.select_one(".tit")
+                val = li.select_one(".val")
+                if tit and val:
+                    key = tit.get_text(strip=True)
+                    value = val.get_text(strip=True).replace(",", "")
+                    if "공격력" in key: stats_map["ap"] = int(value) if value.isdigit() else 0
+                    elif "마법 증폭력" in key: stats_map["magic_boost"] = int(value) if value.isdigit() else 0
+                    elif "치명타" in key: stats_map["crit_spell"] = int(value) if value.isdigit() else 0
+                    elif "마법 적중" in key: stats_map["magic_acc"] = int(value) if value.isdigit() else 0
+                    elif "명중" in key: stats_map["accuracy"] = int(value) if value.isdigit() else 0
+
+            # 3. Equipment
+            equipment_list = []
+            # Heuristic: Find all standard item slots
+            equip_slots = soup.select(".equip_slot, .item_slot, .slot_item")
+            
+            # Fallback A: Find by header "장비"
+            if not equip_slots:
+                 headers = soup.find_all(["h3", "h4", "strong"], string=re.compile("장비"))
+                 for h in headers:
+                     container = h.find_parent("div")
+                     if container:
+                         equip_slots = container.select("li, div[class*='slot']")
+                         if equip_slots: break
+
+            # Fallback B: Look for 'equip-list' class
+            if not equip_slots:
+                equip_list_container = soup.select_one(".equip-list, .equip_list")
+                if equip_list_container:
+                     equip_slots = equip_list_container.select("li")
+
+            for slot in equip_slots:
+                item_name_el = slot.select_one(".name, .item_name")
+                if item_name_el:
+                    full_name = item_name_el.get_text(strip=True)
+                    enchant = 0
+                    enchant_match = re.search(r"^\+(\d+)", full_name)
+                    if enchant_match:
+                        enchant = int(enchant_match.group(1))
+                        
+                    equipment_list.append({
+                        "name": full_name,
+                        "slot": "Unknown",
+                        "rarity": "Unknown",
+                        "author": "Unknown",
+                        "enhancement_level": enchant
+                    })
+
+            # 4. Construct DTO
+            class_name = "Unknown"
+            level = 1
+            
+            info_el = soup.select_one(".character_info, .profile_info")
+            if info_el:
+                lv_el = info_el.select_one(".level, .lv")
+                if lv_el:
+                    lv_text = lv_el.get_text(strip=True).replace("Lv", "").replace(".", "")
+                    if lv_text.isdigit(): level = int(lv_text)
+                
+                cls_el = info_el.select_one(".class, .job")
+                if cls_el:
+                    class_name = cls_el.get_text(strip=True)
+
+            logger.info(f"Parsed Detail: {name}, Equipment count: {len(equipment_list)}")
+
+            return CharacterDTO(
+                server=server,
+                name=name,
+                class_name=class_name,
+                level=level,
+                power=0,
+                updated_at=datetime.now(),
+                stats_json=stats_map,
+                character_image_url=profile_img_url,
+                equipment_data=equipment_list
+            )
+
         except Exception as e:
-            logger.error(f"✗ Scraping error for {server}:{name}: {e}")
-            raise ExternalSourceHTTPError(f"Scraping failed: {e}") from e
+            logger.warning(f"Error parsing detail page: {e}")
+            return None
 
     def _parse_response(
         self,
@@ -570,7 +820,8 @@ class ExternalSourceAdapter(BaseSourceAdapter):
         self,
         response: object,
         server: str,
-        name: str
+        name: str,
+        img_src_override: str = None
     ) -> CharacterDTO:
         """
         Parse HTML response (web scraping)
@@ -583,34 +834,65 @@ class ExternalSourceAdapter(BaseSourceAdapter):
             # --- Ranking Page Parsing Logic ---
             found_row = None
             rows = soup.find_all("tr")
-            
+
+            # Strategy: Prioritize Exact Match in Name Column
+            target_row_exact = None
+            target_row_partial = None
+
             for forrow in rows:
-                text = forrow.get_text(strip=True)
-                # Flexible matching
-                if name in text:
-                    found_row = forrow
-                    break
-            
+                cols = forrow.find_all("td")
+                if len(cols) >= 5:
+                    try:
+                        # Name is at -5 (Rank, Diff, Name, Server, Race, Class, Power - Wait, logic below uses -5)
+                        # Let's use the same index logic as extraction to be consistent
+                        row_name = cols[-5].get_text(strip=True)
+                        
+                        if row_name == name:
+                            target_row_exact = forrow
+                            break # Found exact match
+                        
+                        if name in row_name and target_row_partial is None:
+                            target_row_partial = forrow
+                    except:
+                        pass
+                
+                # Fallback to text search if column logic fails safely
+                elif name in forrow.get_text(strip=True) and target_row_partial is None:
+                    target_row_partial = forrow
+
+            found_row = target_row_exact or target_row_partial
+
             if found_row:
                 cols = found_row.find_all("td")
                 # Expected columns: Rank, Diff, Name, Server, Race, Class, Power
+                # Indexing: 0=Rank, 1=Name, 2=Server, 3=Race, 4=Class, 5=Power
                 if len(cols) >= 5: # Relaxed check
                     try:
                         # Use negative indexing for safer mapping
                         # Expected end: ... Server, Race, Class, Power
                         power_str = cols[-1].get_text(strip=True).replace(",", "")
                         extracted_class = cols[-2].get_text(strip=True)
-                        extracted_server = cols[-4].get_text(strip=True) # Skip Race (-3)
+                        extracted_race = cols[-3].get_text(strip=True)
+                        extracted_server = cols[-4].get_text(strip=True) 
                         extracted_name = cols[-5].get_text(strip=True) # Name is before Server
+
+                        stats_json = {
+                            "server_match": extracted_server,
+                            "race": extracted_race
+                        }
+                        if img_src_override:
+                            stats_json["img_src"] = img_src_override
+                        elif found_row.select_one("img"):
+                            stats_json["img_src"] = found_row.select_one("img")["src"]
 
                         character = CharacterDTO(
                             name=extracted_name,
-                            server=server, 
+                            server=server,
                             class_name=extracted_class,
-                            level=60, 
+                            level=60,
                             power=int(power_str) if power_str.isdigit() else 0,
                             updated_at=datetime.now(),
-                            stats_json={"server_match": extracted_server}
+                            stats_json=stats_json
                         )
                         
                         logger.info(

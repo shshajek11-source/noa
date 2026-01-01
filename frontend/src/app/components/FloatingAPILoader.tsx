@@ -1,15 +1,43 @@
 'use client'
-import { useState } from 'react'
-import { Download, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Download, X, Clock } from 'lucide-react'
 
 export default function FloatingAPILoader() {
     const [isOpen, setIsOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState('')
+    const [remainingTime, setRemainingTime] = useState(0)
 
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+    const COOLDOWN_TIME = 60 // 1분 (초 단위)
+
+    // 쿨다운 체크
+    useEffect(() => {
+        const checkCooldown = () => {
+            const lastLoadTime = localStorage.getItem('lastAPILoadTime')
+            if (lastLoadTime) {
+                const elapsed = Math.floor((Date.now() - parseInt(lastLoadTime)) / 1000)
+                const remaining = COOLDOWN_TIME - elapsed
+                if (remaining > 0) {
+                    setRemainingTime(remaining)
+                } else {
+                    setRemainingTime(0)
+                }
+            }
+        }
+
+        checkCooldown()
+        const interval = setInterval(checkCooldown, 1000)
+        return () => clearInterval(interval)
+    }, [])
 
     const loadData = async () => {
+        // 쿨다운 체크
+        if (remainingTime > 0) {
+            setMessage(`⏱️ ${remainingTime}초 후에 다시 사용할 수 있습니다.`)
+            return
+        }
+
         setLoading(true)
         setMessage('데이터 불러오는 중...')
 
@@ -18,7 +46,9 @@ export default function FloatingAPILoader() {
             const testCharacters = [
                 { server: 'Siel', name: '혼' },
                 { server: 'Siel', name: '톰' },
-                { server: 'Israphel', name: '젤' }
+                { server: 'Israphel', name: '젤' },
+                { server: 'Nezakan', name: '루시' },
+                { server: 'Zikel', name: '카이' }
             ]
 
             for (const char of testCharacters) {
@@ -26,6 +56,10 @@ export default function FloatingAPILoader() {
                 setMessage(`${char.server}:${char.name} 로딩 중...`)
                 await new Promise(resolve => setTimeout(resolve, 1000))
             }
+
+            // 마지막 실행 시간 저장
+            localStorage.setItem('lastAPILoadTime', Date.now().toString())
+            setRemainingTime(COOLDOWN_TIME)
 
             setMessage('✅ 데이터 로딩 완료!')
             setTimeout(() => {
@@ -107,18 +141,31 @@ export default function FloatingAPILoader() {
 
                     <button
                         onClick={loadData}
-                        disabled={loading}
+                        disabled={loading || remainingTime > 0}
                         className="btn"
                         style={{
                             width: '100%',
                             padding: '0.75rem',
-                            background: loading ? 'var(--bg-hover)' : 'var(--primary)',
+                            background: (loading || remainingTime > 0) ? 'var(--bg-hover)' : 'var(--primary)',
                             border: 'none',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            opacity: loading ? 0.6 : 1
+                            cursor: (loading || remainingTime > 0) ? 'not-allowed' : 'pointer',
+                            opacity: (loading || remainingTime > 0) ? 0.6 : 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem'
                         }}
                     >
-                        {loading ? '로딩 중...' : '데이터 불러오기'}
+                        {remainingTime > 0 ? (
+                            <>
+                                <Clock size={16} />
+                                {Math.floor(remainingTime / 60)}:{String(remainingTime % 60).padStart(2, '0')}
+                            </>
+                        ) : loading ? (
+                            '로딩 중...'
+                        ) : (
+                            '데이터 불러오기'
+                        )}
                     </button>
 
                     {message && (

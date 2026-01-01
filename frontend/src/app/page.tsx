@@ -56,7 +56,7 @@ export default function Home() {
                     marginBottom: '1rem',
                     color: 'white'
                 }}>
-                    AION<span style={{ color: 'var(--primary)' }}>2</span> ANALYTICS
+                    NO<span style={{ color: '#facc15' }}>A</span> - 아이온 2 정보 검색 사이트
                 </h1>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem' }}>
                     실시간 랭킹, 캐릭터 정보, 전투력 분석을 가장 빠르게 확인하세요.

@@ -40,6 +40,8 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}
       - REDIS_URL=redis://${REDIS_HOST}:6379/0
       - CORS_ORIGINS=${CORS_ORIGINS}
+      - SOURCE_ADAPTER_TYPE=external
+      - FETCH_COOLDOWN_SECONDS=60
     depends_on:
       db:
         condition: service_healthy

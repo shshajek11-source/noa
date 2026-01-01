@@ -1,0 +1,11 @@
+Row found for 혼
+Inner HTML: 
+                            <td class="rank"><div class="rank_wrap rank_gold">1<span class="rank_change">( - )</span></div></td>
+                            <td class="title"><img src="https://profileimg.plaync.com/game_profile_images/aion/images?gameServerKey=30&amp;charKey=1808802" alt=""><span class="text"><strong>혼</strong></span></td>
+                            <td class="server only_pc">시엘</td>
+                            <td class="race only_pc">마족</td>
+                            <td class="class only_pc">마검성</td>
+                            <td class="battlepoint">56,411</td>
+                        
+Attributes: {'class': 'bg_topranker'}
+Title Cell HTML: <img src="https://profileimg.plaync.com/game_profile_images/aion/images?gameServerKey=30&amp;charKey=1808802" alt=""><span class="text"><strong>혼</strong></span>

@@ -1,6 +1,7 @@
 import './globals.css'
 import Link from 'next/link'
 import FloatingAPILoader from './components/FloatingAPILoader'
+import FloatingDummyDataGenerator from './components/FloatingDummyDataGenerator'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             textDecoration: 'none',
                             letterSpacing: '-0.5px'
                         }}>
-                            AION<span style={{ color: 'var(--primary)' }}>2</span><span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginLeft: '0.3rem', fontWeight: '400' }}>TOOL</span>
+                            NO<span style={{ color: '#facc15' }}>A</span>
                         </Link>
 
                         {/* Main Nav */}
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
 
                 <FloatingAPILoader />
+                <FloatingDummyDataGenerator />
             </body>
         </html>
     )

@@ -1,0 +1,1 @@
+{"test_info":{"server":"Siel","name":"지존","timestamp":"2026-01-01T18:17:33.279795","adapter_type":"external"},"character_data":null,"error":{"type":"ExternalSourceTimeoutError","message":"Navigation failed: Page.wait_for_selector: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator(\".ranking_table tbody tr\") to be visible\n"},"db_saved":false}

@@ -1,0 +1,802 @@
+<!DOCTYPE html><html lang="ko" data-service="aion" data-platform="pcWeb"><head>
+    
+    
+
+    
+        
+        <title>캐릭터 : 아이온-NCSOFT</title>
+        <meta name="description" content="엔씨소프트의 MMORPG 아이온. 화려한 스킬과 비행 전투, 천족과 마족의 무한 경쟁이 펼쳐지는 아이온의 세계로 여러분을 초대합니다.">
+        <meta property="og:title" content="캐릭터 : 아이온-NCSOFT">
+        <meta property="og:description" content="엔씨소프트의 MMORPG 아이온. 화려한 스킬과 비행 전투, 천족과 마족의 무한 경쟁이 펼쳐지는 아이온의 세계로 여러분을 초대합니다.">
+        <meta name="twitter:title" content="캐릭터 : 아이온-NCSOFT">
+        <meta name="twitter:description" content="엔씨소프트의 MMORPG 아이온. 화려한 스킬과 비행 전투, 천족과 마족의 무한 경쟁이 펼쳐지는 아이온의 세계로 여러분을 초대합니다.">
+    
+
+    
+
+    
+    <meta name="keywords" content="아이온, aion, 엔씨소프트, MMORPG, NCSOFT">
+    <meta property="og:image" content="https://assets.playnccdn.com/aion-web/v1/img/common/aion_sns.jpg">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:image" content="https://assets.playnccdn.com/aion-web/v1/img/common/aion_sns.jpg">
+
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://assets.playnccdn.com/uikit/ncui/1.7.20/css/ncui.css?v=202509171304">
+    <link rel="stylesheet" href="https://assets.playnccdn.com/uikit/cnb/3.2.0/css/nc-cnb.css?v=202511111320">
+    
+	<link rel="stylesheet" href="https://assets.playnccdn.com/aion-web/v2/css/characters.css?v=202509171304">
+
+    <script type="text/javascript" async="" src="https://www.googletagmanager.com/gtag/js?id=G-57B434SQNW&amp;cx=c&amp;gtm=4e5ca1"></script><script async="" src="https://www.googletagmanager.com/gtm.js?id=GTM-MWZ4CLJ"></script><script src="https://assets.playnccdn.com/uikit/ncui/1.7.20/js/ncui.js?_=202509171304"></script>
+    <!-- meta -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <!-- Mobile -->
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, width=device-width, initial-scale=1.0">
+    <!-- shortcut -->
+    <link rel="shortcut icon" href="https://assets.playnccdn.com/common/aion.ico" type="image/x-icon">
+    <link rel="icon" href="https://assets.playnccdn.com/common/aion.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="https://assets.playnccdn.com/common/aion.ico" type="image/png">
+    
+	<!-- JS -->
+	<script src="https://assets.playnccdn.com/common/js/lib/jquery-3.1.0.min.js"></script>
+	
+	<!-- 다크모드 -->
+	<script>
+		var _isDarkmode = "false";
+	</script>
+	<script src="https://assets.playnccdn.com/uikit/uikit-dark-mode/js/ui.dark-mode.js?v=202509171304"></script><style>.btn-fixed-wrap{position:fixed;left:16px;bottom:16px;z-index:100}.btn-fixed-wrap .btn-theme{position:relative;display:block;height:40px;opacity:.95;border-radius:22px;-webkit-box-shadow:0 2px 4px 0 rgba(0,0,0,.25);box-shadow:0 2px 4px 0 rgba(0,0,0,.25);border:solid 1px #585858;background-color:#434343}html .btn-fixed-wrap .btn-theme-dark{display:none}html.dark-mode .btn-fixed-wrap .btn-theme-dark{display:block}html .btn-fixed-wrap .btn-theme-light{display:block}html.dark-mode .btn-fixed-wrap .btn-theme-light{display:none}.btn-fixed-wrap .btn-theme>button{height:100%;margin:0;padding:0 11px;background:rgba(0,0,0,0);outline:none;border:0;font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,Roboto,Verdana,Meiryo,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","MS PGothic","Microsoft JhengHei","Noto Sans TC","Open Sans","맑은 고딕","Malgun Gothic","돋움",Dotum,sans-serif}.btn-fixed-wrap .btn-theme>button .icon{display:inline-block;width:26px;height:26px;background-repeat:no-repeat;background-position:50%;background-size:cover;vertical-align:middle;overflow:hidden}html .btn-fixed-wrap .btn-theme>button .icon{background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNiIgaGVpZ2h0PSIyNiIgdmlld0JveD0iMCAwIDI2IDI2Ij48ZGVmcz48c3R5bGU+LmNscy0xe29wYWNpdHk6MC42O30uY2xzLTJ7ZmlsbDojZmZmO308L3N0eWxlPjwvZGVmcz48dGl0bGU+4YSP4YWl4YSG4YWy4YSC4YW14YSQ4YW1X+GEi+GFoeGEi+GFteGEj+GFqeGGq19kYXJrX3YxLjBf4YSA4YW14YSM4YWp4Yar4YSA4YWm4YSJ4YW14YSR4YWh4YarPC90aXRsZT48ZyBpZD0ic3dpdGNoX2xpZ2h0Ij48ZyBjbGFzcz0iY2xzLTEiPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTEwLDUuNWExMC4zOSwxMC4zOSwwLDAsMSwuMjEtMi4xQTEwLDEwLDAsMSwwLDIyLjYsMTUuNzlhMTAuMzksMTAuMzksMCwwLDEtMi4xLjIxQTEwLjUsMTAuNSwwLDAsMSwxMCw1LjVaTTEzLDIyQTksOSwwLDAsMSw5LDQuOTRjMCwuMTksMCwuMzcsMCwuNTZBMTEuNTEsMTEuNTEsMCwwLDAsMjAuNSwxN2guNTZBOSw5LDAsMCwxLDEzLDIyWiIvPjxwb2x5Z29uIGNsYXNzPSJjbHMtMiIgcG9pbnRzPSIyMCA2IDIwIDMgMTkgMyAxOSA2IDE2IDYgMTYgNyAxOSA3IDE5IDEwIDIwIDEwIDIwIDcgMjMgNyAyMyA2IDIwIDYiLz48L2c+PC9nPjwvc3ZnPg==)}html.dark-mode .btn-fixed-wrap .btn-theme>button .icon{background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNiIgaGVpZ2h0PSIyNiIgdmlld0JveD0iMCAwIDI2IDI2Ij48ZGVmcz48c3R5bGU+LmNscy0xLC5jbHMtMntvcGFjaXR5OjAuMjU7fS5jbHMtM3tmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjx0aXRsZT7hhI/hhaXhhIbhhbLhhILhhbXhhJDhhbVf4YSL4YWh4YSL4YW14YSP4YWp4YarX2RhcmtfdjEuMF/hhIDhhbXhhIzhhanhhqvhhIDhhabhhInhhbXhhJHhhaHhhqs8L3RpdGxlPjxnIGlkPSJzd2l0Y2hfZGFyayI+PGcgY2xhc3M9ImNscy0xIj48cGF0aCBkPSJNMTIsNy41YTEwLjM5LDEwLjM5LDAsMCwxLC4yMS0yLjFBMTAsMTAsMCwxLDAsMjQuNiwxNy43OWExMC4zOSwxMC4zOSwwLDAsMS0yLjEuMjFBMTAuNSwxMC41LDAsMCwxLDEyLDcuNVoiLz48L2c+PHBvbHlnb24gY2xhc3M9ImNscy0yIiBwb2ludHM9IjI1IDggMjIgOCAyMiA1IDIxIDUgMjEgOCAxOCA4IDE4IDkgMjEgOSAyMSAxMiAyMiAxMiAyMiA5IDI1IDkgMjUgOCIvPjxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTEwLDUuNWExMC4zOSwxMC4zOSwwLDAsMSwuMjEtMi4xQTEwLDEwLDAsMSwwLDIyLjYsMTUuNzlhMTAuMzksMTAuMzksMCwwLDEtMi4xLjIxQTEwLjUsMTAuNSwwLDAsMSwxMCw1LjVaIi8+PHBvbHlnb24gY2xhc3M9ImNscy0zIiBwb2ludHM9IjIzIDYgMjAgNiAyMCAzIDE5IDMgMTkgNiAxNiA2IDE2IDcgMTkgNyAxOSAxMCAyMCAxMCAyMCA3IDIzIDcgMjMgNiIvPjwvZz48L3N2Zz4=)}.btn-fixed-wrap .btn-theme>button .text{font-size:14px;letter-spacing:-0.7px;vertical-align:middle;display:inline-block}html .btn-fixed-wrap .btn-theme>button .text{color:rgba(255,255,255,.6)}html.dark-mode .btn-fixed-wrap .btn-theme>button .text{color:var(--ncui-point-text, #ff8940)}
+/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8uL3NyYy9zYXNzL0FwcC5zY3NzIiwid2VicGFjazovLy4vc3JjL3Nhc3MvbW9kdWxlL19kYXJrLW1vZGUuc2NzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxnQkNHQSxjQUNFLENBQUEsU0FDQSxDQUFBLFdBQ0EsQ0FBQSxXQUNBLENBQUEsMkJBRUEsaUJBQ0UsQ0FBQSxhQUNBLENBQUEsV0FDQSxDQUFBLFdBQ0EsQ0FBQSxrQkFDQSxDQUFBLDhDQUNBLENBREEsc0NBQ0EsQ0FBQSx3QkFDQSxDQUFBLHdCQUNBLENBQUEscUNBR0UsWUFDRSxDQUFBLCtDQUVGLGFBQ0UsQ0FBQSxzQ0FLRixhQUNFLENBQUEsZ0RBRUYsWUFDRSxDQUFBLGtDQUlKLFdBQ0UsQ0FBQSxRQUNBLENBQUEsY0FDQSxDQUFBLHdCQUNBLENBQUEsWUFDQSxDQUFBLFFBQ0EsQ0FBQSxnQkFDQSxDQUFBLHdOQUNBLENBQUEsd0NBRUEsb0JBQ0UsQ0FBQSxVQUNBLENBQUEsV0FDQSxDQUFBLDJCQUNBLENBQUEsdUJBQ0EsQ0FBQSxxQkFDQSxDQUFBLHFCQUNBLENBQUEsZUFDQSxDQUFBLDZDQUVBLHdEQUVFLENBQUEsdURBR0Ysd0RBRUUsQ0FBQSx3Q0FJSixjQUNFLENBQUEscUJBQ0EsQ0FBQSxxQkFDQSxDQUFBLG9CQUNBLENBQUEsNkNBRUEsMEJBQ0UsQ0FBQSx1REFFRixxQ0FDRSIsInNvdXJjZXNDb250ZW50IjpbIi5idG4tZml4ZWQtd3JhcHtwb3NpdGlvbjpmaXhlZDtsZWZ0OjE2cHg7Ym90dG9tOjE2cHg7ei1pbmRleDoxMDB9LmJ0bi1maXhlZC13cmFwIC5idG4tdGhlbWV7cG9zaXRpb246cmVsYXRpdmU7ZGlzcGxheTpibG9jaztoZWlnaHQ6NDBweDtvcGFjaXR5Oi45NTtib3JkZXItcmFkaXVzOjIycHg7Ym94LXNoYWRvdzowIDJweCA0cHggMCByZ2JhKDAsMCwwLC4yNSk7Ym9yZGVyOnNvbGlkIDFweCAjNTg1ODU4O2JhY2tncm91bmQtY29sb3I6IzQzNDM0M31odG1sIC5idG4tZml4ZWQtd3JhcCAuYnRuLXRoZW1lLWRhcmt7ZGlzcGxheTpub25lfWh0bWwuZGFyay1tb2RlIC5idG4tZml4ZWQtd3JhcCAuYnRuLXRoZW1lLWRhcmt7ZGlzcGxheTpibG9ja31odG1sIC5idG4tZml4ZWQtd3JhcCAuYnRuLXRoZW1lLWxpZ2h0e2Rpc3BsYXk6YmxvY2t9aHRtbC5kYXJrLW1vZGUgLmJ0bi1maXhlZC13cmFwIC5idG4tdGhlbWUtbGlnaHR7ZGlzcGxheTpub25lfS5idG4tZml4ZWQtd3JhcCAuYnRuLXRoZW1lPmJ1dHRvbntoZWlnaHQ6MTAwJTttYXJnaW46MDtwYWRkaW5nOjAgMTFweDtiYWNrZ3JvdW5kOnJnYmEoMCwwLDAsMCk7b3V0bGluZTpub25lO2JvcmRlcjowO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1mYW1pbHk6LWFwcGxlLXN5c3RlbSxCbGlua01hY1N5c3RlbUZvbnQsUm9ib3RvLFZlcmRhbmEsTWVpcnlvLFwi44OS44Op44Ku44OO6KeS44K0IFBybyBXM1wiLFwiSGlyYWdpbm8gS2FrdSBHb3RoaWMgUHJvXCIsXCJNUyBQR290aGljXCIsXCJNaWNyb3NvZnQgSmhlbmdIZWlcIixcIk5vdG8gU2FucyBUQ1wiLFwiT3BlbiBTYW5zXCIsXCLrp5HsnYAg6rOg65SVXCIsXCJNYWxndW4gR290aGljXCIsXCLrj4vsm4BcIixEb3R1bSxzYW5zLXNlcmlmfS5idG4tZml4ZWQtd3JhcCAuYnRuLXRoZW1lPmJ1dHRvbiAuaWNvbntkaXNwbGF5OmlubGluZS1ibG9jazt3aWR0aDoyNnB4O2hlaWdodDoyNnB4O2JhY2tncm91bmQtcmVwZWF0Om5vLXJlcGVhdDtiYWNrZ3JvdW5kLXBvc2l0aW9uOjUwJTtiYWNrZ3JvdW5kLXNpemU6Y292ZXI7dmVydGljYWwtYWxpZ246bWlkZGxlO292ZXJmbG93OmhpZGRlbn1odG1sIC5idG4tZml4ZWQtd3JhcCAuYnRuLXRoZW1lPmJ1dHRvbiAuaWNvbntiYWNrZ3JvdW5kLWltYWdlOnVybChcImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIZHBaSFJvUFNJeU5pSWdhR1ZwWjJoMFBTSXlOaUlnZG1sbGQwSnZlRDBpTUNBd0lESTJJREkySWo0OFpHVm1jejQ4YzNSNWJHVStMbU5zY3kweGUyOXdZV05wZEhrNk1DNDJPMzB1WTJ4ekxUSjdabWxzYkRvalptWm1PMzA4TDNOMGVXeGxQand2WkdWbWN6NDhkR2wwYkdVKzRZU1A0WVdsNFlTRzRZV3k0WVNDNFlXMTRZU1E0WVcxWCtHRWkrR0ZvZUdFaStHRnRlR0VqK0dGcWVHR3ExOWtZWEpyWDNZeExqQmY0WVNBNFlXMTRZU000WVdwNFlhcjRZU0E0WVdtNFlTSjRZVzE0WVNSNFlXaDRZYXJQQzkwYVhSc1pUNDhaeUJwWkQwaWMzZHBkR05vWDJ4cFoyaDBJajQ4WnlCamJHRnpjejBpWTJ4ekxURWlQanh3WVhSb0lHTnNZWE56UFNKamJITXRNaUlnWkQwaVRURXdMRFV1TldFeE1DNHpPU3d4TUM0ek9Td3dMREFzTVN3dU1qRXRNaTR4UVRFd0xERXdMREFzTVN3d0xESXlMallzTVRVdU56bGhNVEF1TXprc01UQXVNemtzTUN3d0xERXRNaTR4TGpJeFFURXdMalVzTVRBdU5Td3dMREFzTVN3eE1DdzFMalZhVFRFekxESXlRVGtzT1N3d0xEQXNNU3c1TERRdU9UUmpNQ3d1TVRrc01Dd3VNemNzTUN3dU5UWkJNVEV1TlRFc01URXVOVEVzTUN3d0xEQXNNakF1TlN3eE4yZ3VOVFpCT1N3NUxEQXNNQ3d4TERFekxESXlXaUl2UGp4d2IyeDVaMjl1SUdOc1lYTnpQU0pqYkhNdE1pSWdjRzlwYm5SelBTSXlNQ0EySURJd0lETWdNVGtnTXlBeE9TQTJJREUySURZZ01UWWdOeUF4T1NBM0lERTVJREV3SURJd0lERXdJREl3SURjZ01qTWdOeUF5TXlBMklESXdJRFlpTHo0OEwyYytQQzluUGp3dmMzWm5QZz09XCIpfWh0bWwuZGFyay1tb2RlIC5idG4tZml4ZWQtd3JhcCAuYnRuLXRoZW1lPmJ1dHRvbiAuaWNvbntiYWNrZ3JvdW5kLWltYWdlOnVybChcImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIZHBaSFJvUFNJeU5pSWdhR1ZwWjJoMFBTSXlOaUlnZG1sbGQwSnZlRDBpTUNBd0lESTJJREkySWo0OFpHVm1jejQ4YzNSNWJHVStMbU5zY3kweExDNWpiSE10TW50dmNHRmphWFI1T2pBdU1qVTdmUzVqYkhNdE0zdG1hV3hzT2lObVptWTdmVHd2YzNSNWJHVStQQzlrWldaelBqeDBhWFJzWlQ3aGhJL2hoYVhoaEliaGhiTGhoSUxoaGJYaGhKRGhoYlZmNFlTTDRZV2g0WVNMNFlXMTRZU1A0WVdwNFlhclgyUmhjbXRmZGpFdU1GL2hoSURoaGJYaGhJemhoYW5oaHF2aGhJRGhoYWJoaEluaGhiWGhoSkhoaGFIaGhxczhMM1JwZEd4bFBqeG5JR2xrUFNKemQybDBZMmhmWkdGeWF5SStQR2NnWTJ4aGMzTTlJbU5zY3kweElqNDhjR0YwYUNCa1BTSk5NVElzTnk0MVlURXdMak01TERFd0xqTTVMREFzTUN3eExDNHlNUzB5TGpGQk1UQXNNVEFzTUN3eExEQXNNalF1Tml3eE55NDNPV0V4TUM0ek9Td3hNQzR6T1N3d0xEQXNNUzB5TGpFdU1qRkJNVEF1TlN3eE1DNDFMREFzTUN3eExERXlMRGN1TlZvaUx6NDhMMmMrUEhCdmJIbG5iMjRnWTJ4aGMzTTlJbU5zY3kweUlpQndiMmx1ZEhNOUlqSTFJRGdnTWpJZ09DQXlNaUExSURJeElEVWdNakVnT0NBeE9DQTRJREU0SURrZ01qRWdPU0F5TVNBeE1pQXlNaUF4TWlBeU1pQTVJREkxSURrZ01qVWdPQ0l2UGp4d1lYUm9JR05zWVhOelBTSmpiSE10TXlJZ1pEMGlUVEV3TERVdU5XRXhNQzR6T1N3eE1DNHpPU3d3TERBc01Td3VNakV0TWk0eFFURXdMREV3TERBc01Td3dMREl5TGpZc01UVXVOemxoTVRBdU16a3NNVEF1TXprc01Dd3dMREV0TWk0eExqSXhRVEV3TGpVc01UQXVOU3d3TERBc01Td3hNQ3cxTGpWYUlpOCtQSEJ2YkhsbmIyNGdZMnhoYzNNOUltTnNjeTB6SWlCd2IybHVkSE05SWpJeklEWWdNakFnTmlBeU1DQXpJREU1SURNZ01Ua2dOaUF4TmlBMklERTJJRGNnTVRrZ055QXhPU0F4TUNBeU1DQXhNQ0F5TUNBM0lESXpJRGNnTWpNZ05pSXZQand2Wno0OEwzTjJaejQ9XCIpfS5idG4tZml4ZWQtd3JhcCAuYnRuLXRoZW1lPmJ1dHRvbiAudGV4dHtmb250LXNpemU6MTRweDtsZXR0ZXItc3BhY2luZzotMC43cHg7dmVydGljYWwtYWxpZ246bWlkZGxlO2Rpc3BsYXk6aW5saW5lLWJsb2NrfWh0bWwgLmJ0bi1maXhlZC13cmFwIC5idG4tdGhlbWU+YnV0dG9uIC50ZXh0e2NvbG9yOnJnYmEoMjU1LDI1NSwyNTUsLjYpfWh0bWwuZGFyay1tb2RlIC5idG4tZml4ZWQtd3JhcCAuYnRuLXRoZW1lPmJ1dHRvbiAudGV4dHtjb2xvcjp2YXIoLS1uY3VpLXBvaW50LXRleHQsICNmZjg5NDApfSIsIi8vIHRoZW1lLW1vZGUtc3dpdGNoXG4vLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG5cbi5idG4tZml4ZWQtd3JhcCB7XG4gIHBvc2l0aW9uOiBmaXhlZDtcbiAgbGVmdDogMTZweDtcbiAgYm90dG9tOiAxNnB4O1xuICB6LWluZGV4OiAxMDA7XG5cbiAgLmJ0bi10aGVtZSB7XG4gICAgcG9zaXRpb246IHJlbGF0aXZlO1xuICAgIGRpc3BsYXk6IGJsb2NrO1xuICAgIGhlaWdodDogNDBweDtcbiAgICBvcGFjaXR5OiAwLjk1O1xuICAgIGJvcmRlci1yYWRpdXM6IDIycHg7XG4gICAgYm94LXNoYWRvdzogMCAycHggNHB4IDAgcmdiYSgwLCAwLCAwLCAwLjI1KTtcbiAgICBib3JkZXI6IHNvbGlkIDFweCAjNTg1ODU4O1xuICAgIGJhY2tncm91bmQtY29sb3I6ICM0MzQzNDM7XG5cbiAgICAmLWRhcmsge1xuICAgICAgaHRtbCAmIHtcbiAgICAgICAgZGlzcGxheTogbm9uZTtcbiAgICAgIH1cbiAgICAgIGh0bWwuZGFyay1tb2RlICYge1xuICAgICAgICBkaXNwbGF5OiBibG9jaztcbiAgICAgIH1cbiAgICB9XG5cbiAgICAmLWxpZ2h0IHtcbiAgICAgIGh0bWwgJiB7XG4gICAgICAgIGRpc3BsYXk6IGJsb2NrO1xuICAgICAgfVxuICAgICAgaHRtbC5kYXJrLW1vZGUgJiB7XG4gICAgICAgIGRpc3BsYXk6IG5vbmU7XG4gICAgICB9XG4gICAgfVxuXG4gICAgPiBidXR0b24ge1xuICAgICAgaGVpZ2h0OiAxMDAlO1xuICAgICAgbWFyZ2luOiAwO1xuICAgICAgcGFkZGluZzogMCAxMXB4O1xuICAgICAgYmFja2dyb3VuZDogdHJhbnNwYXJlbnQ7XG4gICAgICBvdXRsaW5lOiBub25lO1xuICAgICAgYm9yZGVyOiAwO1xuICAgICAgZm9udC13ZWlnaHQ6IGJvbGQ7XG4gICAgICBmb250LWZhbWlseTogLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCBSb2JvdG8sIFZlcmRhbmEsIE1laXJ5bywgXCLjg5Ljg6njgq7jg47op5LjgrQgUHJvIFczXCIsIFwiSGlyYWdpbm8gS2FrdSBHb3RoaWMgUHJvXCIsIFwiTVMgUEdvdGhpY1wiLCBcIk1pY3Jvc29mdCBKaGVuZ0hlaVwiLCBcIk5vdG8gU2FucyBUQ1wiLCBcIk9wZW4gU2Fuc1wiLCBcIuunkeydgCDqs6DrlJVcIiwgXCJNYWxndW4gR290aGljXCIsIFwi64+L7JuAXCIsIERvdHVtLCBzYW5zLXNlcmlmO1xuXG4gICAgICAuaWNvbiB7XG4gICAgICAgIGRpc3BsYXk6IGlubGluZS1ibG9jaztcbiAgICAgICAgd2lkdGg6IDI2cHg7XG4gICAgICAgIGhlaWdodDogMjZweDtcbiAgICAgICAgYmFja2dyb3VuZC1yZXBlYXQ6IG5vLXJlcGVhdDtcbiAgICAgICAgYmFja2dyb3VuZC1wb3NpdGlvbjogNTAlO1xuICAgICAgICBiYWNrZ3JvdW5kLXNpemU6IGNvdmVyO1xuICAgICAgICB2ZXJ0aWNhbC1hbGlnbjogbWlkZGxlO1xuICAgICAgICBvdmVyZmxvdzogaGlkZGVuO1xuXG4gICAgICAgIGh0bWwgJiB7XG4gICAgICAgICAgLy8gYmFja2dyb3VuZC1pbWFnZTogdXJsKCcuLi9zdmcvc3dpdGNoLWxpZ2h0LnN2ZycpO1xuICAgICAgICAgIGJhY2tncm91bmQtaW1hZ2U6IHVybCgnZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0l5TmlJZ2FHVnBaMmgwUFNJeU5pSWdkbWxsZDBKdmVEMGlNQ0F3SURJMklESTJJajQ4WkdWbWN6NDhjM1I1YkdVK0xtTnNjeTB4ZTI5d1lXTnBkSGs2TUM0Mk8zMHVZMnh6TFRKN1ptbHNiRG9qWm1abU8zMDhMM04wZVd4bFBqd3ZaR1ZtY3o0OGRHbDBiR1UrNFlTUDRZV2w0WVNHNFlXeTRZU0M0WVcxNFlTUTRZVzFYK0dFaStHRm9lR0VpK0dGdGVHRWorR0ZxZUdHcTE5a1lYSnJYM1l4TGpCZjRZU0E0WVcxNFlTTTRZV3A0WWFyNFlTQTRZV200WVNKNFlXMTRZU1I0WVdoNFlhclBDOTBhWFJzWlQ0OFp5QnBaRDBpYzNkcGRHTm9YMnhwWjJoMElqNDhaeUJqYkdGemN6MGlZMnh6TFRFaVBqeHdZWFJvSUdOc1lYTnpQU0pqYkhNdE1pSWdaRDBpVFRFd0xEVXVOV0V4TUM0ek9Td3hNQzR6T1N3d0xEQXNNU3d1TWpFdE1pNHhRVEV3TERFd0xEQXNNU3d3TERJeUxqWXNNVFV1TnpsaE1UQXVNemtzTVRBdU16a3NNQ3d3TERFdE1pNHhMakl4UVRFd0xqVXNNVEF1TlN3d0xEQXNNU3d4TUN3MUxqVmFUVEV6TERJeVFUa3NPU3d3TERBc01TdzVMRFF1T1RSak1Dd3VNVGtzTUN3dU16Y3NNQ3d1TlRaQk1URXVOVEVzTVRFdU5URXNNQ3d3TERBc01qQXVOU3d4TjJndU5UWkJPU3c1TERBc01Dd3hMREV6TERJeVdpSXZQanh3YjJ4NVoyOXVJR05zWVhOelBTSmpiSE10TWlJZ2NHOXBiblJ6UFNJeU1DQTJJREl3SURNZ01Ua2dNeUF4T1NBMklERTJJRFlnTVRZZ055QXhPU0EzSURFNUlERXdJREl3SURFd0lESXdJRGNnTWpNZ055QXlNeUEySURJd0lEWWlMejQ4TDJjK1BDOW5Qand2YzNablBnPT0nKTtcbiAgICAgICAgfVxuXG4gICAgICAgIGh0bWwuZGFyay1tb2RlICYge1xuICAgICAgICAgIC8vIGJhY2tncm91bmQtaW1hZ2U6IHVybCgnLi4vc3ZnL3N3aXRjaC1kYXJrLnN2ZycpO1xuICAgICAgICAgIGJhY2tncm91bmQtaW1hZ2U6IHVybCgnZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0l5TmlJZ2FHVnBaMmgwUFNJeU5pSWdkbWxsZDBKdmVEMGlNQ0F3SURJMklESTJJajQ4WkdWbWN6NDhjM1I1YkdVK0xtTnNjeTB4TEM1amJITXRNbnR2Y0dGamFYUjVPakF1TWpVN2ZTNWpiSE10TTN0bWFXeHNPaU5tWm1ZN2ZUd3ZjM1I1YkdVK1BDOWtaV1p6UGp4MGFYUnNaVDdoaEkvaGhhWGhoSWJoaGJMaGhJTGhoYlhoaEpEaGhiVmY0WVNMNFlXaDRZU0w0WVcxNFlTUDRZV3A0WWFyWDJSaGNtdGZkakV1TUYvaGhJRGhoYlhoaEl6aGhhbmhocXZoaElEaGhhYmhoSW5oaGJYaGhKSGhoYUhoaHFzOEwzUnBkR3hsUGp4bklHbGtQU0p6ZDJsMFkyaGZaR0Z5YXlJK1BHY2dZMnhoYzNNOUltTnNjeTB4SWo0OGNHRjBhQ0JrUFNKTk1USXNOeTQxWVRFd0xqTTVMREV3TGpNNUxEQXNNQ3d4TEM0eU1TMHlMakZCTVRBc01UQXNNQ3d4TERBc01qUXVOaXd4Tnk0M09XRXhNQzR6T1N3eE1DNHpPU3d3TERBc01TMHlMakV1TWpGQk1UQXVOU3d4TUM0MUxEQXNNQ3d4TERFeUxEY3VOVm9pTHo0OEwyYytQSEJ2YkhsbmIyNGdZMnhoYzNNOUltTnNjeTB5SWlCd2IybHVkSE05SWpJMUlEZ2dNaklnT0NBeU1pQTFJREl4SURVZ01qRWdPQ0F4T0NBNElERTRJRGtnTWpFZ09TQXlNU0F4TWlBeU1pQXhNaUF5TWlBNUlESTFJRGtnTWpVZ09DSXZQanh3WVhSb0lHTnNZWE56UFNKamJITXRNeUlnWkQwaVRURXdMRFV1TldFeE1DNHpPU3d4TUM0ek9Td3dMREFzTVN3dU1qRXRNaTR4UVRFd0xERXdMREFzTVN3d0xESXlMallzTVRVdU56bGhNVEF1TXprc01UQXVNemtzTUN3d0xERXRNaTR4TGpJeFFURXdMalVzTVRBdU5Td3dMREFzTVN3eE1DdzFMalZhSWk4K1BIQnZiSGxuYjI0Z1kyeGhjM005SW1Oc2N5MHpJaUJ3YjJsdWRITTlJakl6SURZZ01qQWdOaUF5TUNBeklERTVJRE1nTVRrZ05pQXhOaUEySURFMklEY2dNVGtnTnlBeE9TQXhNQ0F5TUNBeE1DQXlNQ0EzSURJeklEY2dNak1nTmlJdlBqd3ZaejQ4TDNOMlp6ND0nKTtcbiAgICAgICAgfVxuICAgICAgfVxuXG4gICAgICAudGV4dCB7XG4gICAgICAgIGZvbnQtc2l6ZTogMTRweDtcbiAgICAgICAgbGV0dGVyLXNwYWNpbmc6IC0wLjdweDtcbiAgICAgICAgdmVydGljYWwtYWxpZ246IG1pZGRsZTtcbiAgICAgICAgZGlzcGxheTogaW5saW5lLWJsb2NrO1xuXG4gICAgICAgIGh0bWwgJiB7XG4gICAgICAgICAgY29sb3I6IHJnYmEoMjU1LCAyNTUsIDI1NSwgMC42KTtcbiAgICAgICAgfVxuICAgICAgICBodG1sLmRhcmstbW9kZSAmIHtcbiAgICAgICAgICBjb2xvcjogdmFyKC0tbmN1aS1wb2ludC10ZXh0LCAjZmY4OTQwKTtcbiAgICAgICAgfVxuICAgICAgfVxuICAgIH1cbiAgfVxufVxuIl0sInNvdXJjZVJvb3QiOiIifQ== */</style>
+	
+	
+	
+		<script>
+			// darkmode
+			new window._ui.darkmode();
+		</script>
+	
+	<!-- // 다크모드 -->
+	<!-- IE 리다이렉트 -->
+	<script>
+		if(navigator.userAgent.indexOf('MSIE') > -1 || navigator.userAgent.indexOf('Trident') > -1){
+			/* https://assets.playnccdn.com = asset 도메인 */
+			location.href = "https://assets.playnccdn.com" + '/support/not-supported-ie/html/index.html?lang='+ document.documentElement.getAttribute('lang');
+		}
+	</script>
+	<!-- // IE 리다이렉트 -->
+	<!-- Google Tag Manager -->
+	<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+				new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+			j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+			'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+	})(window,document,'script','dataLayer','GTM-MWZ4CLJ');</script>
+	<!-- End Google Tag Manager -->
+	<!-- 프로모션코드 -->
+	
+        
+    
+	<!-- //프로모션코드 -->
+<style>.custom-theme#nc-cnb .ncc-gnb-wrap .ncc-bi{background-image:url(https://fizz-download.playnccdn.com/download/v2/buckets/conti-upload/files/19b06d50cab-fa68a56d-3cf1-48e9-a274-57e836898c59);margin-top:2px;height:46px;width:70px;text-indent:-9999em;white-space:nowrap;overflow:hidden;background-size:cover;background-repeat:no-repeat;background-position:center center;}.custom-theme#nc-cnb .ncc-lnb-header-bi .ncc-bi{background-image:url(https://fizz-download.playnccdn.com/download/v2/buckets/conti-upload/files/19b06d50cab-fa68a56d-3cf1-48e9-a274-57e836898c59);margin-top:2px;height:46px;width:70px;text-indent:-9999em;white-space:nowrap;overflow:hidden;background-size:cover;background-repeat:no-repeat;background-position:center center;}@media (min-width: 960px){.custom-theme#nc-cnb .ncc-gnb-wrap .ncc-bi{background-image:url(https://fizz-download.playnccdn.com/download/v2/buckets/conti-upload/files/19b06d50ca7-f2867c5d-7a49-419b-a81c-e7aedf7639b0);width:70px;height:46px;margin-top:2px;}}</style></head>
+<body class="pc UNKNOWN page-characters  ">
+    <!-- 프로모션코드 -->
+    
+        
+    
+    <!-- //프로모션코드 -->
+
+    <!-- (s) CNB -->
+    
+	<div id="nc-cnb" class="nc-cnb aion_cnb custom-theme is-top" data-ncc-device="pc" data-cnb-type="a" data-theme="aion">
+        <div class="ncc-header is-child-nav">
+            <div class="ncc-gnb-wrap">
+                <div class="ncc-gnb-wrap__bg"></div>
+                <div class="ncc-logo">
+                    <a class="ncc-ncservice-btn" href="#">Open<span><i></i><i></i><i></i></span></a>
+                    <a class="ncc-bi" data-type="image" href="https://aion.plaync.com/" target="_self"><span>Aion</span></a>
+                </div>
+                
+        <div class="ncc-search ncc-search--right-pc">
+            <fieldset>
+                <legend>Search</legend>
+                <div class="ncc-search-wrap">
+                    <input class="ncc-search-close" type="button" value="취소" title="취소">
+                    
+          <div id="nccSuggestForm"> <form role="search" data-name="suggest_form" data-use-default-css="false" class="" onsubmit="return false;"><input data-name="suggest_input" class="ncc-search-input" type="search" autocomplete="off" placeholder="통합검색"><button data-name="suggest_delete" class="ncc-search-input-delete" type="button" value="Delete" style="display: none;"></button><button data-name="suggest_submit" class="ncc-search-submit" type="button" value="Search"></button><div data-name="suggest_wrap" class="ncc-suggest-list-wrap"><div data-name="suggest_list" class="ncc-suggest-list" style="display: none;"><div data-name="suggest_scroll" class="suggest_scroll"><ul></ul></div></div><div data-name="suggest_recent" style="display: none;"></div></div></form></div>
+          
+                </div>
+            </fieldset>
+        </div>
+                <div class="ncc-gnb-wrap__right">
+                    <div class="ncc-search-mobile">
+            <button type="button" class="ncc-search-mobile__btn">Search</button>
+        </div>
+                    
+		<div class="ncc-login">
+		    
+            <div class="ncc-login--before">
+                <a href="" class="ncc-login__link ncc-login__link-login">로그인</a>
+                
+                <a href="https://login.plaync.com/nclogin/signup" class="ncc-login__link ncc-login__link-join"> 회원가입</a>
+                
+            </div>
+            
+		</div>
+                    
+                    <div class="ncc-cs ">
+            <a href="https://help.plaync.com/faq/aion">
+                <span class="ncc-cs__text">고객지원</span>
+            </a>
+        </div>
+                </div>
+            </div>
+            
+        <div class="ncc-lnb-wrap">
+            <div class="ncc-gamestart"><div class="ncc-gamestart-btn"><a href="https://aion.plaync.com/download/home" class="ncc-gamestart-btn__platform" target="_self" data-contents="홈_다운로드 버튼_선택">
+                    <span class="ncc-gamestart-btn__platform-text">Download</span>
+                </a></div></div>
+            
+            
+        <nav class="ncc-lnb ncc-lnb-type--main">
+            <ul class="ncc-lnb-list"><li class="ncc-lnb-item m1"><a href="https://aion.plaync.com/board/notice/worldselect" data-type="new"><span>소식</span><em class="icon-new">N</em></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/board/notice/worldselect" data-type="new"><span>공지</span><em class="icon-new">N</em></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/board/update/worldselect" data-type="new"><span>업데이트</span><em class="icon-new">N</em></a></li>
+ <li class="s3"><a href="https://aion.plaync.com/history/home" data-type="new"><span>업데이트 연대기</span><em class="icon-new">N</em></a></li></ul></li>
+ <li class="ncc-lnb-item m2"><a href="https://aion.plaync.com/board/news/worldselect" data-type="new"><span>아이온 뉴스</span><em class="icon-new">N</em></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/board/news/worldselect" data-type="new"><span>아이온 뉴스</span><em class="icon-new">N</em></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/board/developers/list" target="_self"><span>개발자 노트</span></a></li></ul></li>
+ <li class="ncc-lnb-item m3"><a href="https://aion.plaync.com/eventon" data-type="new"><span>이벤트ON</span><em class="icon-new">N</em></a></li>
+ <li class="ncc-lnb-item m4"><a href="https://aion.plaync.com/guidebook/worldselect" data-type="new"><span>가이드북</span><em class="icon-new">N</em></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/guidebook/worldselect" data-type="new"><span>가이드북</span><em class="icon-new">N</em></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/pcbang/classichome" target="_self"><span>PC방 혜택</span></a></li></ul></li>
+ <li class="ncc-lnb-item m5"><a href="https://aion.plaync.com/schedule/worldselect" target="_self"><span>월드</span></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/schedule/worldselect" target="_self"><span>데바 일정표</span></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/ranking/battle?world=classic" target="_self"><span>랭킹</span></a></li>
+ <li class="s3"><a href="https://aion.plaync.com/legions/home" target="_self"><span>레기온</span></a></li></ul></li>
+ <li class="ncc-lnb-item m6"><a href="https://aion.plaync.com/board/aionboard/worldselect" target="_self"><span>커뮤니티</span></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/board/aionboard/worldselect" target="_self"><span>자유</span></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/board/server/worldselect" target="_self"><span>서버</span></a></li>
+ <li class="s3"><a href="https://aion.plaync.com/board/image/worldselect" target="_self"><span>이미지</span></a></li></ul></li>
+ <li class="ncc-lnb-item m7"><a href="https://store.plaync.com/worldSelect?store=aion" target="_self"><span>아이온샵</span></a></li>
+ <li class="ncc-lnb-item m8"><a href="https://store.plaync.com/point/aionpoint" data-type="external" target="_blank"><span>포인트샵</span><em class="icon-external">external</em></a></li>
+ <li class="ncc-lnb-item m9"><a href="https://aion.plaync.com/art/digitalkit" target="_self"><span>자료실</span></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/art/digitalkit" target="_self"><span>아트</span></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/cartoon/home" target="_self"><span>스토리</span></a></li></ul></li></ul>
+        </nav>
+        </div>
+        
+        </div>
+        
+        <div class="ncc-left-panel">
+            <div class="ncc-left-panel-wrap">
+                <div class="ncc-left-panel-header">
+                    <div class="ncc-lnb-header-bi">
+                        <a href="https://aion.plaync.com/" class="ncc-bi" target="_self">
+                        Aion
+                        </a>
+                    </div>
+                    <div class="ncc-lnb-header-ncservice">PLAYNC 서비스</div>
+                    <a href="#" class="ncc-left-panel-close">Close</a>
+                </div>
+                
+                <div class="ncc-left-panel-content">
+                    <div>
+                        <nav class="ncc-lnb-m">
+            <ul class="ncc-lnb-list"><li class="ncc-lnb-item m1"><a href="https://aion.plaync.com/board/notice/worldselect" data-type="new"><span>소식</span><em class="icon-new">N</em></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/board/notice/worldselect" data-type="new"><span>공지</span><em class="icon-new">N</em></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/board/update/worldselect" data-type="new"><span>업데이트</span><em class="icon-new">N</em></a></li>
+ <li class="s3"><a href="https://aion.plaync.com/history/home" data-type="new"><span>업데이트 연대기</span><em class="icon-new">N</em></a></li></ul></li>
+ <li class="ncc-lnb-item m2"><a href="https://aion.plaync.com/board/news/worldselect" data-type="new"><span>아이온 뉴스</span><em class="icon-new">N</em></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/board/news/worldselect" data-type="new"><span>아이온 뉴스</span><em class="icon-new">N</em></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/board/developers/list" target="_self"><span>개발자 노트</span></a></li></ul></li>
+ <li class="ncc-lnb-item m3"><a href="https://aion.plaync.com/eventon" data-type="new"><span>이벤트ON</span><em class="icon-new">N</em></a></li>
+ <li class="ncc-lnb-item m4"><a href="https://aion.plaync.com/guidebook/worldselect" data-type="new"><span>가이드북</span><em class="icon-new">N</em></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/guidebook/worldselect" data-type="new"><span>가이드북</span><em class="icon-new">N</em></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/pcbang/classichome" target="_self"><span>PC방 혜택</span></a></li></ul></li>
+ <li class="ncc-lnb-item m5"><a href="https://aion.plaync.com/schedule/worldselect" target="_self"><span>월드</span></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/schedule/worldselect" target="_self"><span>데바 일정표</span></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/ranking/battle?world=classic" target="_self"><span>랭킹</span></a></li>
+ <li class="s3"><a href="https://aion.plaync.com/legions/home" target="_self"><span>레기온</span></a></li></ul></li>
+ <li class="ncc-lnb-item m6"><a href="https://aion.plaync.com/board/aionboard/worldselect" target="_self"><span>커뮤니티</span></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/board/aionboard/worldselect" target="_self"><span>자유</span></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/board/server/worldselect" target="_self"><span>서버</span></a></li>
+ <li class="s3"><a href="https://aion.plaync.com/board/image/worldselect" target="_self"><span>이미지</span></a></li></ul></li>
+ <li class="ncc-lnb-item m7"><a href="https://store.plaync.com/worldSelect?store=aion" target="_self"><span>아이온샵</span></a></li>
+ <li class="ncc-lnb-item m8"><a href="https://store.plaync.com/point/aionpoint" data-type="external" target="_blank"><span>포인트샵</span><em class="icon-external">external</em></a></li>
+ <li class="ncc-lnb-item m9"><a href="https://aion.plaync.com/art/digitalkit" target="_self"><span>자료실</span></a><ul class="ncc-lnb-item__sub"><li class="s1"><a href="https://aion.plaync.com/art/digitalkit" target="_self"><span>아트</span></a></li>
+ <li class="s2"><a href="https://aion.plaync.com/cartoon/home" target="_self"><span>스토리</span></a></li></ul></li></ul>
+        </nav>
+                        
+                        
+        <div class="ncc-ncservice">
+            <ul class="ncc-ncservice-list">
+            <li class="ncc-ncservice-item ncc-ncservice-item-plaync" style="">
+                
+                    
+                    <a href="https://www.plaync.com/" class="plaync"><span>PLAYNC</span></a>
+                    
+                    
+                
+                </li>
+                
+                
+                <li class="ncc-ncservice-item ncc-ncservice-item-games">
+                    <div class="ncc-ncservice-item-games-title">PLAYNC 게임</div>
+                    <ul>
+                    
+                        <li class="">
+                            <a href="https://lineageclassic.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">리니지 클래식</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://breakers.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">리밋 제로 브레이커스</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                    <span class="icon-apple">Apple Itunes</span>
+                                
+                                
+                                    <span class="icon-google">Google Play</span>
+                                
+                                
+                                
+                                
+                                    <span class="icon-steam">steam Play</span>
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://timetakers.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">타임 테이커즈</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                    <span class="icon-steam">steam Play</span>
+                                
+                                
+                                    <span class="icon-xbox">xBox</span>
+                                
+                                
+                                    <span class="icon-playstation">PlayStation</span>
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://cinder-city.com">
+                                <span class="ncc-ncservice-item-games__name">신더시티</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                    <span class="icon-steam">steam Play</span>
+                                
+                                
+                                    <span class="icon-xbox">xBox</span>
+                                
+                                
+                                    <span class="icon-playstation">PlayStation</span>
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://aion2.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">AION2</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                    <span class="icon-apple">Apple Itunes</span>
+                                
+                                
+                                    <span class="icon-google">Google Play</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://journey.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">Journey of Monarch</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                    <span class="icon-apple">Apple Itunes</span>
+                                
+                                
+                                    <span class="icon-google">Google Play</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://hoyeon.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">호연</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                    <span class="icon-apple">Apple Itunes</span>
+                                
+                                
+                                    <span class="icon-google">Google Play</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://tl.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">THRONE AND LIBERTY</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://lineagew.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">리니지W</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                    <span class="icon-apple">Apple Itunes</span>
+                                
+                                
+                                    <span class="icon-google">Google Play</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://bns2.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">블레이드 &amp; 소울 2</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                    <span class="icon-apple">Apple Itunes</span>
+                                
+                                
+                                    <span class="icon-google">Google Play</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://lineage2m.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">리니지2M</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                    <span class="icon-apple">Apple Itunes</span>
+                                
+                                
+                                    <span class="icon-google">Google Play</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://lineagem.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">리니지M</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                    <span class="icon-apple">Apple Itunes</span>
+                                
+                                
+                                    <span class="icon-google">Google Play</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://bns.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">BNS NEO</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://aion.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">아이온</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://lovebeat.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">러브비트</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://lineage2.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">리니지2</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+ 
+                        <li class="">
+                            <a href="https://lineage.plaync.com">
+                                <span class="ncc-ncservice-item-games__name">리니지</span>
+                                <span class="ncc-ncservice-item-games__icon">
+                                
+                                    <span class="icon-official">Official Website</span>
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
+
+            </ul>
+        </div>
+        
+                        
+                        
+                        <br><br><br>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ncc-character-panel">
+            <div class="ncc-character-panel-wrap">
+                <a href="#" class="ncc-character-panel-close">닫기</a>
+                <div class="ncc-character-panel-header">대표 캐릭터 선택</div>
+                <div class="ncc-character-list-wrap">
+                    <ul class="ncc-character-list">
+                        <div class="ncc-character-loading">
+                            <span class="ncc-character-loader-circle"></span>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div><div class="ncc-dimmed"></div></div>
+
+    
+	<form name="FrmGNBLogout" id="FrmGNBLogout" action="https://loginapi.plaync.com/login/logout" method="post">
+		<input type="hidden" name="return_url" value="https://aion.plaync.com/characters/view?world=classic&amp;serverId=30&amp;characterId=1808802">
+	</form>
+
+	<script type="text/javascript">
+		var _serviceEnv = "LIVE";
+		var isPC = true;
+		var isLauncher = false;
+		var _aionPath = '"https:\/\/aion.plaync.com"';
+		var isPurple = false;
+
+		// 로그인/로그아웃 버튼 눌렀을때의 동작이 정의된 함수
+		function GNBLogin() {
+			// 퍼플 런처일 때 로그인 함수 실행 시 런처 에러페이지로 이동
+			var isPurpleLauncher = false;
+			if(isPurpleLauncher) {
+				typeof cnb.goPurpleErrorPage === 'function' &&  cnb.goPurpleErrorPage();
+				return;
+			}
+
+			var returnUrl = "?site_id=27&return_url=" + escape(document.location.href);
+			var loginURL = "https:\/\/login.plaync.com\/nclogin\/signin";
+			console.log(loginURL + (loginURL.indexOf("?") > 0 ? "&"+returnUrl.substring(1) : returnUrl));
+			document.location.href = loginURL + (loginURL.indexOf("?") > 0 ? "&"+returnUrl.substring(1) : returnUrl);
+		}
+
+		function GNBLogout() {
+			var frm = document.getElementById("FrmGNBLogout");
+			frm.submit();
+		}
+		$("form[name='FrmGNBLogout'] input[name='return_url']").val(document.location.href);
+	</script>
+
+	<!-- CNB(로그인 후) -->
+	
+	<!-- CNB(로그인 전) -->
+	<script>
+		// CNB DATA
+		var userData = {
+			locale: "ko-KR",
+			now: "2026-01-02T08:34:54.0680749",
+			site : 'aion',
+			guid : '',
+			isLogin : false,
+			uesAccountType : 'ncAccount',
+			ncAccount : {
+				name : '',
+				profileImage : '',
+				url : ''
+			},
+			gameAccount : {
+				name : '',
+				serverId: '',
+				serverName: '',
+				profileImage : '',
+				url : '',
+				subData : []
+			},
+			accountState : [],
+			nshop : {
+				nCoin : '0',
+				coupon : '0'
+			}
+		}
+	</script>
+
+	<script src="https://assets.playnccdn.com/uikit/cnb/3.2.0/js/cnb.js?v=202511111320"></script>
+	
+
+    
+	
+	<script>var cnbConfig = {    "type": "A",    "useLeftMenu": true,    "useLoginMenu": true,    "useJoinMenu": true,    "useGameStart": "platformDownload",    "platformDownload": [{"url": "https://aion.plaync.com/download/home", "target": "_self"}],    "loginFN": "GNBLogin",    "logoutFN": "GNBLogout",    "charChangeFN": "cnbCharacterChange",    "useCharChangeMenu": true,    "useCs": true,    "csUrl": "https://help.plaync.com/faq/aion",    "showAccountName": true,    "bi": {        "title": "Aion",        "url": "https://aion.plaync.com/",        "image": {            "top": {                "style": {                    "width": "70px",                    "height": "46px",                    "marginTop": "2px"                },                "path": "https://fizz-download.playnccdn.com/download/v2/buckets/conti-upload/files/19b06d50ca7-f2867c5d-7a49-419b-a81c-e7aedf7639b0"            },            "lnb": {                "style": {                    "marginTop": "2px",                    "height": "46px",                    "width": "70px"                },                "path": "https://fizz-download.playnccdn.com/download/v2/buckets/conti-upload/files/19b06d50cab-fa68a56d-3cf1-48e9-a274-57e836898c59"            }        }    },    "theme": {        "colorScheme": "aion"    },    "mobileGameDown": {        "showAndro": false,        "showIos": false,        "appName": "",        "androAppLink": "",        "iosAppLink": ""    },    "search": {        "isShow": true,        "service": "aion",        "alias": "aion",        "size": 10,        "useDelbtn": true,        "destUrl": "https://aion.plaync.com/search/index",        "queryPattern": "?",        "useSearchV2": true    },    "lnbData": [        {            "iconType": "new",            "sub": [                {                    "iconType": "new",                    "otherUrls": [                        "/board/clsnotice/",                        "/board/orgnotice/",                    ],                    "title": "공지",                    "url": "https://aion.plaync.com/board/notice/worldselect"                },                {                    "iconType": "new",                    "otherUrls": [                        "/board/clsupdate/",                        "/board/orgupdate/",                    ],                    "title": "업데이트",                    "url": "https://aion.plaync.com/board/update/worldselect"                },                {                    "iconType": "new",                    "otherUrls": [                      "/history/"                    ],                    "title": "업데이트 연대기",                    "url": "https://aion.plaync.com/history/home"                }            ],            "title": "소식",            "url": "https://aion.plaync.com/board/notice/worldselect"        },        {            "iconType": "new",            "sub": [                {                    "iconType": "new",                    "otherUrls": [                        "/board/clsnews"                    ],                    "title": "아이온 뉴스",                    "url": "https://aion.plaync.com/board/news/worldselect"                },                {                    "iconType": "false",                    "otherUrls": [                        "/board/developers/"                    ],                    "title": "개발자 노트",                    "url": "https://aion.plaync.com/board/developers/list"                }            ],            "title": "아이온 뉴스",            "url": "https://aion.plaync.com/board/news/worldselect"        },        {            "iconType": "new",            "sub": [],            "title": "이벤트ON",            "url": "https://aion.plaync.com/eventon"        },        {            "iconType": "new",            "sub": [                {                    "iconType": "new",                    "otherUrls": [                        "/guidebook/",                        "/guidebook/classic/",                        "/guidebook/special/",                        "/guidebook/aionisraphel/"                    ],                    "title": "가이드북",                    "url": "https://aion.plaync.com/guidebook/worldselect"                },                {                    "iconType": "false",                    "otherUrls": [                        "/pcbang/home",                        "/pcbang/classichome"                    ],                    "title": "PC방 혜택",                    "url": "https://aion.plaync.com/pcbang/classichome"                }            ],            "title": "가이드북",            "url": "https://aion.plaync.com/guidebook/worldselect"        },        {            "iconType": "false",            "sub": [                {                    "iconType": "false",                    "otherUrls": [                        "/schedule/home",                        "/schedule/classichome",                        "/schedule/windhome",                        "/schedule/israphelhome"                    ],                    "title": "데바 일정표",                    "url": "https://aion.plaync.com/schedule/worldselect"                },                {                    "iconType": "false",                    "otherUrls": [                        "/ranking/"                    ],                    "title": "랭킹",                    "url": "https://aion.plaync.com/ranking/battle?world=classic"                },                {                    "iconType": "false",                    "otherUrls": [                        "/legions/"                    ],                    "title": "레기온",                    "url": "https://aion.plaync.com/legions/home"                }            ],            "title": "월드",            "url": "https://aion.plaync.com/schedule/worldselect"        },        {            "iconType": "false",            "sub": [                {                    "iconType": "false",                    "otherUrls": [                        "/board/aionboard/",                        "/board/clsaionboard/"                    ],                    "title": "자유",                    "url": "https://aion.plaync.com/board/aionboard/worldselect"                },                {                    "iconType": "false",                    "otherUrls": [                        "/board/server/",                        "/board/clsserver/"                    ],                    "title": "서버",                    "url": "https://aion.plaync.com/board/server/worldselect"                },                {                    "iconType": "false",                    "otherUrls": [                        "/board/image/",                        "/board/clsimage/"                    ],                    "title": "이미지",                    "url": "https://aion.plaync.com/board/image/worldselect"                }            ],            "title": "커뮤니티",            "url": "https://aion.plaync.com/board/aionboard/worldselect"        },        {            "iconType": "false",            "sub": [],            "title": "아이온샵",            "url": "https://store.plaync.com/worldSelect?store=aion",            "otherUrls": [              "store.plaync.com"            ]        },        {          "iconType": "external",          "title": "포인트샵",          "url": "https://store.plaync.com/point/aionpoint"        },        {            "iconType": "false",            "sub": [                {                    "iconType": "false",                    "otherUrls": [                        "/art/artwork",                        "/art/digitalkit",                        "/art/wallpaper",                        "/art/screenshot"                    ],                    "title": "아트",                    "url": "https://aion.plaync.com/art/digitalkit"                },                {                    "iconType": "false",                    "otherUrls": [                        "/board/cartoon/"                    ],                    "title": "스토리",                    "url": "https://aion.plaync.com/cartoon/home"                }            ],            "title": "자료실",            "url": "https://aion.plaync.com/art/digitalkit"        }    ],    "shortCut": {        "isShow": true,        "mypage": {            "isShow": true        },        "ncoin": {            "isShow": true        },        "enterCoupon": {            "isShow": true        },        "cs": {            "isShow": true        }    },    "appDownloadData": [        {            "appName": "OTP",            "androAppLink": "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=ko",            "iosAppLink": "https://itunes.apple.com/kr/app/google-authenticator/id388497605?mt=8",            "thumbImg": "https://fizz-download.playnccdn.com/download/v2/buckets/conti-upload/files/192e5376c88-1594949a-df42-4d3a-a249-740335c2fae8"        },        {            "androAppLink": "https://play.google.com/store/apps/details?id=com.ncsoft.android.buff",            "thumbImg": "https://fizz-download.playnccdn.com/download/v2/buckets/conti-upload/files/192e537bdca-36296ac1-9963-4410-a709-11061e3a5895",            "iosAppLink": "http://itunes.apple.com/kr/app/buff/id915637215?mt=8",            "appName": "버프툰"        }    ],    "serviceList": {        "isServiceShow": true,        "isGamesShow": true,        "services": {            "Plaync": {                "isShow": true,                "url": "https://www.plaync.com/"            },            "NShop": {                "isShow": false,                "url": "https://nshop.plaync.com/"            }        }    }};</script>
+	<script src="https://assets.playnccdn.com/aion-web/v2/js/cnb-support/cnb-support.js?v=202511111320"></script>
+
+	<script>
+		// cnbConfig 가공
+		window.cnbSupport.setCnbConfig(false);
+
+		// cnb 시작 함수를 실행
+		window.cnb && window.cnb.start( cnbConfig );
+	</script>
+	<!-- // CNB JS -->
+
+    <!-- (e) CNB -->
+
+    <div class="container">
+        
+        
+            
+    <div class="wrap-header">
+        <header class="header">
+            <h1 class="header-title">캐릭터</h1>
+        </header>
+    </div>
+
+            <div class="section-contents">
+                <div class="wrap-contents">
+                    
+	
+    <h1 class="blind">캐릭터 홈</h1>
+
+    
+
+    <div class="page_error">캐릭터 삭제 혹은 서버 이전으로 해당 캐릭터 정보를 찾을 수 없습니다.</div>
+
+    
+
+
+                </div>
+            </div>
+        
+
+        <!-- (s) Footer -->
+        
+	<footer id="footer" class="wrap-footer"><div class="footer"><div class="footer-change-wrap"></div><nav class="footer-links"><ul class="footer-links-list"><li class="footer-links-item"><a href="https://kr.ncsoft.com/kr/index.do" target="_blank"><span>회사소개</span></a></li><li class="footer-links-item"><a href="https://www.plaync.com/policy/service" target="_blank"><span>이용약관</span></a></li><li class="footer-links-item"><a href="https://www.plaync.com/policy/privacy" target="_blank"><strong>개인정보처리방침</strong></a></li><li class="footer-links-item"><a href="https://www.plaync.com/policy/youthpolicy" target="_blank"><strong>청소년보호정책</strong></a></li><li class="footer-links-item"><a href="https://probability.plaync.com/aion/index" target="_self"><span>NC확률정보</span></a></li><li class="footer-links-item"><a href="https://www.plaync.com/policy/operation/aion" target="_blank"><span>운영정책</span></a></li><li class="footer-links-item"><a href="https://help.plaync.com/faq/aion" target="_self"><span>고객지원</span></a></li><li class="footer-links-item"><a href="https://privacycenter.ncsoft.com/" target="_blank"><span>NC 프라이버시 센터</span></a></li><li class="footer-links-item"><a href="https://consent.plaync.com/" target="_self"><span>NCSOFT 서비스 동의</span></a></li><li class="footer-links-item grade-layer-item"><button class="btn-grade-layer" href="" target="">게임이용등급<span class="grade-layer" id="FooterGradeLayer"><img src="https://assets.playnccdn.com/resource/aion/img/game-grade19.png"></span></button></li></ul></nav><div class="footer-info"><address class="footer-info-address">
+            상호 (주)엔씨소프트 공동 대표 김택진, 박병무 사업자 등록번호 144-85-04244 통신판매업신고 제2013-경기성남-1268호
+            <a href="http://www.ftc.go.kr/bizCommPop.do?wrkr_no=1448504244" target="_blank">
+                <strong>사업자정보확인</strong>
+            </a></address><div class="footer-info-cs">
+                주소 경기도 성남시 분당구 대왕판교로 644번길 12 고객상담 1600-0020 팩스 02-2186-3550
+                <span class="footer-info-email">
+                    이메일
+                    <a href="mailto:credit@ncsoft.com" class="email">credit@ncsoft.com</a>
+                </span></div></div><div class="footer-copyright">ⓒ NCSOFT Corporation. All Rights Reserved.</div><div class="footer-logo-wrap">
+            <a class="footer-logo ncsoft" href="https://kr.ncsoft.com/kr/index.do" target="_blank">NCSOFT</a>
+            </div></div></footer>
+
+        <!-- (e) Footer -->
+
+        
+        
+    <script>
+        if (window.ncui) {
+            new window.ncui.commonBanner({
+                wstatic:"https:\/\/assets.playnccdn.com",
+                isLogin: false,
+                ncBanner: JSON.parse('{"movieBanner":{"show":false,"CDN":false,"youtubeID":"ZAKAJbspTxg","URL":"","LauncherShow":true,"Cookie":"Movie20241016","startDate":"","startTime":"","endDate":"","endTime":""},"mainToastBanner":{"show":true,"BG":"https:\/\/fizz-download.playnccdn.com\/download\/v2\/buckets\/conti-upload\/files\/19b71b88880-3f97f4d8-078a-43f0-a7bd-4fab0a61f871","Lable":"\uC544\uC774\uC628","Title":"12\uC6D4 5\uC8FC\uCC28 \uC544\uC774\uC628 \uB274\uC2A4","SubTitle":"\uBD89\uC740 \uB9D0\uC758 \uD2B9\uBCC4\uD55C \uC2E0\uB144 \uC120\uBB3C\uC744 \uD655\uC778\uD574\uBCF4\uC138\uC694.","Link":"https:\/\/aion.plaync.com\/board\/clsnews\/view?articleId=69524811e9960c0a0d845c69","LinkNewWindow":false,"LauncherShow":true,"Cookie":"ncBannerToast20251210","CookieExpiredays":999,"startDate":"","startTime":"18:36","endDate":"","endTime":"10:00"},"topBanner":{"show":false,"ddayShow":false,"ddayDate":"20201229","ButtonShow":false,"ButtonLable":"","Lable":"","Title":"","Link":"","LinkNewWindow":false,"LauncherShow":true,"startDate":"","startTime":"","endDate":"","endTime":""},"toastBanner":{"show":true,"BG":"https:\/\/fizz-download.playnccdn.com\/download\/v2\/buckets\/conti-upload\/files\/19b71b7766d-3cc6370f-6385-40ff-b284-c787f8d9305f","Lable":"\uC544\uC774\uC628","Title":"12\uC6D4 5\uC8FC\uCC28 \uC544\uC774\uC628 \uB274\uC2A4","SubTitle":"\uBD89\uC740 \uB9D0\uC758 \uD2B9\uBCC4\uD55C \uC2E0\uB144 \uC120\uBB3C\uC744 \uD655\uC778\uD574\uBCF4\uC138\uC694.","Link":"https:\/\/aion.plaync.com\/board\/clsnews\/view?articleId=69524811e9960c0a0d845c69","LinkNewWindow":false,"LauncherShow":true,"Cookie":"ncBannerToast20251210","startDate":"","startTime":"00:00","endDate":"","endTime":"00:00"},"floatingBanner":{"show":false,"isBottom":false,"BG":"","Title":"","Link":"","LinkNewWindow":false,"LauncherShow":true,"Cookie":"floating20201228","startDate":"","startTime":"","endDate":"","endTime":""},"mainFloatingBanner":{"show":false,"isBottom":false,"BG":"","Title":"","Link":"","LinkNewWindow":false,"LauncherShow":true,"Cookie":"Mainfloating20201228","CookieExpiredays":999,"startDate":"","startTime":"","endDate":"","endTime":""},"imageBanner":{"show":false,"EnableScroll":true,"OrientationVertical":false,"MobileBG":"https:\/\/fizz-download.playnccdn.com\/download\/v2\/buckets\/conti-upload\/files\/198112bf676-6adacced-541a-40a8-932b-3095b546c7bd","PcBG":"https:\/\/fizz-download.playnccdn.com\/download\/v2\/buckets\/conti-upload\/files\/198112be5e6-28c8b97d-a4e0-4290-8a12-a082d364615f","Link":"https:\/\/aion.plaync.com\/preorder\/record\/20250730pre\/index","LinkNewWindow":true,"LauncherShow":true,"Cookie":"ncBannerImage20250716","startDate":"2025-07-16","startTime":"12:00","endDate":"2025-07-22","endTime":"17:00"}}'),
+                useCookie: true
+            });
+        }
+    </script>
+
+
+        
+	
+	<script>var footerConfig = {  "default": {      "countryList": [],      "languageList": [],      "snsList": [],      "linkList": [          {              "name": "companyLink",              "link": "https://kr.ncsoft.com/kr/index.do",              "target": "_blank",              "type": "link"          },          {              "name": "termsOfService",              "link": "https://www.plaync.com/policy/service",              "target": "_blank",              "type": "link"          },          {              "name": "privacyPolicy",              "link": "https://www.plaync.com/policy/privacy",              "target": "_blank",              "type": "link",              "isBold": true          },          {              "name": "youthProtectionPolicy",              "link": "https://www.plaync.com/policy/youthpolicy",              "target": "_blank",              "type": "link",              "isBold": true          },          {            "name": "probability",            "link": "https://probability.plaync.com/aion/index",            "target": "_self",            "type": "link"          },          {              "name": "operationPolicy",              "link": "https://www.plaync.com/policy/operation/aion",              "target": "_blank",              "type": "link"          },          {              "name": "customerSupport",              "link": "https://help.plaync.com/faq/aion",              "target": "_self",              "type": "link"          },          {            "name": "ncPrivacyCenter",            "link": "https://privacycenter.ncsoft.com/",            "target": "_blank",            "type": "link"          },          {            "name": "serviceConsent",            "link": "https://consent.plaync.com/",            "target": "_self",            "type": "link"          },          {              "name": "gameGrade",              "link": "",              "target": "",              "type": "image"          }      ],      "csInfoType": "pc",      "gameGrade": "https://assets.playnccdn.com/resource/aion/img/game-grade19.png",      "copyright": "ⓒ NCSOFT Corporation. All Rights Reserved.",      "companyLink": "https://kr.ncsoft.com/kr/index.do"  }};</script>
+	<script>
+		(function() {
+			if (window.ncui && window.ncui.footer) {
+				new window.ncui.footer(footerConfig);
+			}
+
+			if (window.ncui && window.ncui.idVerify) {
+				new window.ncui.idVerify();
+			}
+		})();
+	</script>
+
+        
+	<!-- (s) logger  -->
+	<!--<script type="text/javascript" th:src="|${ui['wstatic']}/common/logger/plaync_logger_footer.js|"></script>-->
+	<!--<script type="text/javascript" th:src="|${ui['wstatic']}/common/logger/clickzone_plaync.js|"></script>-->
+	<script>
+		var dimensionValue = { platform : "pc", isLogin : false };
+	</script>
+
+	<!-- Google Tag Manager (noscript) -->
+	
+	<noscript><iframe src=https://www.googletagmanager.com/ns.html?id=GTM-MWZ4CLJ
+					  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+	<!-- End Google Tag Manager (noscript) -->
+
+
+    </div><div class="nc-banner is-show" data-type="toast">
+             
+                 <a href="https://aion.plaync.com/board/clsnews/view?articleId=69524811e9960c0a0d845c69" class="nc-banner-link" style="background-image:url('https://fizz-download.playnccdn.com/download/v2/buckets/conti-upload/files/19b71b7766d-3cc6370f-6385-40ff-b284-c787f8d9305f')">
+                    <div class="nc-banner-inner">
+                        <div class="nc-banner-tag">아이온</div>
+                        <strong class="nc-banner-title-main">12월 5주차 아이온 뉴스</strong>
+                        <em class="nc-banner-title-sub">붉은 말의 특별한 신년 선물을 확인해보세요.</em>
+                    </div>
+                </a>
+            
+
+
+                <button class="nc-banner-close"><span class="blind">그만보기</span></button>
+            </div>
+ 
+<script type="text/javascript" id="" charset="">-1==location.host.indexOf("lovebeat")&&function(){var p=!0;if(window.Storage){var b=JSON.parse(localStorage.getItem("_tab_ids")),e=sessionStorage.getItem("_tab_id"),a=JSON.parse(sessionStorage.getItem("_nav_path")),c=document.location.href,f=!1,q=document.location.origin,m,h,r=function(){if(!1===p)return"BACK/FORWARD";if(2>a.length)return"FORWARD";m=a[a.length-2];h=a[a.length-1];return m===c||h===c?"BACK":"FORWARD"},t=function(){b=JSON.parse(localStorage.getItem("_tab_ids"));e=sessionStorage.getItem("_tab_id");
+if(null!==b&&null!==e){var d=b.indexOf(e);-1<d&&b.splice(d,1);localStorage.setItem("_tab_ids",JSON.stringify(b))}};var l=function(){var d=(new Date).getTime();"undefined"!==typeof performance&&"function"===typeof performance.now&&(d+=performance.now());return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(k){var n=(d+16*Math.random())%16|0;d=Math.floor(d/16);return("x"===k?n:n&3|8).toString(16)})};var u=function(d,k){return!(!0===k&&0!==d&&255!==d)};null===e&&(e=l(),f=!0,sessionStorage.setItem("_tab_id",
+e));b=b||[];-1===b.indexOf(e)&&(b.push(e),localStorage.setItem("_tab_ids",JSON.stringify(b)));l=b.length;if(window.PerformanceNavigation){a=a||[];var v=window.performance.navigation.redirectCount;if(u(window.performance.navigation.type,f))switch(window.performance.navigation.type){case 0:var g="NAVIGATE";a.push(c);break;case 1:g="RELOAD";0!==a.length&&a[a.length-1]===c||a.push(c);break;case 2:g=r();"FORWARD"===g?-1<document.referrer.indexOf(q)&&a.push(c):"BACK"===g?h!==c&&a.pop():a.push(c);break;
+default:g="OTHER",a.push(c)}else a.push(c);sessionStorage.setItem("_nav_path",JSON.stringify(a))}window.addEventListener("beforeunload",t);f={tabCount:l,redirectCount:v,navigationType:g,newTab:!0===f?"New":"Existing",tabId:e};window.google_tag_manager[google_tag_manager["rm"]["100540913"](667)].dataLayer.set("browsingBehavior",f);window.dataLayer.push({event:"custom.navigation",browsingBehavior:f})}}();</script></body></html>

@@ -1,8 +1,9 @@
-from sqlalchemy import create_engine, Column, BigInteger, Integer, String, DateTime, ForeignKey, UniqueConstraint, CheckConstraint, JSON
+from sqlalchemy import create_engine, Column, BigInteger, Integer, String, DateTime, ForeignKey, UniqueConstraint, CheckConstraint, JSON, Float, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
+from datetime import datetime
 import os
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@db/aion2")
@@ -23,17 +24,35 @@ class Character(Base):
     __tablename__ = "characters"
 
     id = Column(IntegerType, primary_key=True, index=True)
-    name = Column(String(64), nullable=False)
-    server = Column(String(64), nullable=False)
+    name = Column(String(64), nullable=False, index=True)
+    server = Column(String(64), nullable=False, index=True)
     class_name = Column("class", String(64), nullable=False)
     level = Column(Integer, nullable=False)
     power = Column(IntegerType, nullable=False)
-    power_index = Column(Integer, nullable=True)  # 사이트 고유 투력 지표
-    tier_rank = Column(String(16), nullable=True)  # D1~S5 랭크
+
+    # Raw data from external source
+    raw_payload = Column(JSONType, nullable=True)
+
+    # Normalized stats (parsed and cleaned)
+    stats_payload = Column(JSONType, nullable=True)
+
+    # Power scoring (calculated by batch job, not real-time)
+    power_score = Column(IntegerType, nullable=True)  # 배치에서 계산한 투력 점수
+    power_rank = Column(String(16), nullable=True)  # D1~S5 등급
     percentile = Column(Integer, nullable=True)  # 퍼센타일 (0-100)
-    updated_at = Column(DateTime(timezone=True), nullable=False)
+
+    # Expanded Data
+    character_image_url = Column(String(256), nullable=True)
+    equipment_data = Column(JSONType, nullable=True)  # 무기, 방어구 등 장비 정보
+
+    # Dummy data marker
+    is_dummy = Column(Boolean, nullable=True, default=False)  # 더미 데이터 여부
+
+    # Timestamps
+    last_fetched_at = Column(DateTime(timezone=True), nullable=True)  # 마지막 외부 데이터 수집 시각
+    last_scored_at = Column(DateTime(timezone=True), nullable=True)  # 마지막 투력 계산 시각
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    last_seen_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     __table_args__ = (
         UniqueConstraint('server', 'name', name='uix_server_name'),
@@ -54,14 +73,21 @@ class CharacterStat(Base):
     character = relationship("Character", back_populates="stats")
 
 class RankSnapshot(Base):
-    __tablename__ = "rank_snapshots"
+    __tablename__ = "ranking_snapshots"
 
     id = Column(IntegerType, primary_key=True, index=True)
-    type = Column(String(32))
-    filter_key = Column(String(128))
-    snapshot_json = Column(JSONType)
-    generated_at = Column(DateTime(timezone=True), server_default=func.now())
-    expires_at = Column(DateTime(timezone=True))
+    server = Column(String(64), nullable=False, index=True)
+    generated_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Ranking data
+    rank_list = Column(JSONType, nullable=True)  # 전체 랭킹 리스트
+    top_list = Column(JSONType, nullable=True)  # TOP N 리스트 (빠른 조회용)
+
+    # Legacy fields (호환성 유지)
+    type = Column(String(32), nullable=True)
+    filter_key = Column(String(128), nullable=True)
+    snapshot_json = Column(JSONType, nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
 
 class ServerAverageStats(Base):
     __tablename__ = "server_average_stats"
