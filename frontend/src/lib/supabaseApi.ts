@@ -29,6 +29,11 @@ export const SERVER_NAME_TO_ID: Record<string, number> = {
     '윈드': 13
 }
 
+export const SERVER_ID_TO_NAME: Record<number, string> = Object.entries(SERVER_NAME_TO_ID).reduce((acc, [name, id]) => {
+    acc[id] = name;
+    return acc;
+}, {} as Record<number, string>);
+
 export interface CharacterDetail {
     character_id: string
     server_id: number
@@ -49,66 +54,96 @@ export interface CharacterDetail {
 
 export const supabaseApi = {
     /**
-     * Search for a character by name.
+     * Search for a character by name (Live AION API).
      */
-    async searchCharacter(name: string, serverId?: number, race?: string): Promise<CharacterSearchResult[]> {
+    async searchCharacter(name: string, serverId?: number, race?: string, page: number = 1): Promise<CharacterSearchResult[]> {
+        // Convert race string to ID if necessary
+        let raceId: number | undefined
+        if (race) {
+            const r = race.toLowerCase()
+            if (r === 'elyos' || r === '천족') raceId = 1
+            else if (r === 'asmodian' || r === '마족') raceId = 2
+            else if (!isNaN(Number(race))) raceId = Number(race)
+        }
+
+        const res = await fetch(`/api/search/live`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, serverId, race: raceId, page })
+        })
+
+        if (!res.ok) {
+            const errorText = await res.text()
+            throw new Error(`Search failed: ${errorText}`)
+        }
+
+        const data = await res.json()
         let allResults: CharacterSearchResult[] = []
-        let page = 1
 
-        while (true) {
-            // Convert race string to ID if necessary
-            let raceId: number | undefined
-            if (race) {
-                const r = race.toLowerCase()
-                if (r === 'elyos' || r === '천족') raceId = 1
-                else if (r === 'asmodian' || r === '마족') raceId = 2
-                else if (!isNaN(Number(race))) raceId = Number(race)
-            }
+        if (data && Array.isArray(data.list)) {
+            allResults = data.list.map((item: any) => ({
+                characterId: item.characterId,
+                name: item.name,
+                server: item.serverName,
+                server_id: item.serverId,
+                job: 'Unknown',
+                level: item.level,
+                race: item.race === 0 ? 'Elyos' : 'Asmodian',
+                imageUrl: item.profileImageUrl ? (item.profileImageUrl.startsWith('http') ? item.profileImageUrl : `https://aion2.plaync.com${item.profileImageUrl}`) : undefined,
+                raw: item
+            }))
+        }
 
-            const res = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/search-character`, {
-                method: 'POST',
+        return allResults
+    },
+
+    /**
+     * Search for a character in Local DB via PostgREST.
+     */
+    async searchLocalCharacter(name: string): Promise<CharacterSearchResult[]> {
+        const query = new URLSearchParams({
+            select: '*',
+            name: `ilike.*${name}*`,
+            limit: '20'
+        })
+
+        try {
+            const res = await fetch(`${SUPABASE_PROJECT_URL}/rest/v1/characters?${query}`, {
+                method: 'GET',
                 headers: {
+                    'apikey': SUPABASE_ANON_KEY,
                     'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name, serverId, race: raceId, page })
+                    'Content-Type': 'application/json',
+                    'Prefer': 'count=none'
+                }
             })
 
             if (!res.ok) {
-                const errorText = await res.text()
-                throw new Error(`Search failed: ${errorText}`)
+                console.error('Local search failed', res.status, await res.text())
+                return []
             }
 
             const data = await res.json()
 
-            if (data && Array.isArray(data.list)) {
-                const pageResults = data.list.map((item: any) => ({
-                    characterId: item.characterId,
-                    name: item.name,
-                    server: item.serverName, // Map serverName to server
-                    server_id: item.serverId, // Ensure this is passed
-                    job: 'Unknown', // Search result might not have class
-                    level: item.level,
-                    race: item.race === 0 ? 'Elyos' : 'Asmodian',
-                    imageUrl: item.profileImageUrl, // Include explicitly
-                    // Store extra data that might be useful
-                    raw: item
-                }))
-                allResults = [...allResults, ...pageResults]
-            }
+            if (!Array.isArray(data)) return []
 
-            // Check pagination
-            if (data.pagination && data.pagination.page < data.pagination.endPage) {
-                page++
-            } else {
-                break
-            }
-
-            // Safety break to prevent infinite loops if something goes wrong, though AION search results aren't usually massive for specific names
-            if (page > 5) break
+            return data.map((item: any) => ({
+                characterId: item.character_id,
+                name: item.name,
+                server: SERVER_ID_TO_NAME[item.server_id] || 'Unknown',
+                server_id: item.server_id,
+                job: item.class_name,
+                level: item.level,
+                race: item.race_name,
+                imageUrl: item.profile_image ? (item.profile_image.startsWith('http') ? item.profile_image : `https://aion2.plaync.com${item.profile_image}`) : undefined,
+                raw: item
+            }))
+        } catch (e) {
+            console.error("Local search exception", e)
+            return []
         }
-
-        return allResults
     },
 
     /**

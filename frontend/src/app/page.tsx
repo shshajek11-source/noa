@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
+import SearchBar from './components/SearchBar'
 
 // Hardcoded server list for standalone operation
 // Define servers by race
@@ -25,54 +26,15 @@ const ALL_SERVERS = Array.from(new Set([...ELYOS_SERVERS, ...ASMODIAN_SERVERS]))
 
 export default function Home() {
     // State
-    const [race, setRace] = useState('elyos') // Default to Elyos or arguably 'asmodian' based on user pref, but let's stick to one. User didn't specify default.
-    const [server, setServer] = useState('')
-    const [name, setName] = useState('')
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
-    const router = useRouter()
+    const router = useRouter() // router is used in RankingPreview below, so we leave it if needed there? No, inside subcomponents. But 'wrapper' might need it. Actually Home component doesn't seem to use it anymore if I remove handleSearch. But wait, I see subcomponents defined in same file. 
+    // RankingPreview uses its own hook. Home doesn't need router anymore if SearchBar handles search navigation.
 
-    // Dynamic server list based on race
-    const currentServerList = useMemo(() => {
-        if (race === 'elyos') return ELYOS_SERVERS
-        if (race === 'asmodian') return ASMODIAN_SERVERS
-        return []
-    }, [race])
-
-    // Reset server selection when race changes if the new list doesn't include the current server
-    useEffect(() => {
-        if (server && !currentServerList.includes(server)) {
-            setServer(currentServerList[0] || '')
-        } else if (!server && currentServerList.length > 0) {
-            setServer(currentServerList[0])
-        }
-    }, [race, currentServerList, server])
+    // Cleanup unused vars
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
-    // Removed useEffect for server loading since we have static data
     useEffect(() => {
         // Any other initialization if needed
     }, [])
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault()
-        setError('')
-
-        if (!name.trim()) {
-            setError('캐릭터명을 입력해주세요')
-            return
-        }
-
-        if (!server) {
-            setError('서버를 선택해주세요')
-            return
-        }
-
-        setLoading(true)
-        // Include race in query param if selected
-        const query = race ? `?race=${race}` : ''
-        router.push(`/c/${server}/${name}${query}`)
-    }
 
     return (
         <main>
@@ -117,100 +79,8 @@ export default function Home() {
                     </span>
                 </div>
 
-                {/* Search Box */}
-                <form
-                    onSubmit={handleSearch}
-                    style={{
-                        display: 'flex',
-                        maxWidth: '700px',
-                        margin: '0 auto',
-                        gap: '0.5rem',
-                        background: 'var(--bg-secondary)',
-                        padding: '0.5rem',
-                        borderRadius: '8px',
-                        border: '1px solid var(--border)'
-                    }}
-                >
-                    <select
-                        className="input"
-                        value={server}
-                        onChange={(e) => setServer(e.target.value)}
-                        style={{
-                            width: '120px',
-                            background: 'transparent',
-                            color: 'white',
-                            border: 'none',
-                            borderRight: '1px solid var(--border)',
-                            borderRadius: 0,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        <option value="" style={{ color: 'black' }}>서버 선택</option>
-                        {currentServerList.map(s => (
-                            <option key={s} value={s} style={{ color: 'black' }}>
-                                {s}
-                            </option>
-                        ))}
-                    </select>
-
-                    <select
-                        className="input"
-                        value={race}
-                        onChange={(e) => setRace(e.target.value)}
-                        style={{
-                            width: '100px',
-                            background: 'transparent',
-                            color: 'white',
-                            border: 'none',
-                            borderRight: '1px solid var(--border)',
-                            borderRadius: 0,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        <option value="" style={{ color: 'black' }}>전체 종족</option>
-                        <option value="elyos" style={{ color: 'black' }}>천족</option>
-                        <option value="asmodian" style={{ color: 'black' }}>마족</option>
-                    </select>
-
-                    <input
-                        type="text"
-                        className="input"
-                        placeholder="캐릭터명을 입력하세요"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        style={{
-                            flex: 1,
-                            border: 'none',
-                            background: 'transparent',
-                            fontSize: '1rem'
-                        }}
-                    />
-
-                    <button
-                        type="submit"
-                        className="btn"
-                        disabled={loading}
-                        style={{ padding: '0 2rem' }}
-                    >
-                        {loading ? '검색 중...' : '검색'}
-                    </button>
-                </form>
-
-                {error && (
-                    <div style={{
-                        maxWidth: '700px',
-                        margin: '1rem auto 0',
-                        padding: '0.75rem',
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        borderRadius: '6px',
-                        color: '#ef4444',
-                        fontSize: '0.9rem',
-                        textAlign: 'center'
-                    }}>
-                        {error}
-                    </div>
-                )}
+                {/* Search Box Component */}
+                <SearchBar />
             </section>
 
             {/* Menu Cards Grid */}

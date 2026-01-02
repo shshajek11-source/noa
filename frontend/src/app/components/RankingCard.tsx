@@ -22,30 +22,31 @@ export default function RankingCard({ rankings }: RankingCardProps) {
     // Helper to find ranking by keywords
     const getRanking = (keywords: string[]): RankingItem | null => {
         const found = list.find(item => {
-            const name = (item.categoryName || item.name || '').replace(/\s+/g, '')
+            // Check rankingContentsName as well
+            const name = (item.rankingContentsName || item.categoryName || item.name || '').replace(/\s+/g, '')
             return keywords.some(k => name.includes(k))
         })
 
         if (!found) return null
 
-        // Parse fields based on common API patterns
-        // Note: Field names are guessed based on typical structure, might need adjustment
         const rank = found.rank || found.myRanking || 0
 
-        let value = found.score || found.point || found.value
+        // Point / Score
+        let value = found.point || found.score || found.value
         if (typeof value === 'number') value = value.toLocaleString()
 
         // Construct extra info (Tier or Win Rate)
         let extra = ''
-        if (found.tier || found.grade) {
-            extra = found.tier || found.grade
+        if (found.gradeName || found.tier || found.grade) {
+            extra = found.gradeName || found.tier || found.grade
         } else if (found.winCount !== undefined && found.playCount) {
             const rate = ((found.winCount / found.playCount) * 100).toFixed(1)
             extra = `${rate}%`
         }
 
         return {
-            name: found.categoryName || found.name || keywords[0],
+            // Prefer API name if available
+            name: found.rankingContentsName || found.categoryName || found.name || keywords[0],
             rank,
             value,
             extra
@@ -76,61 +77,75 @@ export default function RankingCard({ rankings }: RankingCardProps) {
             background: '#111318',
             border: '1px solid #1F2433',
             borderRadius: '12px',
-            padding: '1.5rem',
-            marginBottom: '1.5rem',
+            padding: '1rem',
+            height: '240px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
             width: '100%'
         }}>
             {/* Header */}
             <h3 style={{
-                fontSize: '1.125rem',
+                fontSize: '0.95rem',
                 fontWeight: 'bold',
                 color: '#E5E7EB',
                 margin: 0,
-                marginBottom: '1.25rem'
+                marginBottom: '0.75rem',
+                height: '20px',
+                flexShrink: 0
             }}>
                 랭킹 정보
             </h3>
 
-            {/* List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {/* List with Scroll */}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.4rem',
+                overflowY: 'auto',
+                flex: 1
+            }}>
                 {dataToShow.map((item, idx) => (
                     <div key={item.key} style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '0.75rem',
+                        padding: '0.4rem',
                         background: '#0B0D12',
                         borderRadius: '8px',
-                        border: '1px solid #1F2433'
+                        border: '1px solid #1F2433',
+                        minHeight: '20px',
+                        flexShrink: 0
                     }}>
                         {/* Wrapper for Left side */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             {/* Icon Placeholder */}
                             <div style={{
-                                width: '32px',
-                                height: '32px',
+                                width: '24px',
+                                height: '24px',
                                 borderRadius: '6px',
                                 background: `${item.iconColor}20`,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                border: `1px solid ${item.iconColor}40`
+                                border: `1px solid ${item.iconColor}40`,
+                                flexShrink: 0
                             }}>
                                 {/* Simple Dot for now, or replace with specific SVGs later */}
-                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: item.iconColor }}></div>
+                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: item.iconColor }}></div>
                             </div>
 
-                            <span style={{ color: '#9CA3AF', fontSize: '0.9rem' }}>{item.label}</span>
+                            <span style={{ color: '#9CA3AF', fontSize: '0.8rem' }}>{item.label}</span>
                         </div>
 
                         {/* Right Side: Rank & Value */}
                         {item.info ? (
                             <div style={{ textAlign: 'right' }}>
-                                <div style={{ color: '#E5E7EB', fontWeight: 'bold', fontSize: '0.95rem' }}>
+                                <div style={{ color: '#E5E7EB', fontWeight: 'bold', fontSize: '0.85rem' }}>
                                     {item.info.rank > 0 ? `${item.info.rank}위` : '-'}
                                 </div>
                                 {(item.info.value || item.info.extra) && (
-                                    <div style={{ color: '#6B7280', fontSize: '0.75rem', marginTop: '2px' }}>
+                                    <div style={{ color: '#6B7280', fontSize: '0.7rem', marginTop: '2px' }}>
                                         {item.info.value && <span>{item.info.value}</span>}
                                         {item.info.value && item.info.extra && <span style={{ margin: '0 4px' }}>|</span>}
                                         {item.info.extra && <span style={{ color: item.iconColor }}>{item.info.extra}</span>}
@@ -138,7 +153,7 @@ export default function RankingCard({ rankings }: RankingCardProps) {
                                 )}
                             </div>
                         ) : (
-                            <span style={{ color: '#4B5563', fontSize: '0.85rem' }}>-</span>
+                            <span style={{ color: '#4B5563', fontSize: '0.8rem' }}>-</span>
                         )}
                     </div>
                 ))}

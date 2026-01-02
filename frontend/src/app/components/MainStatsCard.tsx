@@ -10,7 +10,7 @@ interface MainStat {
 
 // SVG 아이콘 컴포넌트들
 const PowerIcon = () => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2C8.5 2 5 4.5 5 9c0 2.5 1.5 4.5 3.5 5.5L9 22l3-3 3 3 .5-7.5C17.5 13.5 19 11.5 19 9c0-4.5-3.5-7-7-7z"
             fill="currentColor" opacity="0.3" />
         <path d="M7 9a5 5 0 1 1 10 0c0 2-1 3.5-2.5 4.5l-.5 6-2-2-2 2-.5-6C8 13.5 7 12 7 9z"
@@ -19,7 +19,7 @@ const PowerIcon = () => (
 )
 
 const AgilityIcon = () => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 3L4 8v8l8 5 8-5V8l-8-5z" fill="currentColor" opacity="0.3" />
         <path d="M12 3L4 8l8 5 8-5-8-5z" stroke="currentColor" strokeWidth="1.5" fill="none" />
         <path d="M4 8v8l8 5 8-5V8" stroke="currentColor" strokeWidth="1.5" fill="none" />
@@ -28,7 +28,7 @@ const AgilityIcon = () => (
 )
 
 const AccuracyIcon = () => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="8" fill="currentColor" opacity="0.3" />
         <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
         <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5" fill="none" />
@@ -37,14 +37,14 @@ const AccuracyIcon = () => (
 )
 
 const WillIcon = () => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2L9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1-3-7z" fill="currentColor" opacity="0.3" />
         <path d="M12 2L9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1-3-7z" stroke="currentColor" strokeWidth="1.5" fill="none" />
     </svg>
 )
 
 const KnowledgeIcon = () => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M4 4h16v16H4z" fill="currentColor" opacity="0.3" />
         <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
         <path d="M8 8h8M8 12h8M8 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -52,7 +52,7 @@ const KnowledgeIcon = () => (
 )
 
 const StaminaIcon = () => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 21c-4-4-8-6.5-8-10.5a5.5 5.5 0 0 1 11 0 5.5 5.5 0 0 1 11 0c0 4-4 6.5-8 10.5l-3-2.5-3 2.5z"
             fill="currentColor" opacity="0.3" />
         <path d="M12 6a4 4 0 0 1 4 4c0 3-4 6-4 8-0-2-4-5-4-8a4 4 0 0 1 4-4z"
@@ -103,15 +103,20 @@ export default function MainStatsCard({ stats }: { stats: any }) {
             background: '#111318',
             border: '1px solid #1F2433',
             borderRadius: '12px',
-            padding: '1.25rem'
+            padding: '1rem',
+            height: '220px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column'
         }}>
             {/* Header */}
             <h3 style={{
-                fontSize: '1.125rem',
+                fontSize: '0.95rem',
                 fontWeight: 'bold',
                 color: '#E5E7EB',
                 margin: 0,
-                marginBottom: '1.25rem'
+                marginBottom: '0.75rem',
+                height: '20px'
             }}>
                 주요 스텟
             </h3>
@@ -120,8 +125,9 @@ export default function MainStatsCard({ stats }: { stats: any }) {
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(6, 1fr)',
-                gap: '0.5rem',
-                marginBottom: '1rem'
+                gap: '0.4rem',
+                marginBottom: '0.5rem',
+                flex: 1
             }}>
                 {mainStats.map((stat) => (
                     <div
@@ -130,7 +136,8 @@ export default function MainStatsCard({ stats }: { stats: any }) {
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            padding: '0.75rem 0.25rem',
+                            justifyContent: 'center',
+                            padding: '0.5rem 0.2rem',
                             background: '#0B0D12',
                             borderRadius: '8px',
                             border: '1px solid #1F2433',
@@ -142,23 +149,23 @@ export default function MainStatsCard({ stats }: { stats: any }) {
                         {/* Icon */}
                         <div style={{
                             color: '#9CA3AF',
-                            marginBottom: '0.5rem'
+                            marginBottom: '0.35rem'
                         }}>
                             {stat.icon}
                         </div>
 
                         {/* Label */}
                         <span style={{
-                            fontSize: '0.75rem',
+                            fontSize: '0.7rem',
                             color: '#9CA3AF',
-                            marginBottom: '0.25rem'
+                            marginBottom: '0.2rem'
                         }}>
                             {stat.label}
                         </span>
 
                         {/* Value */}
                         <span style={{
-                            fontSize: '1rem',
+                            fontSize: '0.85rem',
                             fontWeight: 'bold',
                             color: '#E5E7EB'
                         }}>
@@ -173,18 +180,20 @@ export default function MainStatsCard({ stats }: { stats: any }) {
                 onClick={() => setExpanded(!expanded)}
                 style={{
                     width: '100%',
-                    padding: '0.625rem',
+                    padding: '0.5rem',
                     background: 'transparent',
                     border: '1px solid #1F2433',
                     borderRadius: '6px',
                     color: '#9CA3AF',
-                    fontSize: '0.875rem',
+                    fontSize: '0.8rem',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.5rem',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    height: '32px',
+                    flexShrink: 0
                 }}
                 className="expand-btn-hover"
             >

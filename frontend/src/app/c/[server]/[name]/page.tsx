@@ -8,6 +8,9 @@ import DaevanionCard from '../../../components/DaevanionCard'
 import EquipmentGrid from '../../../components/EquipmentGrid'
 import { supabaseApi, CharacterDetail, SERVER_NAME_TO_ID } from '../../../../lib/supabaseApi'
 import RankingCard from '../../../components/RankingCard'
+import EquipmentDetailList from '../../../components/EquipmentDetailList'
+import ItemDetailModal from '../../../components/ItemDetailModal'
+import { RecentCharacter } from '../../../../types/character'
 
 // --- Types mapping to UI components ---
 type CharacterData = {
@@ -116,7 +119,8 @@ const mapEquipment = (rawEquipment: any): { equipment: any[], accessories: any[]
       image: item.icon || item.image || item.itemArt,
       category: item.categoryName,
       soulEngraving: item.soulEngraving ? { grade: item.soulEngraving.grade, percentage: item.soulEngraving.value } : undefined,
-      manastones: item.manastoneList?.map((m: any) => ({ type: m.name, value: m.point })) || []
+      manastones: item.manastoneList?.map((m: any) => ({ type: m.name, value: m.point })) || [],
+      raw: item
     }
 
     if (isAccessory) {
@@ -157,6 +161,7 @@ export default function CharacterDetailPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const raceParam = searchParams.get('race') || undefined
+  const isMock = searchParams.get('mock') === 'true'
 
   // URL params are usually encoded so we decode them
   const serverName = decodeURIComponent(params.server as string)
@@ -175,10 +180,80 @@ export default function CharacterDetailPage() {
   const [mappedDaevanion, setMappedDaevanion] = useState<any>({})
   const [mappedRankings, setMappedRankings] = useState<any>({})
 
+  const [selectedItem, setSelectedItem] = useState<any | null>(null)
+
+  const handleItemClick = (item: any) => {
+    setSelectedItem(item)
+  }
+
+  // Helper to save history
+  const saveToHistory = (charData: CharacterData, serverId: number) => {
+    try {
+      const stored = localStorage.getItem('aion_recent_searches')
+      let history: RecentCharacter[] = stored ? JSON.parse(stored) : []
+
+      // Use provided server string or fallback
+      const sName = charData.server
+      const newId = `${sName}_${charData.name}`
+
+      // Remove existing entry with same ID
+      history = history.filter(h => h.id !== newId)
+
+      // Add new entry to front
+      const newEntry: RecentCharacter = {
+        id: newId,
+        name: charData.name,
+        server: sName,
+        serverId: serverId,
+        race: (charData.race === '천족' || charData.race === 'Elyos') ? 'elyos' : 'asmodian',
+        class: charData.class,
+        level: charData.level,
+        itemLevel: charData.power || charData.item_level || 0, // Use combat power as proxy for now if item_level missing
+        profileImage: charData.character_image_url || '',
+        timestamp: Date.now()
+      }
+
+      history.unshift(newEntry)
+
+      // Limit to 10
+      if (history.length > 10) {
+        history = history.slice(0, 10)
+      }
+
+      localStorage.setItem('aion_recent_searches', JSON.stringify(history))
+    } catch (e) {
+      console.error("Failed to save history", e)
+    }
+  }
+
   const fetchData = async (refresh = false) => {
     try {
       setLoading(true)
       setError(null)
+
+      if (isMock) {
+        console.log('Using MOCK data')
+        await new Promise(r => setTimeout(r, 500)) // Fake delay
+        const mockData: CharacterData = {
+          id: 2002, // Zikel ID approx
+          name: '죄수',
+          server: '지켈',
+          class: '살성',
+          level: 55,
+          power: 3496, // Example power
+          power_index: 3496,
+          updated_at: new Date().toISOString(),
+          race: '마족',
+          character_image_url: '/param/class/1_1.jpg',
+          item_level: 0
+        }
+        setData(mockData)
+        // Pass mock server ID (e.g. 2002 for Zikel)
+        saveToHistory(mockData, 2002)
+        setLoading(false)
+        return
+      }
+
       console.log('Fetching data for:', charName, serverName)
 
       // Map server name to ID for accurate search
@@ -242,6 +317,8 @@ export default function CharacterDetailPage() {
       setMappedTitles(detail.titles || {})
       setMappedDaevanion(detail.daevanion || {})
       setMappedRankings(detail.rankings || {})
+
+      saveToHistory(mapped, detail.server_id)
 
     } catch (err: any) {
       console.error(err)
@@ -363,15 +440,17 @@ export default function CharacterDetailPage() {
       <div style={{
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'flex-start',
-        width: '100%'
+        alignItems: 'center',
+        flexDirection: 'column',
+        width: '100%',
+        gap: '3rem'
       }}>
         {/* Desktop: 3 columns with balanced widths */}
         <style jsx>{`
           @media (min-width: 1024px) {
             .grid-container {
               display: grid !important;
-              grid-template-columns: 280px minmax(400px, 1fr) 400px !important;
+              grid-template-columns: 280px minmax(400px, 1fr) 450px !important;
               gap: 1.5rem !important;
             }
           }
@@ -398,19 +477,37 @@ export default function CharacterDetailPage() {
             background: '#111318',
             border: '1px solid #1F2433',
             borderRadius: '12px',
-            padding: '1.5rem'
+            padding: '1rem',
+            height: '638px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
-            <h2 style={{
-              fontSize: '1.25rem',
-              fontWeight: 'bold',
-              color: '#E5E7EB',
-              marginBottom: '1.5rem',
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '0.75rem',
               borderBottom: '1px solid #1F2433',
-              paddingBottom: '0.75rem'
+              paddingBottom: '0.5rem',
+              flexShrink: 0
             }}>
-              장비 & 장신구
-            </h2>
-            <EquipmentGrid equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} />
+              <h2 style={{
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                color: '#E5E7EB',
+                margin: 0
+              }}>
+                장비 & 장신구
+              </h2>
+              <span style={{ fontSize: '0.7rem', color: '#9CA3AF', fontWeight: 'normal', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                마우스 올리면 상세정보
+              </span>
+            </div>
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <EquipmentGrid equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} onItemClick={handleItemClick} />
+            </div>
           </div>
 
           {/* RIGHT COLUMN: MainStats, Title, Daevanion */}
@@ -425,6 +522,17 @@ export default function CharacterDetailPage() {
             <DaevanionCard daevanion={mappedDaevanion} />
           </div>
         </div>
+
+        {/* Detailed Equipment List */}
+        <EquipmentDetailList equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} onItemClick={handleItemClick} />
+
+        {/* Item Detail Modal */}
+        {selectedItem && (
+          <ItemDetailModal
+            item={selectedItem}
+            onClose={() => setSelectedItem(null)}
+          />
+        )}
       </div>
     </div>
   )

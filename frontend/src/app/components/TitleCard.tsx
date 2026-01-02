@@ -13,7 +13,7 @@ interface TitleCategory {
 
 // SVG 아이콘 컴포넌트들
 const AttackIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M14 2L4 12l3 3 10-10-3-3z" fill="currentColor" opacity="0.3" />
         <path d="M14 2L4 12l3 3 10-10-3-3z" stroke="currentColor" strokeWidth="1.5" fill="none" />
         <path d="M4 12l3 3-5 5 2 2 5-5" stroke="currentColor" strokeWidth="1.5" fill="none" />
@@ -21,14 +21,14 @@ const AttackIcon = () => (
 )
 
 const DefenseIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2L4 6v6c0 5.5 3.5 10 8 11 4.5-1 8-5.5 8-11V6l-8-4z" fill="currentColor" opacity="0.3" />
         <path d="M12 2L4 6v6c0 5.5 3.5 10 8 11 4.5-1 8-5.5 8-11V6l-8-4z" stroke="currentColor" strokeWidth="1.5" fill="none" />
     </svg>
 )
 
 const OtherIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="9" fill="currentColor" opacity="0.3" />
         <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" fill="none" />
         <circle cx="12" cy="8" r="1.5" fill="currentColor" />
@@ -121,17 +121,22 @@ export default function TitleCard({ titles }: { titles: any }) {
             background: '#111318',
             border: '1px solid #1F2433',
             borderRadius: '12px',
-            padding: '1.25rem'
+            padding: '1rem',
+            height: '120px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column'
         }}>
             {/* Header */}
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '1.25rem'
+                marginBottom: '0.5rem',
+                flexShrink: 0
             }}>
                 <h3 style={{
-                    fontSize: '1.125rem',
+                    fontSize: '0.9rem',
                     fontWeight: 'bold',
                     color: '#E5E7EB',
                     margin: 0
@@ -139,11 +144,11 @@ export default function TitleCard({ titles }: { titles: any }) {
                     타이틀
                 </h3>
                 <div style={{
-                    padding: '0.25rem 0.75rem',
+                    padding: '0.2rem 0.5rem',
                     background: '#0B0D12',
                     border: '1px solid #1F2433',
                     borderRadius: '12px',
-                    fontSize: '0.875rem',
+                    fontSize: '0.75rem',
                     fontWeight: 'bold'
                 }}>
                     <span style={{ color: isHighProgress ? '#FACC15' : '#E5E7EB' }}>
@@ -157,7 +162,8 @@ export default function TitleCard({ titles }: { titles: any }) {
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '0.75rem'
+                gap: '0.4rem',
+                flex: 1
             }}>
                 {categories.map((category, idx) => (
                     <div
@@ -166,23 +172,27 @@ export default function TitleCard({ titles }: { titles: any }) {
                             background: '#0B0D12',
                             border: '1px solid #1F2433',
                             borderRadius: '8px',
-                            padding: '0.875rem',
-                            transition: 'all 0.2s'
+                            padding: '0.4rem',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center'
                         }}
                         className="category-card-hover"
+                        title={category.representativeTitle ? `${category.representativeTitle.name}\n${category.representativeTitle.effects.join('\n')}` : ''}
                     >
                         {/* Category Header */}
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.5rem',
-                            marginBottom: '0.5rem'
+                            gap: '0.3rem',
+                            marginBottom: '0.3rem'
                         }}>
-                            <span style={{ color: '#9CA3AF' }}>
+                            <span style={{ color: '#9CA3AF', flexShrink: 0 }}>
                                 {category.icon}
                             </span>
                             <span style={{
-                                fontSize: '0.875rem',
+                                fontSize: '0.7rem',
                                 fontWeight: 'bold',
                                 color: '#E5E7EB'
                             }}>
@@ -192,10 +202,7 @@ export default function TitleCard({ titles }: { titles: any }) {
 
                         {/* Count */}
                         <div style={{
-                            fontSize: '0.75rem',
-                            marginBottom: '0.75rem',
-                            paddingBottom: '0.75rem',
-                            borderBottom: '1px solid #1F2433'
+                            fontSize: '0.7rem'
                         }}>
                             <span style={{ color: '#E5E7EB', fontWeight: 'bold' }}>
                                 {category.owned}
@@ -203,40 +210,18 @@ export default function TitleCard({ titles }: { titles: any }) {
                             <span style={{ color: '#9CA3AF' }}>/{category.total}</span>
                         </div>
 
-                        {/* Representative Title */}
-                        {category.representativeTitle && (
-                            <>
-                                <div style={{
-                                    fontSize: '0.75rem',
-                                    color: '#60A5FA',
-                                    marginBottom: '0.5rem',
-                                    cursor: 'pointer',
-                                    textDecoration: 'underline',
-                                    textUnderlineOffset: '2px'
-                                }}>
-                                    {category.representativeTitle.name}
-                                </div>
-
-                                {/* Effects */}
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.25rem'
-                                }}>
-                                    {category.representativeTitle.effects.map((effect, effectIdx) => (
-                                        <span
-                                            key={effectIdx}
-                                            style={{
-                                                fontSize: '0.6875rem',
-                                                color: '#9CA3AF',
-                                                lineHeight: '1.4'
-                                            }}
-                                        >
-                                            {effect}
-                                        </span>
-                                    ))}
-                                </div>
-                            </>
+                        {/* Representative Title - 1줄만 */}
+                        {category.representativeTitle && category.representativeTitle.effects.length > 0 && (
+                            <div style={{
+                                fontSize: '0.65rem',
+                                color: '#60A5FA',
+                                marginTop: '0.25rem',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                            }}>
+                                {category.representativeTitle.effects[0]}
+                            </div>
                         )}
                     </div>
                 ))}

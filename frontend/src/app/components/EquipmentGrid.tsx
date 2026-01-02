@@ -4,9 +4,10 @@ import EquipmentCard from './EquipmentCard'
 interface EquipmentGridProps {
     equipment?: any[]
     accessories?: any[]
+    onItemClick?: (item: any) => void
 }
 
-export default function EquipmentGrid({ equipment = [], accessories = [] }: EquipmentGridProps) {
+export default function EquipmentGrid({ equipment = [], accessories = [], onItemClick }: EquipmentGridProps) {
     // Equipment slots
     const weaponSlots = [
         '주무기',
@@ -39,50 +40,57 @@ export default function EquipmentGrid({ equipment = [], accessories = [] }: Equi
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '2rem'
+            gap: '1rem',
+            height: '100%'
         }}>
             {/* Weapons & Armor */}
-            <div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <h3 style={{
                     color: '#E5E7EB',
-                    fontSize: '1.25rem',
-                    marginBottom: '1rem',
-                    fontWeight: 'bold'
+                    fontSize: '0.9rem',
+                    marginBottom: '0.5rem',
+                    fontWeight: 'bold',
+                    margin: 0,
+                    marginBottom: '0.5rem'
                 }}>
                     무기 / 방어구
                 </h3>
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                    gap: '0.75rem'
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '0.5rem',
+                    flex: 1
                 }}>
                     {weaponSlots.map(slot => {
                         const item = equipment?.find(e => e.slot === slot)
                         if (!item) return null
-                        return <EquipmentCard key={slot} slot={slot} item={item} />
+                        return <EquipmentCard key={slot} slot={slot} item={item} onClick={onItemClick} />
                     })}
                 </div>
             </div>
 
             {/* Accessories */}
-            <div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <h3 style={{
                     color: '#E5E7EB',
-                    fontSize: '1.25rem',
-                    marginBottom: '1rem',
-                    fontWeight: 'bold'
+                    fontSize: '0.9rem',
+                    marginBottom: '0.5rem',
+                    fontWeight: 'bold',
+                    margin: 0,
+                    marginBottom: '0.5rem'
                 }}>
                     장신구 / 룬
                 </h3>
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                    gap: '0.75rem'
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '0.5rem',
+                    flex: 1
                 }}>
                     {accessorySlots.map(slot => {
                         const item = accessories?.find(a => a.slot === slot)
                         if (!item) return null
-                        return <EquipmentCard key={slot} slot={slot} item={item} />
+                        return <EquipmentCard key={slot} slot={slot} item={item} onClick={onItemClick} />
                     })}
                 </div>
             </div>

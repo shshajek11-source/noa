@@ -1,4 +1,5 @@
-'use client'
+import { useState } from 'react'
+import EquipmentTooltip from './EquipmentTooltip'
 
 interface EquipmentCardProps {
     slot: string
@@ -16,7 +17,9 @@ interface EquipmentCardProps {
             type: string
             value: number
         }>
+        raw?: any // Full item data for tooltip
     }
+    onClick?: (item: any) => void
 }
 
 // Tier color - only high tier (4+) uses accent yellow
@@ -34,7 +37,9 @@ const getEnhancementColor = (enhancement: string): string => {
     return '#E5E7EB'  // Normal text
 }
 
-export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
+export default function EquipmentCard({ slot, item, onClick }: EquipmentCardProps) {
+    const [isHovered, setIsHovered] = useState(false)
+
     if (!item) {
         return (
             <div style={{
@@ -57,27 +62,34 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
 
     return (
         <div style={{
-            padding: '0.75rem',
+            padding: '0.35rem',
             background: '#111318',
             border: '1px solid #1F2433',
-            borderRadius: '8px',
+            borderRadius: '6px',
             position: 'relative',
-            transition: 'all 0.2s',
             cursor: 'pointer',
+            transition: 'all 0.2s',
             display: 'flex',
-            gap: '0.75rem',
-            alignItems: 'flex-start',
+            gap: '0.35rem',
+            alignItems: 'center',
             maxWidth: '100%',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            height: '100%'
         }}
             className="equipment-card-hover"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onClick={() => item && onClick?.(item)}
         >
+            {/* Tooltip */}
+            {isHovered && <EquipmentTooltip item={item} />}
+
             {/* Item Image */}
             <div style={{
-                width: '48px',
-                height: '48px',
+                width: '32px',
+                height: '32px',
                 background: '#0B0D12',
-                borderRadius: '6px',
+                borderRadius: '4px',
                 border: `1px solid ${isHighTier ? tierColor + '60' : '#1F2433'}`,
                 display: 'flex',
                 alignItems: 'center',
@@ -89,7 +101,7 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
                 {item.image ? (
                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                    <div style={{ fontSize: '0.5rem', color: '#9CA3AF', textAlign: 'center' }}>No IMG</div>
+                    <div style={{ fontSize: '0.5rem', color: '#9CA3AF', textAlign: 'center' }}>No</div>
                 )}
 
                 {/* Enhancement Badge (Overlay on Image) */}
@@ -98,87 +110,56 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
                         position: 'absolute',
                         bottom: '0',
                         right: '0',
-                        background: 'rgba(11,13,18,0.9)',
+                        background: 'rgba(11,13,18,0.95)',
                         color: enhancementColor,
-                        fontSize: '0.7rem',
+                        fontSize: '0.6rem',
                         fontWeight: 'bold',
                         padding: '0 2px',
-                        borderTopLeftRadius: '4px'
+                        borderTopLeftRadius: '2px',
+                        lineHeight: '1'
                     }}>
                         {item.enhancement}
                     </div>
                 )}
             </div>
 
-            {/* Info Column */}
-            <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Info Column - 이름 제거됨 */}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 {/* Slot & Tier Row */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                    <span style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>{slot}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.65rem', color: '#9CA3AF' }}>{slot}</span>
                     <span style={{
-                        fontSize: '0.65rem',
+                        fontSize: '0.6rem',
                         color: tierColor,
                         border: `1px solid ${isHighTier ? tierColor + '40' : '#1F2433'}`,
-                        padding: '0 4px',
-                        borderRadius: '3px'
+                        padding: '0 3px',
+                        borderRadius: '2px',
+                        lineHeight: '1.2'
                     }}>
                         T{item.tier}
                     </span>
                 </div>
 
-                {/* Item Name */}
-                <div style={{
-                    fontSize: '0.85rem',
-                    color: '#E5E7EB',
-                    fontWeight: '600',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    marginBottom: '0.5rem'
-                }}>
-                    {item.name}
-                </div>
-
-                {/* Soul Engraving */}
-                {item.soulEngraving && (
-                    <div style={{
-                        fontSize: '0.7rem',
-                        color: '#9CA3AF',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        marginTop: '2px'
-                    }}>
-                        <span style={{
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            background: item.soulEngraving.grade === 'S' ? '#FACC15' : '#9CA3AF'
-                        }}></span>
-                        <span>각인 {item.soulEngraving.grade} ({item.soulEngraving.percentage}%)</span>
-                    </div>
-                )}
-
-                {/* Manastones (Collapsed view) */}
+                {/* Manastones (very compact) */}
                 {item.manastones && item.manastones.length > 0 && (
                     <div style={{
-                        marginTop: '4px',
+                        marginTop: '2px',
                         display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '2px'
+                        gap: '2px',
+                        alignItems: 'center'
                     }}>
-                        {item.manastones.slice(0, 3).map((stone, idx) => (
+                        {item.manastones.slice(0, 4).map((stone, idx) => (
                             <div key={idx}
                                 title={`${stone.type} +${stone.value}`}
                                 style={{
-                                    width: '6px',
-                                    height: '6px',
+                                    width: '5px',
+                                    height: '5px',
                                     borderRadius: '50%',
                                     background: stone.type.includes('공격') ? '#EF4444' : stone.type.includes('치명') ? '#F59E0B' : '#3B82F6',
                                 }} />
                         ))}
-                        {item.manastones.length > 3 && (
-                            <span style={{ fontSize: '0.6rem', color: '#9CA3AF' }}>+{item.manastones.length - 3}</span>
+                        {item.manastones.length > 4 && (
+                            <span style={{ fontSize: '0.55rem', color: '#9CA3AF' }}>+{item.manastones.length - 4}</span>
                         )}
                     </div>
                 )}
@@ -193,3 +174,4 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
         </div>
     )
 }
+

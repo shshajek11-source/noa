@@ -18,17 +18,22 @@ export default function DaevanionCard({ daevanion }: { daevanion: any }) {
             background: '#111318',
             border: '1px solid #1F2433',
             borderRadius: '12px',
-            padding: '1.25rem'
+            padding: '1rem',
+            height: '90px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column'
         }}>
             {/* Header */}
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '1rem'
+                marginBottom: '0.4rem',
+                flexShrink: 0
             }}>
                 <h3 style={{
-                    fontSize: '1.125rem',
+                    fontSize: '0.85rem',
                     fontWeight: 'bold',
                     color: '#E5E7EB',
                     margin: 0
@@ -36,11 +41,11 @@ export default function DaevanionCard({ daevanion }: { daevanion: any }) {
                     주신 능력치
                 </h3>
                 <div style={{
-                    padding: '0.25rem 0.75rem',
+                    padding: '0.15rem 0.4rem',
                     background: '#0B0D12',
                     border: '1px solid #1F2433',
                     borderRadius: '12px',
-                    fontSize: '0.75rem',
+                    fontSize: '0.7rem',
                     color: activeBoards >= 4 ? '#FACC15' : '#E5E7EB',
                     fontWeight: 'bold'
                 }}>
@@ -48,12 +53,12 @@ export default function DaevanionCard({ daevanion }: { daevanion: any }) {
                 </div>
             </div>
 
-            {/* God Grid */}
+            {/* God Grid - 1행으로 변경 */}
             <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '0.5rem',
-                marginBottom: '1rem'
+                display: 'flex',
+                gap: '0.3rem',
+                flex: 1,
+                alignItems: 'center'
             }}>
                 {godNames.map((god, idx) => {
                     const isActive = idx < activeBoards
@@ -62,64 +67,33 @@ export default function DaevanionCard({ daevanion }: { daevanion: any }) {
                             key={idx}
                             title={god}
                             style={{
+                                width: `calc((100% - 1.5rem) / 6)`,
                                 aspectRatio: '1',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                background: isActive ? '#0B0D12' : '#0B0D12',
+                                background: '#0B0D12',
                                 border: isActive
                                     ? '1px solid #FACC1540'
                                     : '1px solid #1F2433',
-                                borderRadius: '8px',
+                                borderRadius: '6px',
                                 transition: 'all 0.2s',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                padding: '0.2rem'
                             }}
                             className="god-card-hover"
                         >
                             <div style={{
-                                fontSize: '1.5rem',
-                                marginBottom: '0.25rem',
+                                fontSize: '0.9rem',
                                 filter: isActive ? 'grayscale(0)' : 'grayscale(1)',
                                 opacity: isActive ? 1 : 0.3
                             }}>
                                 ⭐
                             </div>
-                            <div style={{
-                                fontSize: '0.625rem',
-                                color: isActive ? '#FACC15' : '#9CA3AF',
-                                fontWeight: isActive ? 'bold' : 'normal'
-                            }}>
-                                {god.substring(0, 4)}
-                            </div>
                         </div>
                     )
                 })}
-            </div>
-
-            {/* Summary Stats */}
-            <div style={{
-                padding: '0.75rem',
-                background: '#0B0D12',
-                borderRadius: '8px',
-                border: '1px solid #1F2433',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}>
-                <span style={{
-                    fontSize: '0.875rem',
-                    color: '#9CA3AF'
-                }}>
-                    활성화된 노드
-                </span>
-                <span style={{
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
-                    color: totalNodes > 0 ? '#FACC15' : '#E5E7EB'
-                }}>
-                    {totalNodes}
-                </span>
             </div>
 
             <style jsx>{`

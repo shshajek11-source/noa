@@ -24,7 +24,12 @@
       "Bash(do curl -s -X POST \"http://localhost:8000/api/search\" -H \"Content-Type: application/json\" -d \"{\"\"server\"\": \"\"Siel\"\", \"\"name\"\": \"\"TestChar$i\"\"}\")",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npm run dev:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill /PID 25660 /F)",
+      "Bash(cmd //c \"taskkill /PID 25660 /F\")"
     ]
   }
 }
