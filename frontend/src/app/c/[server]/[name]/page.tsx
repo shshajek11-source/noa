@@ -43,19 +43,41 @@ const mapEquipment = (rawEquipment: any): { equipment: any[], accessories: any[]
   // Based on logs, the structure is a flat list in equipmentList
   const list = rawEquipment.equipmentList
 
-  // Slot mapping from AION API naming to our UI Naming
-  // Key: API returned string (slotPosName), Value: UI expected string
+  // Slot mapping using slotPos ID (More reliable than strings)
+  const slotIdMap: Record<number, string> = {
+    0: '주무기', 1: '보조무기',
+    2: '투구',
+    3: '흉갑',
+    4: '장갑',
+    5: '장화',
+    11: '견갑',
+    12: '각반',
+    13: '망토', // Wing/Feather slot often acts as Cape/Wing
+    14: '허리띠',
+    15: '반지1', 16: '반지2',
+    17: '귀걸이1', 18: '귀걸이2',
+    19: '목걸이',
+    // Extended slots if supported
+    // 20: '날개', 21: '깃털', 22: '부적' ... need to verify exact IDs
+  }
+
+  // Fallback string mapping
   const slotMap: Record<string, string> = {
-    'Main': '주무기', 'Sub': '보조무기',
-    'Head': '투구', 'Shoulder': '견갑', 'Torso': '흉갑', 'Glove': '장갑', 'Pants': '각반', 'Shoes': '장화',
-    'RightHand': '주무기', 'LeftHand': '보조무기', // Possible variants
-    'Earring1': '귀걸이1', 'Earring2': '귀걸이2',
-    'Ring1': '반지1', 'Ring2': '반지2',
-    'Necklace': '목걸이', 'Bird': '날개', 'Wing': '망토', // Wing might be 'Bird' or 'Wing'
+    'Main': '주무기', 'Sub': '보조무기', 'Main Hand': '주무기', 'Sub Hand': '보조무기',
+    'Head': '투구', 'Helmet': '투구',
+    'Torso': '흉갑', 'Top': '흉갑', 'Chest': '흉갑',
+    'Glove': '장갑', 'Gloves': '장갑',
+    'Shoes': '장화', 'Boots': '장화',
+    'Shoulder': '견갑', 'Pauldrons': '견갑',
+    'Pants': '각반', 'Legs': '각반', 'Bottom': '각반',
+    'Wing': '망토', 'Wings': '망토', 'Cape': '망토',
     'Waist': '허리띠', 'Belt': '허리띠',
-    'Bracelet1': '팔찌', 'Bracelet2': '팔찌', // If we have separate slots for bracelet
-    'Amulet': '부적', // No standard UI slot for this yet? Or maybe mapped to special
-    // Korean fallbacks just in case
+    'Earring1': '귀걸이1', 'Earring 2': '귀걸이2', 'Earring 1': '귀걸이1', 'Earring2': '귀걸이2',
+    'Ring1': '반지1', 'Ring 2': '반지2', 'Ring 1': '반지1', 'Ring2': '반지2',
+    'Necklace': '목걸이',
+    'Bracelet': '팔찌', 'Bracelet1': '팔찌1', 'Bracelet2': '팔찌2',
+    'Feather': '깃털',
+    // Fallback Korean
     '주무기': '주무기', '보조무기': '보조무기', '투구': '투구', '상의': '흉갑', '장갑': '장갑', '하의': '각반', '신발': '장화', '어깨': '견갑',
     '귀고리 쪽': '귀걸이1', '귀고리 짝': '귀걸이2', '반지 쪽': '반지1', '반지 짝': '반지2', '목걸이': '목걸이', '날개': '망토', '허리': '허리띠'
   }
@@ -66,15 +88,15 @@ const mapEquipment = (rawEquipment: any): { equipment: any[], accessories: any[]
   }
 
   list.forEach((item: any) => {
-    // 1. Get identifiers from REAL API structure (verified via logs)
-    // Structure: { slotPosName: "Bracelet2", name: "...", grade: "Legend", icon: "...", enchantLevel: 10, ... }
     const rawSlot = item.slotPosName || item.slotName || item.categoryName
 
-    // Debug log - FULL ITEM (Keep for verification)
-    // console.log(`[Equipment Loop Detail]`, JSON.stringify(item))
+    // 1. Try mapping by slotId (most reliable)
+    let slotName = slotIdMap[item.slotPos]
 
-    // 2. Map slot name
-    let slotName = slotMap[rawSlot] || rawSlot
+    // 2. If not found, try mapping by string
+    if (!slotName) {
+      slotName = slotMap[rawSlot] || rawSlot
+    }
 
     // Additional Fallback/Normalization
     if (slotName === '상의') slotName = '흉갑'
@@ -82,19 +104,17 @@ const mapEquipment = (rawEquipment: any): { equipment: any[], accessories: any[]
     if (slotName === '어깨') slotName = '견갑'
     if (slotName === '신발') slotName = '장화'
     if (slotName === '날개' || slotName === 'Bird') slotName = '망토'
-    if (rawSlot === 'Bracelet1') slotName = '팔찌1' // Based on logs
-    if (rawSlot === 'Bracelet2') slotName = '팔찌2' // Based on logs
 
     // Determine target list based on slot type
-    const isAccessory = ['귀걸이', '목걸이', '반지', '팔찌', '깃털', '망토', '부적'].some(k => slotName?.includes(k))
+    const isAccessory = ['귀걸이', '목걸이', '반지', '팔찌', '깃털', '망토', '부적', '허리띠'].some(k => slotName?.includes(k))
 
     const mappedItem = {
       slot: slotName,
-      name: item.name || item.itemName, // 'name' from logs
+      name: item.name || item.itemName,
       enhancement: item.enchantLevel > 0 ? `+${item.enchantLevel}` : '',
-      tier: gradeMap[item.grade] || item.gradeCode || 3, // 'grade' from logs ("Legend")
-      image: item.icon || item.image || item.itemArt, // 'icon' from logs
-      category: item.categoryName, // might be undefined in this structure
+      tier: gradeMap[item.grade] || item.gradeCode || 3,
+      image: item.icon || item.image || item.itemArt,
+      category: item.categoryName,
       soulEngraving: item.soulEngraving ? { grade: item.soulEngraving.grade, percentage: item.soulEngraving.value } : undefined,
       manastones: item.manastoneList?.map((m: any) => ({ type: m.name, value: m.point })) || []
     }
