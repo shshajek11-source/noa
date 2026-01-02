@@ -29,40 +29,61 @@ export default function ProfileSection({ character }: { character: any }) {
                 alignItems: 'center',
                 gap: '1rem'
             }}>
-                {/* Profile Image */}
+                {/* Profile Image Container */}
                 <div style={{
                     position: 'relative',
                     width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    overflow: 'hidden',
-                    border: `3px solid ${rankTier.isTop ? rankTier.color : '#1F2433'}`,
-                    boxShadow: rankTier.isTop ? `0 0 20px ${rankTier.color}50` : 'none'
+                    height: '120px'
                 }}>
-                    {character.character_image_url ? (
-                        <img
-                            src={character.character_image_url}
-                            alt={character.name}
-                            style={{
+                    {/* Profile Image */}
+                    <div style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        border: `3px solid ${rankTier.isTop ? rankTier.color : '#1F2433'}`,
+                        boxShadow: rankTier.isTop ? `0 0 20px ${rankTier.color}50` : 'none'
+                    }}>
+                        {character.character_image_url ? (
+                            <img
+                                src={character.character_image_url}
+                                alt={character.name}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                }}
+                            />
+                        ) : (
+                            <div style={{
                                 width: '100%',
                                 height: '100%',
-                                objectFit: 'cover'
-                            }}
-                        />
-                    ) : (
-                        <div style={{
-                            width: '100%',
-                            height: '100%',
-                            background: '#0B0D12',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#9CA3AF',
-                            fontSize: '2rem'
-                        }}>
-                            {character.name?.[0]}
-                        </div>
-                    )}
+                                background: '#0B0D12',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#9CA3AF',
+                                fontSize: '2rem'
+                            }}>
+                                {character.name?.[0]}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* S1 Badge - Bottom Right */}
+                    <img
+                        src="/s1-badge.png"
+                        alt="S1 Badge"
+                        style={{
+                            position: 'absolute',
+                            bottom: '-23px',
+                            right: '-28px',
+                            width: '95px',
+                            height: '95px',
+                            objectFit: 'contain',
+                            filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))'
+                        }}
+                    />
                 </div>
 
                 {/* Name & Level */}
