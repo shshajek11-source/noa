@@ -37,8 +37,8 @@ export default function EquipmentGrid({ equipment = [], accessories = [] }: Equi
 
     return (
         <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
+            display: 'flex',
+            flexDirection: 'column',
             gap: '2rem'
         }}>
             {/* Weapons & Armor */}

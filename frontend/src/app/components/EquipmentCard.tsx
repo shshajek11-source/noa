@@ -19,23 +19,19 @@ interface EquipmentCardProps {
     }
 }
 
+// Tier color - only high tier (4+) uses accent yellow
 const getTierColor = (tier: number): string => {
-    const colors: Record<number, string> = {
-        5: '#FACC15',
-        4: '#FBBF24',
-        3: '#94A3B8',
-        2: '#9CA3AF',
-        1: '#6B7280'
-    }
-    return colors[tier] || '#6B7280'
+    if (tier >= 5) return '#FACC15'  // Accent yellow for top tier only
+    if (tier >= 4) return '#FBBF24'  // Secondary accent for high tier
+    return '#9CA3AF'  // Sub text color for normal tiers
 }
 
+// Enhancement color - only high enhancement (+10+) uses accent
 const getEnhancementColor = (enhancement: string): string => {
     const level = parseInt(enhancement.replace('+', ''))
-    if (level >= 15) return '#FACC15'
-    if (level >= 10) return '#FBBF24'
-    if (level >= 5) return '#94A3B8'
-    return '#9CA3AF'
+    if (level >= 15) return '#FACC15'  // Top enhancement
+    if (level >= 10) return '#FBBF24'  // High enhancement
+    return '#E5E7EB'  // Normal text
 }
 
 export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
@@ -43,11 +39,11 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
         return (
             <div style={{
                 padding: '1rem',
-                background: '#1A1D29',
-                border: '1px solid #2D3748',
+                background: '#111318',
+                border: '1px solid #1F2433',
                 borderRadius: '8px',
                 textAlign: 'center',
-                color: '#6B7280'
+                color: '#9CA3AF'
             }}>
                 <div style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>{slot}</div>
                 <div style={{ fontSize: '0.75rem' }}>장착 없음</div>
@@ -57,12 +53,13 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
 
     const tierColor = getTierColor(item.tier)
     const enhancementColor = getEnhancementColor(item.enhancement)
+    const isHighTier = item.tier >= 4
 
     return (
         <div style={{
             padding: '0.75rem',
-            background: '#1A1D29',
-            border: `1px solid ${tierColor}40`,
+            background: '#111318',
+            border: '1px solid #1F2433',
             borderRadius: '8px',
             position: 'relative',
             transition: 'all 0.2s',
@@ -79,7 +76,7 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
                 height: '48px',
                 background: '#0B0D12',
                 borderRadius: '6px',
-                border: `1px solid ${tierColor}60`,
+                border: `1px solid ${isHighTier ? tierColor + '60' : '#1F2433'}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -90,7 +87,7 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
                 {item.image ? (
                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                    <div style={{ fontSize: '0.5rem', color: '#4B5563', textAlign: 'center' }}>No IMG</div>
+                    <div style={{ fontSize: '0.5rem', color: '#9CA3AF', textAlign: 'center' }}>No IMG</div>
                 )}
 
                 {/* Enhancement Badge (Overlay on Image) */}
@@ -99,7 +96,7 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
                         position: 'absolute',
                         bottom: '0',
                         right: '0',
-                        background: 'rgba(0,0,0,0.8)',
+                        background: 'rgba(11,13,18,0.9)',
                         color: enhancementColor,
                         fontSize: '0.7rem',
                         fontWeight: 'bold',
@@ -116,7 +113,13 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
                 {/* Slot & Tier Row */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                     <span style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>{slot}</span>
-                    <span style={{ fontSize: '0.65rem', color: tierColor, border: `1px solid ${tierColor}40`, padding: '0 4px', borderRadius: '3px' }}>
+                    <span style={{
+                        fontSize: '0.65rem',
+                        color: tierColor,
+                        border: `1px solid ${isHighTier ? tierColor + '40' : '#1F2433'}`,
+                        padding: '0 4px',
+                        borderRadius: '3px'
+                    }}>
                         T{item.tier}
                     </span>
                 </div>
@@ -144,7 +147,12 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
                         gap: '4px',
                         marginTop: '2px'
                     }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: item.soulEngraving.grade === 'S' ? '#FACC15' : '#94A3B8' }}></span>
+                        <span style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            background: item.soulEngraving.grade === 'S' ? '#FACC15' : '#9CA3AF'
+                        }}></span>
                         <span>각인 {item.soulEngraving.grade} ({item.soulEngraving.percentage}%)</span>
                     </div>
                 )}
@@ -168,7 +176,7 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
                                 }} />
                         ))}
                         {item.manastones.length > 3 && (
-                            <span style={{ fontSize: '0.6rem', color: '#6B7280' }}>+{item.manastones.length - 3}</span>
+                            <span style={{ fontSize: '0.6rem', color: '#9CA3AF' }}>+{item.manastones.length - 3}</span>
                         )}
                     </div>
                 )}
@@ -176,8 +184,7 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
 
             <style jsx>{`
         .equipment-card-hover:hover {
-          border-color: ${tierColor};
-          box-shadow: 0 0 15px ${tierColor}20;
+          border-color: #FACC15;
           transform: translateY(-1px);
         }
       `}</style>

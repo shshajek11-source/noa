@@ -1,12 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
-import CharacterHeader from '../../../components/CharacterHeader'
-import PowerDisplay from '../../../components/PowerDisplay'
+import ProfileSection from '../../../components/ProfileSection'
+import TitleCard from '../../../components/TitleCard'
+import StatsCard from '../../../components/StatsCard'
+import DaevanionCard from '../../../components/DaevanionCard'
 import EquipmentGrid from '../../../components/EquipmentGrid'
-import StatCard from '../../../components/StatCard'
-import TitleSystem from '../../../components/TitleSystem'
-import DevanionBoard from '../../../components/DevanionBoard'
 import { supabaseApi, CharacterDetail, SERVER_NAME_TO_ID } from '../../../../lib/supabaseApi'
 
 // --- Types mapping to UI components ---
@@ -170,8 +169,9 @@ export default function CharacterDetailPage() {
 
   // Mapped Data States
   const [mappedEquipment, setMappedEquipment] = useState<{ equipment: any[], accessories: any[] }>({ equipment: [], accessories: [] })
-  const [mappedStats, setMappedStats] = useState<any[]>([])
-  // const [mappedDevanion, setMappedDevanion] = ...
+  const [mappedStats, setMappedStats] = useState<any>({})
+  const [mappedTitles, setMappedTitles] = useState<any>({})
+  const [mappedDaevanion, setMappedDaevanion] = useState<any>({})
 
   const fetchData = async (refresh = false) => {
     try {
@@ -236,7 +236,9 @@ export default function CharacterDetailPage() {
 
       // Map Sub-Components
       setMappedEquipment(mapEquipment(detail.equipment))
-      setMappedStats(mapStats(detail.stats))
+      setMappedStats(detail.stats || {})
+      setMappedTitles(detail.titles || {})
+      setMappedDaevanion(detail.daevanion || {})
 
     } catch (err: any) {
       console.error(err)
@@ -274,20 +276,20 @@ export default function CharacterDetailPage() {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 1rem', textAlign: 'center' }}>
         <div style={{
           padding: '2rem',
-          background: '#fee2e2',
+          background: '#111318',
           border: '1px solid #ef4444',
           borderRadius: '12px',
-          color: '#b91c1c',
+          color: '#E5E7EB',
           display: 'inline-block'
         }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>오류 발생</h3>
-          <p>{error}</p>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#ef4444' }}>오류 발생</h3>
+          <p style={{ color: '#9CA3AF' }}>{error}</p>
           <button
             onClick={() => window.location.reload()}
             style={{
               marginTop: '1.5rem',
               padding: '0.5rem 1.5rem',
-              background: '#b91c1c',
+              background: '#ef4444',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
@@ -312,13 +314,15 @@ export default function CharacterDetailPage() {
 
   return (
     <div style={{
-      maxWidth: '1200px',
+      width: '100%',
+      maxWidth: '1400px',
       margin: '0 auto',
-      padding: '2rem 1rem',
+      padding: '2rem 1.5rem',
       minHeight: '100vh',
-      position: 'relative'
+      position: 'relative',
+      boxSizing: 'border-box'
     }}>
-      {/* Search/Refresh FAB */}
+      {/* Refresh FAB */}
       <button
         onClick={handleRefresh}
         disabled={loading}
@@ -328,8 +332,8 @@ export default function CharacterDetailPage() {
           bottom: '30px',
           right: '30px',
           zIndex: 50,
-          background: '#2563eb',
-          color: 'white',
+          background: '#facc15',
+          color: '#0f172a',
           border: 'none',
           borderRadius: '50%',
           width: '60px',
@@ -337,7 +341,7 @@ export default function CharacterDetailPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)',
+          boxShadow: '0 4px 12px rgba(250, 204, 21, 0.4)',
           cursor: loading ? 'wait' : 'pointer',
           transition: 'transform 0.2s',
         }}
@@ -352,72 +356,70 @@ export default function CharacterDetailPage() {
         </svg>
       </button>
 
-      {/* Header */}
-      <CharacterHeader data={data} />
+      {/* 3-Column Grid Layout - Centered */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        width: '100%'
+      }}>
+        {/* Desktop: 3 columns with balanced widths */}
+        <style jsx>{`
+          @media (min-width: 1024px) {
+            .grid-container {
+              display: grid !important;
+              grid-template-columns: 280px minmax(400px, 600px) 300px !important;
+              gap: 1.5rem !important;
+            }
+          }
+          @media (max-width: 1023px) {
+            .grid-container {
+              display: flex !important;
+              flex-direction: column !important;
+              gap: 1.5rem !important;
+            }
+          }
+        `}</style>
+        <div className="grid-container" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.5rem'
+        }}>
+          {/* LEFT COLUMN: Profile Section */}
+          <div>
+            <ProfileSection character={data} />
+          </div>
 
-      {/* Power Display */}
-      <div style={{ marginTop: '2rem' }}>
-        <PowerDisplay
-          combatScore={data.power || 0}
-          itemLevel={data.item_level || 0}
-          tier={data.tier_rank || 'Unranked'}
-          percentile={data.percentile || 0}
-        />
-      </div>
+          {/* CENTER COLUMN: Equipment */}
+          <div style={{
+            background: '#111318',
+            border: '1px solid #1F2433',
+            borderRadius: '12px',
+            padding: '1.5rem'
+          }}>
+            <h2 style={{
+              fontSize: '1.25rem',
+              fontWeight: 'bold',
+              color: '#E5E7EB',
+              marginBottom: '1.5rem',
+              borderBottom: '1px solid #1F2433',
+              paddingBottom: '0.75rem'
+            }}>
+              장비 & 장신구
+            </h2>
+            <EquipmentGrid equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} />
+          </div>
 
-      {/* Tabs */}
-      <div style={{ marginTop: '3rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e5e7eb', marginBottom: '2rem' }}>
-          {['basic', 'devanion', 'growth'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                padding: '0.75rem 0',
-                marginRight: '1rem',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: activeTab === tab ? '2px solid #2563eb' : '2px solid transparent',
-                color: activeTab === tab ? '#2563eb' : '#6b7280',
-                fontWeight: activeTab === tab ? '600' : '400',
-                cursor: 'pointer',
-                fontSize: '1rem'
-              }}
-            >
-              {tab === 'basic' && '기본 정보'}
-              {tab === 'devanion' && '데바니온'}
-              {tab === 'growth' && '성장 도표'}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        <div>
-          {activeTab === 'basic' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <EquipmentGrid equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} />
-
-              <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem', color: '#111827' }}>상세 스탯</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                  {mappedStats.map((stat, i) => (
-                    <StatCard key={i} statName={stat.name} value={stat.value} percentile={stat.percentile} contribution={stat.contribution} breakdown={stat.breakdown} />
-                  ))}
-                  {mappedStats.length === 0 && (
-                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#6b7280', padding: '1rem' }}>표시할 스탯 정보가 없습니다.</div>
-                  )}
-                </div>
-              </div>
-
-              <TitleSystem data={{ totalTitles: 0, collectedTitles: 0, attackTitles: '0/0', defenseTitles: '0/0', miscTitles: '0/0', activeEffects: [] }} />
-            </div>
-          )}
-          {activeTab === 'devanion' && <DevanionBoard data={dummyDevanionData} />}
-          {activeTab === 'growth' && (
-            <div style={{ padding: '3rem', textAlign: 'center', background: '#f9fafb', borderRadius: '12px', color: '#6b7280' }}>
-              준비 중인 기능입니다.
-            </div>
-          )}
+          {/* RIGHT COLUMN: Title, Stats, Daevanion */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem'
+          }}>
+            <TitleCard titles={mappedTitles} />
+            <StatsCard stats={mappedStats} />
+            <DaevanionCard daevanion={mappedDaevanion} />
+          </div>
         </div>
       </div>
     </div>
