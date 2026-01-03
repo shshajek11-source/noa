@@ -9,25 +9,26 @@ interface EquipmentGridProps {
 
 export default function EquipmentGrid({ equipment = [], accessories = [], onItemClick }: EquipmentGridProps) {
     // Equipment slots
+    // Equipment slots - Ordered by User Request (Top-Left to Bottom-Right)
     const weaponSlots = [
-        '주무기',
-        '보조무기',
-        '투구',
-        '견갑',
-        '흉갑',
-        '허리띠',
-        '각반',
-        '장갑',
-        '망토',
-        '장화'
+        '주무기',   // 1
+        '보조무기', // 2
+        '투구',     // 3
+        '견갑',     // 4
+        '흉갑',     // 5
+        '장갑',     // 6
+        '각반',     // 7
+        '장화',     // 8
+        '망토',     // 9 (SlotPos 19)
+        '허리띠'    // 10 (SlotPos 17)
     ]
 
-    // Accessory slots (including runes)
+    // Accessory slots - Ordered by User Request
     const accessorySlots = [
         '귀걸이1',
         '귀걸이2',
-        '목걸이',
-        '아뮬렛',
+        '아뮬렛',   // 3 (SlotPos 22) - Moved before Necklace
+        '목걸이',   // 4 (SlotPos 9)
         '반지1',
         '반지2',
         '팔찌1',
@@ -62,7 +63,6 @@ export default function EquipmentGrid({ equipment = [], accessories = [], onItem
                 }}>
                     {weaponSlots.map(slot => {
                         const item = equipment?.find(e => e.slot === slot)
-                        if (!item) return null
                         return <EquipmentCard key={slot} slot={slot} item={item} onClick={onItemClick} />
                     })}
                 </div>
@@ -87,7 +87,6 @@ export default function EquipmentGrid({ equipment = [], accessories = [], onItem
                 }}>
                     {accessorySlots.map(slot => {
                         const item = accessories?.find(a => a.slot === slot)
-                        if (!item) return null
                         return <EquipmentCard key={slot} slot={slot} item={item} onClick={onItemClick} />
                     })}
                 </div>

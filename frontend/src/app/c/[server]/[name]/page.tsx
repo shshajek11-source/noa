@@ -41,53 +41,29 @@ type CharacterData = {
 
 const mapEquipment = (rawEquipment: any): { equipment: any[], accessories: any[], arcana: any[] } => {
   if (!rawEquipment?.equipmentList) return { equipment: [], accessories: [], arcana: [] }
+
   const equipment: any[] = []
   const accessories: any[] = []
   const arcana: any[] = []
 
-  // Combine equipment and skin lists if necessary, or just use equipmentList for main stats
-  // Based on logs, the structure is a flat list in equipmentList
-  const list = rawEquipment.equipmentList
+  const list = rawEquipment.equipmentList || []
 
-  // Slot mapping using slotPos ID (More reliable than strings)
-  const slotIdMap: Record<number, string> = {
-    0: '주무기', 1: '보조무기',
-    2: '투구',
-    3: '흉갑',
-    4: '장갑',
-    5: '장화',
-    11: '견갑',
-    12: '각반',
-    13: '망토',
-    14: '허리띠',
-    15: '귀걸이1', 16: '귀걸이2',
-    17: '목걸이',
-    18: '아뮬렛',
-    19: '반지1', 20: '반지2',
-    21: '팔찌1', 22: '팔찌2',
-    23: '룬1', 24: '룬2',
-    // 25: '날개', 26: '펫' // 향후 추가 가능
+  // 1. Define Sort Orders (User Requested)
+  // 1. Define Sort Orders (User Requested)
+  const equipmentSortOrder: Record<string, number> = {
+    '주무기': 1, '보조무기': 2,
+    '투구': 3, '견갑': 4,
+    '흉갑': 5, '장갑': 6,
+    '각반': 7, '장화': 8,
+    '망토': 9, '허리띠': 10
   }
 
-  // Fallback string mapping
-  const slotMap: Record<string, string> = {
-    'Main': '주무기', 'Sub': '보조무기', 'Main Hand': '주무기', 'Sub Hand': '보조무기',
-    'Head': '투구', 'Helmet': '투구',
-    'Torso': '흉갑', 'Top': '흉갑', 'Chest': '흉갑',
-    'Glove': '장갑', 'Gloves': '장갑',
-    'Shoes': '장화', 'Boots': '장화',
-    'Shoulder': '견갑', 'Pauldrons': '견갑',
-    'Pants': '각반', 'Legs': '각반', 'Bottom': '각반',
-    'Wing': '망토', 'Wings': '망토', 'Cape': '망토',
-    'Waist': '허리띠', 'Belt': '허리띠',
-    'Earring1': '귀걸이1', 'Earring 2': '귀걸이2', 'Earring 1': '귀걸이1', 'Earring2': '귀걸이2',
-    'Ring1': '반지1', 'Ring 2': '반지2', 'Ring 1': '반지1', 'Ring2': '반지2',
-    'Necklace': '목걸이',
-    'Bracelet': '팔찌', 'Bracelet1': '팔찌1', 'Bracelet2': '팔찌2',
-    'Feather': '깃털',
-    // Fallback Korean
-    '주무기': '주무기', '보조무기': '보조무기', '투구': '투구', '상의': '흉갑', '장갑': '장갑', '하의': '각반', '신발': '장화', '어깨': '견갑',
-    '귀고리 쪽': '귀걸이1', '귀고리 짝': '귀걸이2', '반지 쪽': '반지1', '반지 짝': '반지2', '목걸이': '목걸이', '날개': '망토', '허리': '허리띠'
+  const accessorySortOrder: Record<string, number> = {
+    '귀걸이1': 1, '귀걸이2': 2,
+    '아뮬렛': 3, '목걸이': 4,
+    '반지1': 5, '반지2': 6,
+    '팔찌1': 7, '팔찌2': 8,
+    '룬1': 9, '룬2': 10
   }
 
   // Grade Mapping
@@ -95,46 +71,97 @@ const mapEquipment = (rawEquipment: any): { equipment: any[], accessories: any[]
     'Common': 1, 'Rare': 2, 'Legend': 3, 'Unique': 4, 'Epic': 5, 'Mythic': 6
   }
 
+  const slotMap: Record<string, string> = {
+    'Main': '주무기', 'Sub': '보조무기',
+    'Head': '투구', 'Helmet': '투구', 'Cap': '투구',
+    'Torso': '흉갑', 'Breastplate': '흉갑', 'Top': '흉갑', 'Shirt': '흉갑', 'Tunic': '흉갑',
+    'Glove': '장갑', 'Gloves': '장갑', 'Hand': '장갑',
+    'Foot': '장화', 'Feet': '장화', 'Shoes': '장화', 'Boots': '장화',
+    'Shoulder': '견갑', 'Pauldrons': '견갑', 'Mantle': '견갑',
+    'Legs': '각반', 'Leg': '각반', 'Pants': '각반', 'Bottom': '각반', 'Greaves': '각반',
+    'Wing': '망토', 'Cape': '망토',
+    'Waist': '허리띠', 'Belt': '허리띠',
+    'Earring1': '귀걸이1', 'Earring 2': '귀걸이2', 'Earring2': '귀걸이2', 'Earring 1': '귀걸이1',
+    'Ring1': '반지1', 'Ring 2': '반지2', 'Ring2': '반지2', 'Ring 1': '반지1',
+    'Necklace': '목걸이',
+    'Bracelet': '팔찌', 'Bracelet1': '팔찌1', 'Bracelet2': '팔찌2',
+    'Feather': '깃털',
+    // Fallback Korean
+    '주무기': '주무기', '보조무기': '보조무기', '투구': '투구', '머리': '투구',
+    '상의': '흉갑', '흉갑': '흉갑',
+    '장갑': '장갑', '손': '장갑',
+    '하의': '각반', '각반': '각반', '다리': '각반',
+    '신발': '장화', '장화': '장화', '발': '장화',
+    '어깨': '견갑', '견갑': '견갑',
+    '귀고리 쪽': '귀걸이1', '귀고리 짝': '귀걸이2', '반지 쪽': '반지1', '반지 짝': '반지2', '목걸이': '목걸이', '날개': '망토', '허리': '허리띠'
+  }
+
   list.forEach((item: any) => {
+    // 1. Try to find valid keys from various properties
     const rawSlot = item.slotPosName || item.slotName || item.categoryName
+    let slotName = slotMap[rawSlot] || rawSlot
 
-    // 1. Try mapping by slotId (most reliable)
-    let slotName = slotIdMap[item.slotPos]
+    // 2. 🚨 FORCE OVERRIDE based on slotPos (Most Reliable)
+    if (item.slotPos === 1) slotName = '주무기'
+    if (item.slotPos === 2) slotName = '보조무기'
+    // if (item.slotPos === 3) slotName = '흉갑' // (추정)
+    // if (item.slotPos === 4) slotName = '장갑' // (추정)
+    // if (item.slotPos === 5) slotName = '장화' // (추정)
+    if (item.slotPos === 9) slotName = '목걸이'
+    // if (item.slotPos === 11) slotName = '견갑' // (추정)
+    // if (item.slotPos === 12) slotName = '각반' // (추정)
+    if (item.slotPos === 15) slotName = '팔찌2' // 해방자
+    if (item.slotPos === 16) slotName = '팔찌1' // 각성
+    if (item.slotPos === 17) slotName = '허리띠'
+    if (item.slotPos === 19) slotName = '망토'
+    if (item.slotPos === 22) slotName = '아뮬렛'
+    if (item.slotPos === 23) slotName = '룬1'
+    if (item.slotPos === 24) slotName = '룬2'
 
-    // 2. If not found, try mapping by string
-    if (!slotName) {
-      slotName = slotMap[rawSlot] || rawSlot
+    // 3. Fallback: Keyword Search in Category or Name if still unmapped or using fallback
+    if (!equipmentSortOrder[slotName] && !accessorySortOrder[slotName]) {
+      const searchTarget = (item.categoryName + ' ' + item.name).toLowerCase()
+
+      if (searchTarget.includes('투구') || searchTarget.includes('helm') || searchTarget.includes('hat')) slotName = '투구'
+      else if (searchTarget.includes('흉갑') || searchTarget.includes('plate') || searchTarget.includes('tunic') || searchTarget.includes('상의')) slotName = '흉갑'
+      else if (searchTarget.includes('견갑') || searchTarget.includes('pauldron')) slotName = '견갑'
+      else if (searchTarget.includes('장갑') || searchTarget.includes('glove')) slotName = '장갑'
+      else if (searchTarget.includes('각반') || searchTarget.includes('leggings') || searchTarget.includes('greaves') || searchTarget.includes('하의') || searchTarget.includes('leg')) slotName = '각반'
+      else if (searchTarget.includes('장화') || searchTarget.includes('boots') || searchTarget.includes('shoes') || searchTarget.includes('신발')) slotName = '장화'
+      else if (searchTarget.includes('날개') || searchTarget.includes('wing')) slotName = '망토'
     }
 
-    // Additional Fallback/Normalization
+    // Additional Normalization to ensure strict match
     if (slotName === '상의') slotName = '흉갑'
     if (slotName === '하의') slotName = '각반'
     if (slotName === '어깨') slotName = '견갑'
     if (slotName === '신발') slotName = '장화'
+    if (slotName === '다리') slotName = '각반'
+    if (slotName === '손') slotName = '장갑'
+    if (slotName === '머리') slotName = '투구'
     if (slotName === '날개' || slotName === 'Bird') slotName = '망토'
 
     // Check if this is an Arcana item (slotPos 41-45 or slotPosName starts with "Arcana")
     const isArcana = (item.slotPos >= 41 && item.slotPos <= 45) || rawSlot?.startsWith('Arcana')
 
-    // Determine target list based on slot type
-    const isAccessory = !isArcana && slotName && (
-      slotName.includes('귀걸이') ||
-      slotName.includes('목걸이') ||
-      slotName.includes('반지') ||
-      slotName.includes('팔찌') ||
-      slotName.includes('룬') ||
-      slotName.includes('아뮬렛') ||
-      slotName.includes('부적')
-    )
+    let isAccessory = false
+    let isEquipment = false
 
-    // DEBUG: Log raw item to find breakthrough field
-    if (item.enchantLevel > 0) {
-      console.log('Equipment item:', {
-        name: item.name,
-        enchant: item.enchantLevel,
-        exceed: item.exceedLevel, // 실제 돌파 필드명!
-        rawItem: item
-      })
+    if (accessorySortOrder[slotName]) {
+      isAccessory = true
+    } else if (equipmentSortOrder[slotName]) {
+      isEquipment = true
+    } else {
+      // Fallback checks
+      isAccessory = !isArcana && slotName && (
+        slotName.includes('귀걸이') ||
+        slotName.includes('목걸이') ||
+        slotName.includes('반지') ||
+        slotName.includes('팔찌') ||
+        slotName.includes('룬') ||
+        slotName.includes('아뮬렛') ||
+        slotName.includes('부적')
+      )
     }
 
     const mappedItem = {
@@ -159,6 +186,21 @@ const mapEquipment = (rawEquipment: any): { equipment: any[], accessories: any[]
       equipment.push(mappedItem)
     }
   })
+
+  // Sort the arrays
+  equipment.sort((a, b) => {
+    const orderA = equipmentSortOrder[a.slot] || 99
+    const orderB = equipmentSortOrder[b.slot] || 99
+    return orderA - orderB
+  })
+
+  accessories.sort((a, b) => {
+    const orderA = accessorySortOrder[a.slot] || 99
+    const orderB = accessorySortOrder[b.slot] || 99
+    return orderA - orderB
+  })
+
+  arcana.sort((a, b) => (a.raw.slotPos || 0) - (b.raw.slotPos || 0))
 
   return { equipment, accessories, arcana }
 }
@@ -511,7 +553,7 @@ export default function CharacterDetailPage() {
             border: '1px solid #1F2433',
             borderRadius: '12px',
             padding: '1rem',
-            height: '638px',
+            // height: '638px', // Fixed height removed to show all items
             boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column'
@@ -538,7 +580,7 @@ export default function CharacterDetailPage() {
                 마우스 올리면 상세정보
               </span>
             </div>
-            <div style={{ flex: 1, overflow: 'hidden' }}>
+            <div style={{ flex: 1 }}>
               <EquipmentGrid equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} onItemClick={handleItemClick} />
             </div>
           </div>
