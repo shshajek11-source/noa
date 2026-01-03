@@ -2,12 +2,17 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
 export async function GET(request: Request) {
+    // Initialize Supabase client inside handler to avoid build-time errors
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+        return NextResponse.json({ error: 'Supabase credentials missing' }, { status: 500 })
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
     const { searchParams } = new URL(request.url)
     const serverId = searchParams.get('serverId') || '2002' // Default to Zikel
     const type = searchParams.get('type') || '1' // Default to Abyss (1)
