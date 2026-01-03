@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { Trophy } from 'lucide-react'
 import styles from './Ranking.module.css'
 import { SERVER_MAP } from '../../constants/servers'
-import { RankingCharacter } from '@/types/character'
+import { RankingCharacter } from '../../../types/character'
 
 interface RankingTableProps {
     type: 'noa' | 'cp' | 'content'
