@@ -38,43 +38,14 @@ export interface AionCharacterProfile {
     gender: number;
     genderName: string;
     characterLevel: number;
+    jobLevel?: number; // Added
     titleId: number;
     titleName: string;
     titleGrade: string;
     profileImage: string;
 }
 
-export interface AionCharacterInfoResponse {
-    profile: AionCharacterProfile;
-    stat: {
-        statList: any[];
-    };
-    title: {
-        totalCount: number;
-        ownedCount: number;
-        titleList: any[];
-    };
-    ranking: {
-        rankingList: any[];
-    };
-    daevanion: {
-        boardList: any[];
-    };
-}
-
-export interface AionCharacterEquipmentResponse {
-    equipment: {
-        equipmentList: any[];
-        skinList: any[];
-    };
-    skill: {
-        skillList: any[];
-    };
-    petwing: {
-        pet: any;
-        wing: any;
-    };
-}
+// ... (omitted)
 
 export interface DbCharacter {
     id?: string;
@@ -82,6 +53,10 @@ export interface DbCharacter {
     server_id: number;
     name: string;
     level: number;
+    item_level?: number;
+    noa_score?: number; // Added for Ranking System
+    ranking_ap?: number; // Abyss Points
+    ranking_gp?: number; // Glory Points
     class_name: string;
     race_name: string;
     guild_name?: string;

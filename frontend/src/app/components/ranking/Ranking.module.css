@@ -1,0 +1,157 @@
+.filterBar {
+    display: flex;
+    gap: 1rem;
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    align-items: center;
+    flex-wrap: wrap;
+    border: 1px solid var(--border);
+}
+
+.selectGroup {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.searchInputWrapper {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    position: relative;
+}
+
+.searchInput {
+    width: 100%;
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    /* Space for icon */
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    width: 18px;
+    height: 18px;
+}
+
+/* Tab Navigation in Layout */
+.tabNav {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.tabLink {
+    padding: 1rem 2rem;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.tabLinkActive {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+}
+
+.tabLink:hover:not(.tabLinkActive) {
+    color: var(--text-main);
+}
+
+/* Ranking Table Specifics */
+/* Reuse global table/tr/td styles, just add specifics */
+
+.rankCell {
+    display: flex;
+    justify_content: center;
+    align_items: center;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.rankIcon {
+    width: 24px;
+    height: 24px;
+}
+
+.rankIconGold {
+    color: #FFD700;
+}
+
+.rankIconSilver {
+    color: #C0C0C0;
+}
+
+.rankIconBronze {
+    color: #CD7F32;
+}
+
+.charLink {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.charImageWrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.charImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.charInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.charName {
+    font-weight: 700;
+    color: var(--text-main);
+    font-size: 1rem;
+}
+
+.charDetail {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.scoreValue {
+    font-family: monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #60A5FA;
+    /* Light Blue for score */
+}
+
+.elyos {
+    color: var(--success);
+}
+
+.asmodian {
+    color: var(--danger);
+}

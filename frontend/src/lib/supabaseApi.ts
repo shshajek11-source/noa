@@ -13,26 +13,29 @@ export interface CharacterSearchResult {
     imageUrl?: string
 }
 
-export const SERVER_NAME_TO_ID: Record<string, number> = {
-    '시엘': 1,
-    '이스라펠': 2,
-    '트리니티': 3,
-    '바이젤': 4,
-    '네자칸': 1002, // Elyos server for Zikel group
-    '지켈': 2002, // Asmodian server id (Zikel)
-    '루미엘': 7, // Placeholder, need verification if possible but user only asked for Zikel fix primarily
-    '유스티엘': 8,
-    '마르쿠탄': 9,
-    '카이시넬': 10,
-    '에레슈키갈': 11,
-    '셀렉트': 12,
-    '윈드': 13
+import { SERVER_MAP, SERVERS } from '../app/constants/servers'
+
+export interface CharacterSearchResult {
+    characterId: string
+    name: string
+    server: string
+    server_id?: number // Added for detail fetch
+    job: string
+    level: number
+    race: string
+    imageUrl?: string
 }
 
-export const SERVER_ID_TO_NAME: Record<number, string> = Object.entries(SERVER_NAME_TO_ID).reduce((acc, [name, id]) => {
-    acc[id] = name;
-    return acc;
-}, {} as Record<number, string>);
+// Use centralized server constants
+export const SERVER_NAME_TO_ID: Record<string, number> = Object.entries(SERVER_MAP).reduce((acc, [id, name]) => {
+    acc[name] = parseInt(id)
+    return acc
+}, {} as Record<string, number>)
+
+export const SERVER_ID_TO_NAME: Record<number, string> = Object.entries(SERVER_MAP).reduce((acc, [id, name]) => {
+    acc[parseInt(id)] = name
+    return acc
+}, {} as Record<number, string>)
 
 export interface CharacterDetail {
     character_id: string

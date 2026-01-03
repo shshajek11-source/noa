@@ -29,7 +29,11 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(taskkill /PID 25660 /F)",
-      "Bash(cmd //c \"taskkill /PID 25660 /F\")"
+      "Bash(cmd //c \"taskkill /PID 25660 /F\")",
+      "WebFetch(domain:aion2.plaync.com)",
+      "Bash(cat:*)",
+      "Bash(taskkill /PID 13404 /F)",
+      "Bash(cmd //c \"taskkill /PID 13404 /F\")"
     ]
   }
 }

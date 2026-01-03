@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AION2 API 테스트</title>
+</head>
+<body>
+    <h1>AION2 API 엔드포인트 테스트</h1>
+    <p>F12를 눌러서 Network 탭을 확인하세요</p>
+    
+    <button onclick="testAPI()">API 테스트</button>
+    <pre id="result"></pre>
+    
+    <script>
+        async function testAPI() {
+            const characterId = 'nytBf6WAPyotskC-YCOMsb6iHhI_jxV3kYwIx6O8Yxo=';
+            const serverId = '2002';
+            const itemId = '110230051';
+            const slotPos = '1';
+            
+            // 테스트할 다양한 엔드포인트
+            const endpoints = [
+                `https://aion2.plaync.com/api/character/equipment?lang=ko&characterId=${characterId}&serverId=${serverId}`,
+                `https://api-community.plaync.com/aion2/character/equipment?characterId=${characterId}&serverId=${serverId}`,
+                `https://aion2.plaync.com/character/equipment/detail?characterId=${characterId}&serverId=${serverId}&itemId=${itemId}&slotPos=${slotPos}`,
+            ];
+            
+            for (const url of endpoints) {
+                try {
+                    console.log('Testing:', url);
+                    const res = await fetch(url);
+                    console.log('Status:', res.status);
+                    if (res.ok) {
+                        const data = await res.json();
+                        console.log('Success!', url);
+                        console.log('Data:', data);
+                    }
+                } catch (e) {
+                    console.log('Failed:', url, e);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

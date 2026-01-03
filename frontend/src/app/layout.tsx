@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         {/* Main Nav - Only active pages */}
                         <nav className="nav" style={{ marginBottom: 0 }}>
                             <Link href="/">홈</Link>
-                            {/* Other pages temporarily disabled */}
+                            <Link href="/ranking">랭킹</Link>
                         </nav>
                     </div>
                 </header>
