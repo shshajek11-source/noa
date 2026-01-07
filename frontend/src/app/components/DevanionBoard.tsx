@@ -55,14 +55,6 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    // Debug info state
-    const [debugInfo, setDebugInfo] = useState<{
-        apiUrl?: string
-        responseStatus?: number
-        responseTime?: number
-        errorDetails?: string
-    }>({})
-
     const activeGod = GODS[activeGodIndex]
 
     // Get boardId directly from boardList by matching god name
@@ -88,9 +80,6 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
             console.warn('⚠️ [DAEVANION BOARD] Missing characterId or serverId - skipping fetch')
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
             setBoardData(null)
-            setDebugInfo({
-                errorDetails: 'characterId 또는 serverId가 없습니다.'
-            })
             return
         }
 
@@ -98,9 +87,6 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
             console.warn('⚠️ [DAEVANION BOARD] Missing boardList or invalid boardId - skipping fetch')
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
             setBoardData(null)
-            setDebugInfo({
-                errorDetails: 'boardList가 없습니다. 캐릭터 정보를 먼저 로드해주세요.'
-            })
             return
         }
 
@@ -112,65 +98,31 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
             try {
                 const url = `/api/daevanion?characterId=${encodeURIComponent(characterId)}&serverId=${serverId}&boardId=${boardId}`
 
-                // Store URL for debug display
-                setDebugInfo(prev => ({ ...prev, apiUrl: url }))
-
                 // 🔍 DEBUG: Log API call
-                console.log('🌐 [DAEVANION BOARD] Fetching from API:')
-                console.log('URL:', url)
+                console.log('🌐 [DAEVANION BOARD] Fetching from API:', url)
 
                 const res = await fetch(url)
-                const endTime = Date.now()
-
-                // 🔍 DEBUG: Log response
-                console.log('📡 [DAEVANION BOARD] Response status:', res.status, res.statusText)
-
-                // Store response info
-                setDebugInfo(prev => ({
-                    ...prev,
-                    responseStatus: res.status,
-                    responseTime: endTime - startTime
-                }))
 
                 if (!res.ok) {
                     const errorData = await res.json().catch(() => null)
-                    console.error('❌ [DAEVANION BOARD] API request failed!')
-                    console.error('Status:', res.status)
-                    console.error('Error data:', errorData)
-
-                    setDebugInfo(prev => ({
-                        ...prev,
-                        errorDetails: errorData?.details || errorData?.error || `HTTP ${res.status} 오류`
-                    }))
-
+                    console.error('❌ [DAEVANION BOARD] API request failed!', res.status, errorData)
                     throw new Error(errorData?.details || 'API 요청 실패')
                 }
 
                 const data: DaevanionBoardResponse = await res.json()
 
                 // 🔍 DEBUG: Log successful data
-                console.log('✅ [DAEVANION BOARD] Data received successfully!')
-                console.log('nodeList count:', data.nodeList?.length || 0)
-                console.log('openStatEffectList count:', data.openStatEffectList?.length || 0)
-                console.log('openSkillEffectList count:', data.openSkillEffectList?.length || 0)
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+                console.log('✅ [DAEVANION BOARD] Data received successfully!', {
+                    nodeList: data.nodeList?.length || 0,
+                    effects: (data.openStatEffectList?.length || 0) + (data.openSkillEffectList?.length || 0)
+                })
 
                 setBoardData(data)
             } catch (err) {
-                console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-                console.error('💥 [DAEVANION BOARD] Error occurred:')
-                console.error('Error:', err)
-                console.error('Error message:', err instanceof Error ? err.message : '데이터 로드 실패')
-                console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-
+                console.error('💥 [DAEVANION BOARD] Error occurred:', err)
                 const errorMsg = err instanceof Error ? err.message : '데이터 로드 실패'
                 setError(errorMsg)
                 setBoardData(null)
-
-                setDebugInfo(prev => ({
-                    ...prev,
-                    errorDetails: prev.errorDetails || errorMsg
-                }))
             } finally {
                 setLoading(false)
             }
@@ -315,121 +267,7 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                     </div>
                 </div>
 
-                {/* 🔍 DEBUG INFO PANEL */}
-                <div style={{
-                    background: '#1A1D29',
-                    border: '1px solid #FACC15',
-                    borderRadius: '8px',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    fontSize: '0.85rem',
-                    fontFamily: 'monospace'
-                }}>
-                    <div style={{ fontWeight: 'bold', color: '#FACC15', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        🔍 디버그 정보
-                        <span style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>(문제 해결용)</span>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem', color: '#E5E7EB' }}>
-                        <div style={{ color: '#9CA3AF' }}>캐릭터 ID:</div>
-                        <div style={{ color: characterId ? '#10B981' : '#EF4444' }}>{characterId || '❌ 없음'}</div>
 
-                        <div style={{ color: '#9CA3AF' }}>서버 ID:</div>
-                        <div style={{ color: serverId ? '#10B981' : '#EF4444' }}>{serverId || '❌ 없음'}</div>
-
-                        <div style={{ color: '#9CA3AF' }}>BoardList 상태:</div>
-                        <div style={{ color: boardList && boardList.length > 0 ? '#10B981' : '#EF4444' }}>
-                            {boardList && boardList.length > 0
-                                ? `✅ ${boardList.length}개 보드 데이터 있음`
-                                : '❌ boardList 없음 (캐릭터 정보 로드 필요)'}
-                        </div>
-
-                        <div style={{ color: '#9CA3AF' }}>현재 신:</div>
-                        <div>{activeGod.name}</div>
-
-                        <div style={{ color: '#9CA3AF' }}>보드 ID:</div>
-                        <div>
-                            <span style={{ color: boardId ? '#FACC15' : '#EF4444', fontWeight: 'bold' }}>
-                                {boardId || '❌ 없음'}
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: '#6B7280', marginLeft: '0.5rem' }}>
-                                ({activeGod.name}, boardList에서 직접 사용)
-                            </span>
-                        </div>
-
-                        {debugInfo.apiUrl && (
-                            <>
-                                <div style={{ color: '#9CA3AF' }}>API URL:</div>
-                                <div style={{ wordBreak: 'break-all', fontSize: '0.75rem' }}>{debugInfo.apiUrl}</div>
-                            </>
-                        )}
-
-                        {debugInfo.responseStatus && (
-                            <>
-                                <div style={{ color: '#9CA3AF' }}>응답 상태:</div>
-                                <div style={{ color: debugInfo.responseStatus === 200 ? '#10B981' : '#EF4444' }}>
-                                    HTTP {debugInfo.responseStatus} {debugInfo.responseStatus === 200 ? '✅ 성공' : '❌ 실패'}
-                                </div>
-                            </>
-                        )}
-
-                        {debugInfo.responseTime && (
-                            <>
-                                <div style={{ color: '#9CA3AF' }}>응답 시간:</div>
-                                <div>{debugInfo.responseTime}ms</div>
-                            </>
-                        )}
-
-                        {debugInfo.errorDetails && (
-                            <>
-                                <div style={{ color: '#EF4444' }}>에러 상세:</div>
-                                <div style={{ color: '#EF4444', wordBreak: 'break-word' }}>{debugInfo.errorDetails}</div>
-                            </>
-                        )}
-
-                        {boardData && (
-                            <>
-                                <div style={{ color: '#9CA3AF' }}>데이터 상태:</div>
-                                <div style={{ color: '#10B981' }}>
-                                    ✅ 로드 완료 (전체 노드: {boardData.nodeList?.length || 0}개)
-                                </div>
-
-                                <div style={{ color: '#9CA3AF' }}>유효 노드:</div>
-                                <div>{validNodes.length}개 (Start 제외: {validNodesExcludingStart.length}개)</div>
-
-                                <div style={{ color: '#9CA3AF' }}>활성 노드:</div>
-                                <div style={{ color: activeNodes > 0 ? '#10B981' : '#EF4444' }}>
-                                    {activeNodes}개 / {totalNodes}개 ({completionPercent}%)
-                                </div>
-
-                                <div style={{ color: '#9CA3AF' }}>스탯 효과:</div>
-                                <div>{boardData.openStatEffectList?.length || 0}개</div>
-
-                                <div style={{ color: '#9CA3AF' }}>스킬 효과:</div>
-                                <div>{boardData.openSkillEffectList?.length || 0}개</div>
-
-                                {/* Raw node data inspection */}
-                                <div style={{ gridColumn: '1 / -1', marginTop: '1rem', borderTop: '1px solid #374151', paddingTop: '1rem' }}>
-                                    <div style={{ color: '#FACC15', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                                        🔬 활성화된 노드 샘플 (open === 1인 처음 5개):
-                                    </div>
-                                    <div style={{ fontSize: '0.7rem', maxHeight: '200px', overflowY: 'auto', background: '#0B0D12', padding: '0.5rem', borderRadius: '4px' }}>
-                                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: '#E5E7EB' }}>
-                                            {JSON.stringify(
-                                                boardData.nodeList?.filter(n => n.open === 1).slice(0, 5) || [],
-                                                null,
-                                                2
-                                            )}
-                                        </pre>
-                                    </div>
-
-                                    <div style={{ color: '#9CA3AF', marginTop: '0.5rem', fontSize: '0.75rem' }}>
-                                        총 활성화된 노드: {boardData.nodeList?.filter(n => n.open === 1).length || 0}개
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
 
                 {/* BOARD VISUALIZATION AREA */}
                 <div style={{
