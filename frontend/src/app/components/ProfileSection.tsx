@@ -91,7 +91,7 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
             background: 'transparent',
             border: 'none',
             borderRadius: '12px',
-            padding: '1rem',
+            padding: '0.25rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem',
@@ -178,8 +178,8 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                         <div style={{
                             fontSize: '0.75rem',
                             color: character.title_grade === 'Unique' ? '#8B5CF6' :
-                                   character.title_grade === 'Legend' ? '#F59E0B' :
-                                   character.title_grade === 'Rare' ? '#3B82F6' : '#9CA3AF',
+                                character.title_grade === 'Legend' ? '#F59E0B' :
+                                    character.title_grade === 'Rare' ? '#3B82F6' : '#9CA3AF',
                             marginBottom: '0.5rem',
                             fontStyle: 'italic'
                         }}>

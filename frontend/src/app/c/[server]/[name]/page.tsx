@@ -790,8 +790,9 @@ export default function CharacterDetailPage() {
             />
           </div>
 
+
           {/* CENTER COLUMN: Equipment & Skills */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1, position: 'relative', zIndex: 1, height: '100%', padding: '1rem', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1, position: 'relative', zIndex: 1, height: '100%', padding: '0.25rem', boxSizing: 'border-box' }}>
             {/* Tabs - Enhanced 3D Button Style */}
             <div style={{
               display: 'flex',
@@ -935,7 +936,7 @@ export default function CharacterDetailPage() {
           </div>
 
           {/* RIGHT COLUMN: Stats Only */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', position: 'relative', zIndex: 1, height: '100%', padding: '1rem', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', position: 'relative', zIndex: 1, height: '100%', padding: '0.25rem', boxSizing: 'border-box' }}>
             {/* 1. Title Card (Always Visible) */}
             <TitleCard titles={mappedTitles} />
 

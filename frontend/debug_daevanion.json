@@ -1,10 +1,10 @@
 {
   "keys": [
-    "profile",
-    "title",
     "stat",
-    "daevanion",
-    "ranking"
+    "title",
+    "profile",
+    "ranking",
+    "daevanion"
   ],
   "daevanion": {
     "boardList": [
@@ -59,102 +59,6 @@
     ]
   },
   "full_info_sample": {
-    "profile": {
-      "characterId": "nytBf6WAPyotskC-YCOMsWL8NIev7zhL0tpYLQrdt8U=",
-      "characterName": "도룡뇽",
-      "serverId": 2002,
-      "serverName": "지켈",
-      "regionName": "봄",
-      "pcId": 20,
-      "className": "살성",
-      "raceId": 2,
-      "raceName": "마족",
-      "gender": 2,
-      "genderName": "여성",
-      "characterLevel": 45,
-      "titleId": 21020004,
-      "titleName": "열심히 했는데…",
-      "titleGrade": "Common",
-      "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2/images?gameServerKey=2002&charKey=563512903374794599"
-    },
-    "title": {
-      "totalCount": 305,
-      "ownedCount": 194,
-      "titleList": [
-        {
-          "id": 22030003,
-          "equipCategory": "Defense",
-          "name": "알트가르드의 성자",
-          "grade": "Unique",
-          "totalCount": 100,
-          "ownedCount": 63,
-          "statList": [
-            {
-              "desc": "PVE 피해 내성 +1%"
-            }
-          ],
-          "equipStatList": [
-            {
-              "desc": "추가 방어력 +300"
-            },
-            {
-              "desc": "피해 내성 +5%"
-            },
-            {
-              "desc": "막기 +110"
-            }
-          ]
-        },
-        {
-          "id": 23010010,
-          "equipCategory": "Etc",
-          "name": "지켈의 근원을 마주하다",
-          "grade": "Unique",
-          "totalCount": 101,
-          "ownedCount": 67,
-          "statList": [
-            {
-              "desc": "생명력 +50"
-            }
-          ],
-          "equipStatList": [
-            {
-              "desc": "생명력 물약 회복 +550"
-            },
-            {
-              "desc": "이동 속도 +5%"
-            },
-            {
-              "desc": "생명력 +800"
-            }
-          ]
-        },
-        {
-          "id": 23050017,
-          "equipCategory": "Attack",
-          "name": "샛노란 광채",
-          "grade": "Unique",
-          "totalCount": 104,
-          "ownedCount": 64,
-          "statList": [
-            {
-              "desc": "치명타 공격력 +3"
-            }
-          ],
-          "equipStatList": [
-            {
-              "desc": "치명타 공격력 +35"
-            },
-            {
-              "desc": "치명타 피해 증폭 +5.5%"
-            },
-            {
-              "desc": "완벽 +4%"
-            }
-          ]
-        }
-      ]
-    },
     "stat": {
       "statList": [
         {
@@ -297,57 +201,101 @@
         }
       ]
     },
-    "daevanion": {
-      "boardList": [
+    "title": {
+      "totalCount": 305,
+      "ownedCount": 194,
+      "titleList": [
         {
-          "id": 41,
-          "name": "네자칸",
-          "totalNodeCount": 88,
-          "openNodeCount": 85,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
-          "open": 1
+          "id": 22030003,
+          "equipCategory": "Defense",
+          "name": "알트가르드의 성자",
+          "grade": "Unique",
+          "totalCount": 100,
+          "ownedCount": 63,
+          "statList": [
+            {
+              "desc": "PVE 피해 내성 +1%"
+            }
+          ],
+          "equipStatList": [
+            {
+              "desc": "추가 방어력 +300"
+            },
+            {
+              "desc": "피해 내성 +5%"
+            },
+            {
+              "desc": "막기 +110"
+            }
+          ]
         },
         {
-          "id": 42,
-          "name": "지켈",
-          "totalNodeCount": 88,
-          "openNodeCount": 75,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
-          "open": 1
+          "id": 23010010,
+          "equipCategory": "Etc",
+          "name": "지켈의 근원을 마주하다",
+          "grade": "Unique",
+          "totalCount": 101,
+          "ownedCount": 67,
+          "statList": [
+            {
+              "desc": "생명력 +50"
+            }
+          ],
+          "equipStatList": [
+            {
+              "desc": "생명력 물약 회복 +550"
+            },
+            {
+              "desc": "이동 속도 +5%"
+            },
+            {
+              "desc": "생명력 +800"
+            }
+          ]
         },
         {
-          "id": 43,
-          "name": "바이젤",
-          "totalNodeCount": 88,
-          "openNodeCount": 81,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
-          "open": 1
-        },
-        {
-          "id": 44,
-          "name": "트리니엘",
-          "totalNodeCount": 116,
-          "openNodeCount": 103,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
-          "open": 1
-        },
-        {
-          "id": 45,
-          "name": "아리엘",
-          "totalNodeCount": 152,
-          "openNodeCount": 9,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
-          "open": 1
-        },
-        {
-          "id": 46,
-          "name": "아스펠",
-          "totalNodeCount": 152,
-          "openNodeCount": 5,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
-          "open": 1
+          "id": 23050017,
+          "equipCategory": "Attack",
+          "name": "샛노란 광채",
+          "grade": "Unique",
+          "totalCount": 104,
+          "ownedCount": 64,
+          "statList": [
+            {
+              "desc": "치명타 공격력 +3"
+            }
+          ],
+          "equipStatList": [
+            {
+              "desc": "치명타 공격력 +35"
+            },
+            {
+              "desc": "치명타 피해 증폭 +5.5%"
+            },
+            {
+              "desc": "완벽 +4%"
+            }
+          ]
         }
       ]
+    },
+    "profile": {
+      "characterId": "nytBf6WAPyotskC-YCOMsWL8NIev7zhL0tpYLQrdt8U=",
+      "characterName": "도룡뇽",
+      "serverId": 2002,
+      "serverName": "지켈",
+      "regionName": "봄",
+      "pcId": 20,
+      "className": "살성",
+      "raceId": 2,
+      "raceName": "마족",
+      "gender": 2,
+      "genderName": "여성",
+      "characterLevel": 45,
+      "titleId": 21020004,
+      "titleName": "열심히 했는데…",
+      "titleGrade": "Common",
+      "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2/images?gameServerKey=2002&charKey=563512903374794599"
     },
     "ranking": {
       "rankingList": [
@@ -483,6 +431,58 @@
           "gradeIcon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Arena_Ranking_Grade_Bronze.png",
           "profileImage": null,
           "extraDataMap": null
+        }
+      ]
+    },
+    "daevanion": {
+      "boardList": [
+        {
+          "id": 41,
+          "name": "네자칸",
+          "totalNodeCount": 88,
+          "openNodeCount": 85,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
+          "open": 1
+        },
+        {
+          "id": 42,
+          "name": "지켈",
+          "totalNodeCount": 88,
+          "openNodeCount": 75,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
+          "open": 1
+        },
+        {
+          "id": 43,
+          "name": "바이젤",
+          "totalNodeCount": 88,
+          "openNodeCount": 81,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
+          "open": 1
+        },
+        {
+          "id": 44,
+          "name": "트리니엘",
+          "totalNodeCount": 116,
+          "openNodeCount": 103,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
+          "open": 1
+        },
+        {
+          "id": 45,
+          "name": "아리엘",
+          "totalNodeCount": 152,
+          "openNodeCount": 9,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
+          "open": 1
+        },
+        {
+          "id": 46,
+          "name": "아스펠",
+          "totalNodeCount": 152,
+          "openNodeCount": 5,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
+          "open": 1
         }
       ]
     }

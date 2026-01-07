@@ -36,6 +36,25 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
     return aggregateStats(equipment, titles, daevanion, stats, equippedTitleId)
   }, [equipment, titles, daevanion, stats, equippedTitleId])
 
+  // 디버그: 장비 데이터 표시
+  const [showDebugPanel, setShowDebugPanel] = useState(false)
+
+  const getDebugData = () => {
+    if (!equipment?.[0]) return '장비 데이터 없음'
+
+    const weapon = equipment[0]
+    const rawData = weapon.detail?._raw || {}
+
+    return {
+      '★ weapon 객체의 모든 키': Object.keys(weapon),
+      '★ exceedLevel': weapon.exceedLevel,
+      '★ enchantLevel': weapon.enchantLevel,
+      '아이템명': weapon.name,
+      'mainStats': rawData.mainStats || '없음',
+      'subStats': rawData.subStats || '없음',
+    }
+  }
+
   // 실제 게임 능력치 적용
   const realStats = useMemo(() => {
     if (!characterId || !showRealStats) return []
@@ -191,7 +210,23 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
               {debugMode ? '디버그 ON' : '디버그 OFF'}
             </button>
           )}
-          
+
+          {/* 장비 데이터 디버그 버튼 */}
+          <button
+            onClick={() => setShowDebugPanel(!showDebugPanel)}
+            style={{
+              padding: '0.25rem 0.5rem',
+              background: showDebugPanel ? '#DC2626' : '#7C3AED',
+              color: '#FFFFFF',
+              border: '1px solid #8B5CF6',
+              borderRadius: '4px',
+              fontSize: '0.7rem',
+              cursor: 'pointer'
+            }}
+          >
+            {showDebugPanel ? '❌ 닫기' : '🔍 장비데이터'}
+          </button>
+
           {/* 검증 상태 표시 */}
           {characterId && serverId && isValidating && (
             <span style={{ color: '#F59E0B' }}>검증 중...</span>
@@ -218,6 +253,34 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
           )}
         </div>
       </div>
+
+      {/* 디버그 패널 */}
+      {showDebugPanel && (
+        <div style={{
+          padding: '1rem',
+          background: '#1a1a2e',
+          borderBottom: '1px solid #3B82F6',
+          maxHeight: '400px',
+          overflow: 'auto',
+          fontSize: '0.75rem',
+          fontFamily: 'monospace'
+        }}>
+          <div style={{ color: '#F59E0B', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+            📦 주무기 RAW 데이터 (복사해서 보내주세요)
+          </div>
+          <pre style={{
+            background: '#0a0a15',
+            padding: '0.75rem',
+            borderRadius: '4px',
+            color: '#10B981',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+            userSelect: 'all'
+          }}>
+            {JSON.stringify(getDebugData(), null, 2)}
+          </pre>
+        </div>
+      )}
 
       {/* 카테고리 탭 */}
       <div style={{
