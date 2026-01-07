@@ -746,10 +746,17 @@ export default function CharacterDetailPage() {
         {/* Desktop: 3 columns with balanced widths */}
         <style jsx>{`
           .grid-container {
-            display: grid !important;
-            grid-template-columns: 280px 450px 1fr !important;
-            gap: 0.75rem !important;
-            align-items: start !important;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+          }
+          @media (min-width: 1280px) {
+            .grid-container {
+              display: grid !important;
+              grid-template-columns: 280px 450px 1fr !important;
+              gap: 0.75rem !important;
+              align-items: start !important;
+            }
           }
         `}</style>
         <div className="grid-container" style={{

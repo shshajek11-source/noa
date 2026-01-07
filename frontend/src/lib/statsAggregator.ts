@@ -275,8 +275,72 @@ function extractEquipmentStats(equipment: any[]): Map<string, StatSource[]> {
     const detail = item.detail || item.raw?.detail
 
     if (detail) {
-      // Options (기본 옵션)
-      if (detail.options && Array.isArray(detail.options)) {
+      // transformDetailData가 _raw에 원본 데이터를 저장함
+      const rawDetail = detail._raw || detail
+
+      // MainStats (기본 스탯 + 돌파 옵션)
+      if (rawDetail.mainStats && Array.isArray(rawDetail.mainStats)) {
+        rawDetail.mainStats.forEach((stat: any) => {
+          const statName = stat.name
+          if (!statName) return
+
+          // 기본 값 (value)
+          const baseValue = parseFloat(stat.value) || 0
+          if (baseValue > 0) {
+            if (!statsMap.has(statName)) {
+              statsMap.set(statName, [])
+            }
+            statsMap.get(statName)!.push({
+              name: `${itemName} (기본)`,
+              value: baseValue,
+              percentage: 0
+            })
+          }
+
+          // 돌파로 붙은 추가값 (extra)
+          const extraValue = parseFloat(stat.extra) || 0
+          if (extraValue > 0) {
+            if (!statsMap.has(statName)) {
+              statsMap.set(statName, [])
+            }
+            statsMap.get(statName)!.push({
+              name: `${itemName} (돌파)`,
+              value: extraValue,
+              percentage: 0
+            })
+          }
+        })
+      }
+
+      // SubStats (부가 스탯 - 위력, 전투속도 등)
+      const hasSubStats = rawDetail.subStats && Array.isArray(rawDetail.subStats) && rawDetail.subStats.length > 0
+      if (hasSubStats) {
+        rawDetail.subStats.forEach((stat: any) => {
+          const statName = stat.name
+          const statValue = stat.value || ''
+
+          if (!statName) return
+
+          // 퍼센트 값인지 확인
+          const isPercent = String(statValue).includes('%')
+          const numValue = parseFloat(String(statValue).replace('%', '')) || 0
+
+          if (!statsMap.has(statName)) {
+            statsMap.set(statName, [])
+          }
+          statsMap.get(statName)!.push({
+            name: `${itemName} (부옵)`,
+            value: isPercent ? 0 : numValue,
+            percentage: isPercent ? numValue : 0
+          })
+        })
+      }
+
+      // mainStats가 있으면 이미 처리했으므로 options는 건너뜀 (중복 방지)
+      const hasMainStats = rawDetail.mainStats && Array.isArray(rawDetail.mainStats) && rawDetail.mainStats.length > 0
+
+      // Options (기본 옵션) - mainStats가 없을 때만 사용 (legacy 지원)
+      if (!hasMainStats && detail.options && Array.isArray(detail.options)) {
         detail.options.forEach((stat: any) => {
           const statText = stat.name + (stat.value ? ` ${stat.value}` : '')
           const parsed = parseStatString(statText)
@@ -294,8 +358,8 @@ function extractEquipmentStats(equipment: any[]): Map<string, StatSource[]> {
         })
       }
 
-      // Random Options (랜덤 옵션)
-      if (detail.randomOptions && Array.isArray(detail.randomOptions)) {
+      // Random Options (랜덤 옵션) - subStats가 없을 때만 사용 (legacy 지원)
+      if (!hasSubStats && detail.randomOptions && Array.isArray(detail.randomOptions)) {
         detail.randomOptions.forEach((stat: any) => {
           const statText = stat.name + (stat.value ? ` ${stat.value}` : '')
           const parsed = parseStatString(statText)
