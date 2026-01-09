@@ -13,21 +13,14 @@ export default function RankingLayout({
     const pathname = usePathname()
 
     const tabs = [
-        { name: 'NOA 전투력', path: '/ranking/noa' },
+        { name: 'HITON 전투력', path: '/ranking/noa' },
         { name: '게임 내 전투력', path: '/ranking/cp' },
         { name: '콘텐츠 랭킹', path: '/ranking/content' },
     ]
 
     return (
         <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-            <h1 style={{
-                fontSize: '1.8rem',
-                fontWeight: 'bold',
-                marginBottom: '2rem',
-                borderLeft: '4px solid #3b82f6',
-                paddingLeft: '1rem',
-                color: '#fff'
-            }}>
+            <h1 className={styles.pageTitle}>
                 랭킹 현황
             </h1>
 
@@ -50,9 +43,11 @@ export default function RankingLayout({
             {/* Filter Bar */}
             <RankingFilterBar />
 
-            {/* Content (Table) */}
-            <div className="card" style={{ minHeight: '500px', padding: 0 }}>
-                {children}
+            {/* Content (Table) - Adaptive */}
+            <div className="card" style={{ minHeight: '400px', padding: 0, overflow: 'hidden' }}>
+                <div className={styles.tableScroll}>
+                    {children}
+                </div>
             </div>
         </div>
     )

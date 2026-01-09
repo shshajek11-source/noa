@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import RankingWidget from './components/home/ranking/RankingWidget'
+import CompareQuickBar from './components/home/compare/CompareQuickBar'
+import LiveUpdateFeed from './components/home/feed/LiveUpdateFeed'
+import ServerStatsDashboard from './components/home/stats/ServerStatsDashboard'
 import RecentCharacterCard from './components/RecentCharacterCard'
+import LiveStreamContainer from './components/live/LiveStreamContainer'
+import OfficialNewsFeed from './components/home/news/OfficialNewsFeed'
 import { RecentCharacter } from '../types/character'
 
 export default function Home() {
@@ -36,10 +42,49 @@ export default function Home() {
 
     return (
         <main style={{
-            maxWidth: '800px',
+            maxWidth: '1200px',
             margin: '0 auto',
-            padding: '0 2rem'
+            padding: '2rem 1rem'
         }}>
+            {/* Main Content Info Grid */}
+            <style>{`
+                .home-grid {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 1.5rem;
+                    margin-bottom: 2rem;
+                }
+                @media (min-width: 1024px) {
+                    .home-grid {
+                        grid-template-columns: 2.2fr 1fr;
+                    }
+                }
+            `}</style>
+
+            {/* Live Stream Section */}
+            <div style={{ marginBottom: '2rem' }}>
+                <LiveStreamContainer />
+            </div>
+
+            <div className="home-grid">
+                {/* Phase 2: Ranking - Main Column */}
+                <div>
+                    <RankingWidget />
+                    <OfficialNewsFeed />
+                </div>
+
+                {/* Phase 4 & 5: Side Column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <ServerStatsDashboard />
+                    <LiveUpdateFeed />
+                </div>
+            </div>
+
+
+
+            {/* Phase 3: Floating Compare Bar */}
+            <CompareQuickBar />
+
             {/* Recent Characters Section */}
             {recentCharacters.length > 0 && (
                 <div>
@@ -110,6 +155,6 @@ export default function Home() {
                     </p>
                 </div>
             )}
-        </main>
+        </main >
     )
 }

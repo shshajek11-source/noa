@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { ConsolidatedStatCalculator } from '@/lib/consolidatedStatCalculator'
 
 // Image Paths
 const STAT_ICONS = {
@@ -25,6 +26,9 @@ export default function MainStatsCard({ stats, isEmbedded = false }: { stats: an
 
     if (!stats || !stats.statList) return null
 
+    // 통합된 능력치로 변환 (생명력, 공격력, 방어력, 정신력 그룹화)
+    const groupedStats = ConsolidatedStatCalculator.getGroupedStatsForUI(stats.statList)
+
     // Get Icon based on stat name
     const getIconForStat = (name: string) => {
         if (!name) return <StatImage src={STAT_ICONS.SUPPORT} alt="Stat" />
@@ -49,10 +53,9 @@ export default function MainStatsCard({ stats, isEmbedded = false }: { stats: an
         return <StatImage src={STAT_ICONS.SUPPORT} alt="Support" />
     }
 
-    // Filter out '전투력' (Combat Power) if it is treated separately, or keep it if user wants ALL stats.
-    // Usually Combat Power is shown in the header, not in the stat grid.
-    // Let's filter out '전투력' just in case to avoid duplication if it's main.
-    const displayStats = stats.statList.filter((s: any) => s.name !== '전투력' && s.name !== '아이템레벨')
+    // 통합된 능력치 사용 (생명력, 공격력, 방어력, 정신력 그룹)
+    // 기존 개별 능력치 대신 그룹화된 능력치 표시
+    const displayStats = groupedStats
 
     return (
         <div style={{

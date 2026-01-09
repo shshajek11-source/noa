@@ -1,27 +1,31 @@
-// NOA Combat Power Calculation System
+// HITON Combat Power & Tier System
+// 상대 평가 시스템: 1등 기준으로 티어 계산
+// 티어 순서: Bronze → Silver → Gold → Platinum → Emerald → Sapphire → Ruby → Diamond (모든 티어 1~5)
 
 export interface TierInfo {
     tier: string
     subLevel: number
     color: string
     displayName: string
-    minPower: number
-    maxPower: number
+    image: string
+    percentage: number // 1등 대비 비율
 }
 
-// Tier thresholds and colors
-const TIER_CONFIG = [
-    { name: 'Bronze', color: '#CD7F32', min: 0, max: 4999 },
-    { name: 'Silver', color: '#C0C0C0', min: 5000, max: 9999 },
-    { name: 'Gold', color: '#FFD700', min: 10000, max: 14999 },
-    { name: 'Platinum', color: '#E5E4E2', min: 15000, max: 19999 },
-    { name: 'Emerald', color: '#50C878', min: 20000, max: 24999 },
-    { name: 'Diamond', color: '#B9F2FF', min: 25000, max: 29999 },
-    { name: 'Master', color: '#FF6B6B', min: 30000, max: Infinity }
+// 티어 설정 (순서대로)
+// 각 티어는 전체의 약 12.5% 구간 (8티어 x 5단계 = 40단계)
+export const TIER_CONFIG = [
+    { name: 'Bronze', color: '#CD7F32', image: '/tear/bronze.png' },
+    { name: 'Silver', color: '#C0C0C0', image: '/tear/silver.png' },
+    { name: 'Gold', color: '#FFD700', image: '/tear/gold.png' },
+    { name: 'Platinum', color: '#E5E4E2', image: '/tear/platinum.png' },
+    { name: 'Emerald', color: '#50C878', image: '/tear/emarald.png' },
+    { name: 'Sapphire', color: '#0F52BA', image: '/tear/sapa.png' },
+    { name: 'Ruby', color: '#E0115F', image: '/tear/rubi.png' },
+    { name: 'Diamond', color: '#B9F2FF', image: '/tear/diamond.png' },
 ]
 
 // Stat weights for combat power calculation
-const STAT_WEIGHTS = {
+const STAT_WEIGHTS: { [key: string]: number } = {
     '위력': 1.5,
     'Power': 1.5,
     '공격력': 1.5,
@@ -66,23 +70,19 @@ export function calculateCombatPower(stats: any, equipment: any[]): number {
     for (const item of equipment) {
         if (!item) continue
 
-        // Item level bonus
         if (item.itemLevel) {
             totalPower += item.itemLevel * 10
         }
 
-        // Enhancement bonus
         if (item.enhancement) {
             const enhanceLevel = parseInt(item.enhancement.replace('+', ''))
             totalPower += enhanceLevel * 50
         }
 
-        // Breakthrough bonus
         if (item.breakthrough) {
             totalPower += item.breakthrough * 100
         }
 
-        // Soul engraving bonus
         if (item.soulEngraving) {
             const grade = item.soulEngraving.grade
             if (grade === 'S') totalPower += 200
@@ -90,7 +90,6 @@ export function calculateCombatPower(stats: any, equipment: any[]): number {
             else if (grade === 'B') totalPower += 100
         }
 
-        // Manastone bonus
         if (item.manastones) {
             totalPower += item.manastones.length * 20
         }
@@ -100,48 +99,45 @@ export function calculateCombatPower(stats: any, equipment: any[]): number {
 }
 
 /**
- * Determine tier and sub-level based on combat power
+ * 상대 평가 시스템: 1등 전투력 기준으로 티어 계산
+ * 1등 = Diamond 2 기준 (현재 임시, 나중에 전투력 상승하면 Diamond 3,4,5도 가능)
+ *
+ * @param combatPower - 해당 캐릭터의 전투력
+ * @param topPower - 1등의 전투력
  */
-export function getTierInfo(combatPower: number): TierInfo {
-    for (const tier of TIER_CONFIG) {
-        if (combatPower >= tier.min && combatPower <= tier.max) {
-            const range = tier.max - tier.min
-            const position = combatPower - tier.min
+export function getTierInfo(combatPower: number, topPower?: number): TierInfo {
+    // 1등 전투력이 없으면 기본값 사용
+    const maxPower = topPower || combatPower || 1
 
-            // Calculate sub-level (1-5)
-            let subLevel = 1
-            if (range !== Infinity) {
-                const subRange = range / 5
-                subLevel = Math.min(5, Math.floor(position / subRange) + 1)
-            } else {
-                // For Master tier, use increments of 2000
-                subLevel = Math.min(5, Math.floor((combatPower - tier.min) / 2000) + 1)
-            }
+    // 1등 = Diamond 2 기준으로 계산
+    // Diamond 2 = 37단계 (8티어 x 5단계 = 40단계 중 37번째)
+    // 1등 전투력을 37단계로 매핑
+    const diamond2Step = 37
+    const stepPerPower = diamond2Step / maxPower
 
-            return {
-                tier: tier.name,
-                subLevel,
-                color: tier.color,
-                displayName: `${tier.name} ${subLevel}`,
-                minPower: tier.min,
-                maxPower: tier.max
-            }
-        }
-    }
+    // 현재 캐릭터의 단계 계산
+    const currentStep = Math.min(40, Math.max(1, Math.floor(combatPower * stepPerPower)))
 
-    // Fallback to Bronze 1
+    // 단계에서 티어와 세부 레벨 계산
+    // 1~5: Bronze 1~5, 6~10: Silver 1~5, ... 36~40: Diamond 1~5
+    const tierIndex = Math.min(7, Math.floor((currentStep - 1) / 5))
+    const subLevel = ((currentStep - 1) % 5) + 1
+
+    const tierConfig = TIER_CONFIG[tierIndex]
+    const percentage = Math.min(100, (combatPower / maxPower) * 100)
+
     return {
-        tier: 'Bronze',
-        subLevel: 1,
-        color: '#CD7F32',
-        displayName: 'Bronze 1',
-        minPower: 0,
-        maxPower: 4999
+        tier: tierConfig.name,
+        subLevel,
+        color: tierConfig.color,
+        displayName: `${tierConfig.name} ${subLevel}`,
+        image: tierConfig.image,
+        percentage: Math.round(percentage * 10) / 10
     }
 }
 
 /**
- * Get tier icon/badge component
+ * Get tier badge style for UI
  */
 export function getTierBadgeStyle(tierInfo: TierInfo) {
     return {
@@ -155,4 +151,12 @@ export function getTierBadgeStyle(tierInfo: TierInfo) {
         textTransform: 'uppercase' as const,
         letterSpacing: '0.05em'
     }
+}
+
+/**
+ * Get tier image path
+ */
+export function getTierImage(tierName: string): string {
+    const tier = TIER_CONFIG.find(t => t.name.toLowerCase() === tierName.toLowerCase())
+    return tier?.image || '/tear/bronze.png'
 }

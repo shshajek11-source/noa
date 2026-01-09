@@ -68,46 +68,40 @@ export default function TitleCard({ titles }: { titles: any }) {
         return []
     }
 
-    // 카테고리별 데이터 집계
-    const attackTitles = titleList.filter((t: any) => categorizeTitle(t) === 'attack')
-    const defenseTitles = titleList.filter((t: any) => categorizeTitle(t) === 'defense')
-    const otherTitles = titleList.filter((t: any) => categorizeTitle(t) === 'other')
-
-    // 대표 타이틀 선택 (첫 번째 또는 owned인 것)
-    const getRepresentative = (list: any[]) => {
-        const owned = list.find((t: any) => t.owned || t.isOwned)
-        return owned || list[0]
-    }
+    // 카테고리별 데이터 집계 (API는 각 titleList 항목에 카테고리별 totalCount/ownedCount 제공)
+    const attackTitle = titleList.find((t: any) => categorizeTitle(t) === 'attack')
+    const defenseTitle = titleList.find((t: any) => categorizeTitle(t) === 'defense')
+    const otherTitle = titleList.find((t: any) => categorizeTitle(t) === 'other')
 
     const categories: TitleCategory[] = [
         {
             name: '공격계열',
             icon: <AttackIcon />,
-            total: Math.round(totalCount * 0.34) || attackTitles.length,
-            owned: attackTitles.filter((t: any) => t.owned || t.isOwned).length,
-            representativeTitle: getRepresentative(attackTitles) ? {
-                name: getRepresentative(attackTitles)?.name,
-                effects: parseEffects(getRepresentative(attackTitles))
+            total: attackTitle?.totalCount || 0,
+            owned: attackTitle?.ownedCount || 0,
+            representativeTitle: attackTitle ? {
+                name: attackTitle.name,
+                effects: parseEffects(attackTitle)
             } : undefined
         },
         {
             name: '방어계열',
             icon: <DefenseIcon />,
-            total: Math.round(totalCount * 0.33) || defenseTitles.length,
-            owned: defenseTitles.filter((t: any) => t.owned || t.isOwned).length,
-            representativeTitle: getRepresentative(defenseTitles) ? {
-                name: getRepresentative(defenseTitles)?.name,
-                effects: parseEffects(getRepresentative(defenseTitles))
+            total: defenseTitle?.totalCount || 0,
+            owned: defenseTitle?.ownedCount || 0,
+            representativeTitle: defenseTitle ? {
+                name: defenseTitle.name,
+                effects: parseEffects(defenseTitle)
             } : undefined
         },
         {
             name: '기타계열',
             icon: <OtherIcon />,
-            total: Math.round(totalCount * 0.33) || otherTitles.length,
-            owned: otherTitles.filter((t: any) => t.owned || t.isOwned).length,
-            representativeTitle: getRepresentative(otherTitles) ? {
-                name: getRepresentative(otherTitles)?.name,
-                effects: parseEffects(getRepresentative(otherTitles))
+            total: otherTitle?.totalCount || 0,
+            owned: otherTitle?.ownedCount || 0,
+            representativeTitle: otherTitle ? {
+                name: otherTitle.name,
+                effects: parseEffects(otherTitle)
             } : undefined
         }
     ]
@@ -117,8 +111,8 @@ export default function TitleCard({ titles }: { titles: any }) {
 
     return (
         <div style={{
-            background: '#111318',
-            border: '1px solid #1F2433',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
             padding: '1rem',
             boxSizing: 'border-box',
@@ -136,23 +130,23 @@ export default function TitleCard({ titles }: { titles: any }) {
                 <h3 style={{
                     fontSize: '0.9rem',
                     fontWeight: 'bold',
-                    color: '#E5E7EB',
+                    color: 'var(--text-main)',
                     margin: 0
                 }}>
                     타이틀
                 </h3>
                 <div style={{
                     padding: '0.2rem 0.5rem',
-                    background: '#0B0D12',
-                    border: '1px solid #1F2433',
+                    background: 'var(--bg-hover)',
+                    border: '1px solid var(--border)',
                     borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 'bold'
                 }}>
-                    <span style={{ color: isHighProgress ? '#FACC15' : '#E5E7EB' }}>
+                    <span style={{ color: isHighProgress ? '#FACC15' : 'var(--text-main)' }}>
                         {ownedCount}
                     </span>
-                    <span style={{ color: '#9CA3AF' }}>/{totalCount}</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>/{totalCount}</span>
                 </div>
             </div>
 
@@ -166,8 +160,8 @@ export default function TitleCard({ titles }: { titles: any }) {
                     <div
                         key={idx}
                         style={{
-                            background: '#0B0D12',
-                            border: '1px solid #1F2433',
+                            background: 'var(--bg-hover)',
+                            border: '1px solid var(--border)',
                             borderRadius: '8px',
                             padding: '0.8rem',
                             transition: 'all 0.2s',
@@ -184,13 +178,13 @@ export default function TitleCard({ titles }: { titles: any }) {
                             gap: '0.3rem',
                             marginBottom: '0.4rem'
                         }}>
-                            <span style={{ color: '#9CA3AF', flexShrink: 0 }}>
+                            <span style={{ color: 'var(--text-secondary)', flexShrink: 0 }}>
                                 {category.icon}
                             </span>
                             <span style={{
                                 fontSize: '0.75rem',
                                 fontWeight: 'bold',
-                                color: '#E5E7EB'
+                                color: 'var(--text-main)'
                             }}>
                                 {category.name}
                             </span>
@@ -201,10 +195,10 @@ export default function TitleCard({ titles }: { titles: any }) {
                             fontSize: '0.75rem',
                             marginBottom: '0.4rem'
                         }}>
-                            <span style={{ color: '#E5E7EB', fontWeight: 'bold' }}>
+                            <span style={{ color: 'var(--text-main)', fontWeight: 'bold' }}>
                                 {category.owned}
                             </span>
-                            <span style={{ color: '#9CA3AF' }}>/{category.total}</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>/{category.total}</span>
                         </div>
 
                         {/* Representative Title Name */}
@@ -245,7 +239,7 @@ export default function TitleCard({ titles }: { titles: any }) {
 
             <style jsx>{`
                 .category-card-hover:hover {
-                    border-color: #FACC15;
+                    border-color: var(--brand-primary);
                     transform: translateY(-2px);
                 }
             `}</style>

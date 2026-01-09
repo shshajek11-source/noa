@@ -68,3 +68,8 @@ frontend/build/
 
 # Test data
 load_rankings.py
+
+.vercel
+
+nul
+frontend/nul

@@ -1,7 +1,17 @@
 import { useState } from 'react'
+import Image from 'next/image'
 import { calculateCombatPower, getTierInfo, getTierBadgeStyle } from '../utils/combatPower'
 
-export default function ProfileSection({ character, arcana, onArcanaClick, stats, equipment }: { character: any; arcana?: any[]; onArcanaClick?: (item: any) => void; stats?: any; equipment?: any[] }) {
+interface ProfileSectionProps {
+    character: any
+    arcana?: any[]
+    onArcanaClick?: (item: any) => void
+    stats?: any
+    equipment?: any[]
+    topPower?: number  // 1등 전투력 (상대 평가용)
+}
+
+export default function ProfileSection({ character, arcana, onArcanaClick, stats, equipment, topPower }: ProfileSectionProps) {
     if (!character) return null
 
     const [hoveredArcana, setHoveredArcana] = useState<any | null>(null)
@@ -24,19 +34,22 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
 
     const itemLevel = getStatValue(['아이템', 'Item', 'item'])
 
-    // Calculate combat power and tier
+    // Calculate combat power and tier (상대 평가: 1등 기준)
     const allEquipment = equipment || []
     const combatPower = calculateCombatPower(stats, allEquipment)
-    const tierInfo = getTierInfo(combatPower)
+    const tierInfo = getTierInfo(combatPower, topPower)
     const tierBadgeStyle = getTierBadgeStyle(tierInfo)
 
-    // Calculate rank tier based on percentile or rank
+    // Calculate rank tier based on percentile (Bronze → Silver → Gold → Platinum → Emerald → Sapphire → Ruby → Diamond)
     const getRankTier = (percentile: number) => {
-        if (percentile >= 99) return { name: 'Diamond', color: '#FACC15', isTop: true }
-        if (percentile >= 95) return { name: 'Platinum', color: '#a78bfa', isTop: true }
-        if (percentile >= 85) return { name: 'Gold', color: '#FBBF24', isTop: true }
-        if (percentile >= 70) return { name: 'Silver', color: '#94a3b8', isTop: false }
-        return { name: 'Bronze', color: '#cd7f32', isTop: false }
+        if (percentile >= 99) return { name: 'Diamond', color: '#B9F2FF', isTop: true }
+        if (percentile >= 97) return { name: 'Ruby', color: '#E0115F', isTop: true }
+        if (percentile >= 94) return { name: 'Sapphire', color: '#0F52BA', isTop: true }
+        if (percentile >= 90) return { name: 'Emerald', color: '#50C878', isTop: true }
+        if (percentile >= 85) return { name: 'Platinum', color: '#E5E4E2', isTop: true }
+        if (percentile >= 75) return { name: 'Gold', color: '#FFD700', isTop: false }
+        if (percentile >= 60) return { name: 'Silver', color: '#C0C0C0', isTop: false }
+        return { name: 'Bronze', color: '#CD7F32', isTop: false }
     }
 
     const rankTier = getRankTier(character.percentile || 0)
@@ -91,7 +104,7 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
             background: 'transparent',
             border: 'none',
             borderRadius: '12px',
-            padding: '1rem',
+            padding: '0.25rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem',
@@ -134,11 +147,11 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                             <div style={{
                                 width: '100%',
                                 height: '100%',
-                                background: '#0B0D12',
+                                background: 'var(--bg-secondary)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#9CA3AF',
+                                color: 'var(--text-secondary)',
                                 fontSize: '2rem'
                             }}>
                                 {character.name?.[0]}
@@ -167,12 +180,25 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                     <h2 style={{
                         fontSize: '1.25rem',
                         fontWeight: 'bold',
-                        color: '#E5E7EB',
+                        color: 'var(--text-main)',
                         margin: 0,
                         marginBottom: '0.25rem'
                     }}>
                         {character.name}
                     </h2>
+                    {/* Equipped Title */}
+                    {character.title_name && (
+                        <div style={{
+                            fontSize: '0.75rem',
+                            color: character.title_grade === 'Unique' ? '#8B5CF6' :
+                                character.title_grade === 'Legend' ? '#F59E0B' :
+                                    character.title_grade === 'Rare' ? '#3B82F6' : '#9CA3AF',
+                            marginBottom: '0.5rem',
+                            fontStyle: 'italic'
+                        }}>
+                            『{character.title_name}』
+                        </div>
+                    )}
                     <div style={{
                         display: 'flex',
                         gap: '0.4rem',
@@ -181,31 +207,31 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                     }}>
                         <span style={{
                             padding: '0.2rem 0.6rem',
-                            background: '#0B0D12',
-                            border: '1px solid #1F2433',
+                            background: 'var(--bg-hover)',
+                            border: '1px solid var(--border)',
                             borderRadius: '4px',
                             fontSize: '0.75rem',
-                            color: '#E5E7EB'
+                            color: 'var(--text-main)'
                         }}>
                             Lv.{character.level}
                         </span>
                         <span style={{
                             padding: '0.2rem 0.6rem',
-                            background: '#0B0D12',
-                            border: '1px solid #1F2433',
+                            background: 'var(--bg-hover)',
+                            border: '1px solid var(--border)',
                             borderRadius: '4px',
                             fontSize: '0.75rem',
-                            color: '#9CA3AF'
+                            color: 'var(--text-secondary)'
                         }}>
                             {character.class}
                         </span>
                         <span style={{
                             padding: '0.2rem 0.6rem',
-                            background: '#0B0D12',
-                            border: '1px solid #60A5FA40',
+                            background: 'var(--bg-hover)',
+                            border: '1px solid rgba(217, 43, 75, 0.4)',
                             borderRadius: '4px',
                             fontSize: '0.75rem',
-                            color: '#60A5FA'
+                            color: 'var(--brand-red-main)'
                         }}>
                             아이템 Lv.{itemLevel || character.item_level || 0}
                         </span>
@@ -216,26 +242,26 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
             {/* Divider */}
             <div style={{
                 height: '1px',
-                background: '#1F2433'
+                background: 'var(--border)'
             }} />
 
             {/* Combat Power */}
             <div style={{
                 textAlign: 'center',
                 padding: '0.75rem',
-                background: '#0B0D12',
+                background: 'var(--bg-secondary)',
                 borderRadius: '8px',
-                border: '1px solid #1F2433'
+                border: '1px solid var(--border)'
             }}>
                 <div style={{
                     fontSize: '0.65rem',
-                    color: '#9CA3AF',
+                    color: 'var(--text-secondary)',
                     marginBottom: '0.5rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
                     fontWeight: '600'
                 }}>
-                    NOA 전투력
+                    Hiton 전투력
                 </div>
                 <div style={{
                     fontSize: '2.5rem',
@@ -251,12 +277,21 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                 }}>
                     {combatPower.toLocaleString()}
                 </div>
-                {/* Tier Badge */}
+                {/* Tier Badge with Image */}
                 <div style={{
                     marginTop: '0.75rem',
                     display: 'flex',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '0.5rem'
                 }}>
+                    <Image
+                        src={tierInfo.image}
+                        alt={tierInfo.tier}
+                        width={32}
+                        height={32}
+                        style={{ objectFit: 'contain' }}
+                    />
                     <div style={{
                         ...tierBadgeStyle,
                         boxShadow: `0 0 15px ${tierInfo.color}40`
@@ -278,12 +313,12 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     padding: '0.6rem',
-                    background: '#0B0D12',
+                    background: 'var(--bg-secondary)',
                     borderRadius: '6px',
-                    border: '1px solid #1F2433'
+                    border: '1px solid var(--border)'
                 }}>
-                    <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>서버 랭킹</span>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#E5E7EB' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>서버 랭킹</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-main)' }}>
                         #{character.rank || 'N/A'}
                     </span>
                 </div>
@@ -294,55 +329,57 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     padding: '0.6rem',
-                    background: '#0B0D12',
+                    background: 'var(--bg-secondary)',
                     borderRadius: '6px',
-                    border: '1px solid #1F2433'
+                    border: '1px solid var(--border)'
                 }}>
-                    <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>상위</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>상위</span>
                     <span style={{
                         fontSize: '0.85rem',
                         fontWeight: 'bold',
-                        color: rankTier.isTop ? rankTier.color : '#E5E7EB'
+                        color: rankTier.isTop ? rankTier.color : 'var(--text-main)'
                     }}>
                         {character.percentile ? `${character.percentile.toFixed(1)}%` : 'N/A'}
                     </span>
                 </div>
 
                 {/* Rank Tier Badge */}
-                <div style={{
-                    padding: '0.75rem',
-                    background: rankTier.isTop ? `${rankTier.color}10` : '#0B0D12',
-                    border: `1px solid ${rankTier.isTop ? `${rankTier.color}40` : '#1F2433'}`,
-                    borderRadius: '6px',
-                    textAlign: 'center'
-                }}>
+                {rankTier.name !== 'Bronze' && (
                     <div style={{
-                        fontSize: '1rem',
-                        fontWeight: 'bold',
-                        color: rankTier.isTop ? rankTier.color : '#E5E7EB',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em'
+                        padding: '0.75rem',
+                        background: rankTier.isTop ? `${rankTier.color}10` : 'var(--bg-secondary)',
+                        border: `1px solid ${rankTier.isTop ? `${rankTier.color}40` : 'var(--border)'}`,
+                        borderRadius: '6px',
+                        textAlign: 'center'
                     }}>
-                        {rankTier.name}
+                        <div style={{
+                            fontSize: '1rem',
+                            fontWeight: 'bold',
+                            color: rankTier.isTop ? rankTier.color : 'var(--text-main)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.1em'
+                        }}>
+                            {rankTier.name}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Server & Race Info */}
             <div style={{
                 paddingTop: '0.6rem',
-                borderTop: '1px solid #1F2433',
+                borderTop: '1px solid var(--border)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.4rem'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                    <span style={{ color: '#9CA3AF' }}>서버</span>
-                    <span style={{ color: '#E5E7EB' }}>{character.server}</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>서버</span>
+                    <span style={{ color: 'var(--text-main)' }}>{character.server}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                    <span style={{ color: '#9CA3AF' }}>종족</span>
-                    <span style={{ color: '#E5E7EB' }}>{character.race}</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>종족</span>
+                    <span style={{ color: 'var(--text-main)' }}>{character.race}</span>
                 </div>
             </div>
 
@@ -350,12 +387,12 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
             {arcana && arcana.length > 0 && (
                 <div style={{
                     paddingTop: '0.75rem',
-                    borderTop: '1px solid #1F2433',
+                    borderTop: '1px solid var(--border)',
                     marginTop: 'auto'
                 }}>
                     <div style={{
                         fontSize: '0.7rem',
-                        color: '#9CA3AF',
+                        color: 'var(--text-secondary)',
                         marginBottom: '0.5rem',
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em'
@@ -530,8 +567,8 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                         <div style={{
                             marginTop: '0.75rem',
                             padding: '0.6rem',
-                            background: '#0B0D12',
-                            border: '1px solid #1F2433',
+                            background: 'var(--bg-secondary)',
+                            border: '1px solid var(--border)',
                             borderRadius: '6px'
                         }}>
                             <div style={{
@@ -554,7 +591,7 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                                         justifyContent: 'space-between',
                                         fontSize: '0.7rem'
                                     }}>
-                                        <span style={{ color: '#9CA3AF' }}>{statName}</span>
+                                        <span style={{ color: 'var(--text-secondary)' }}>{statName}</span>
                                         <span style={{ color: '#F59E0B', fontWeight: 'bold' }}>+{value}</span>
                                     </div>
                                 ))}

@@ -1,61 +1,175 @@
+/**
+ * 대바니온 보드별 활성화 노드에 따른 스탯 보너스
+ * 이미지 출처: frontend/public/오류/2.png
+ */
 
-export interface NodeStat {
-    id: number;
-    type: 'stat' | 'skill';
-    name: string;
-    value: string;
-    description: string;
+export interface DaevanionBoardStats {
+  boardId: number
+  name: string
+  // 노드 개수별 스탯 매핑 (key: openNodeCount, value: stats)
+  statsByNodeCount: Record<number, DaevanionStats>
 }
 
-// Helper to generate consistent stats based on God archetype
-const generateStats = (god: string, statName: string, statVal: number, altStatName: string, altStatVal: number): Record<number, NodeStat> => {
-    const stats: Record<number, NodeStat> = {};
+export interface DaevanionStats {
+  // 고정 수치 보너스
+  생명력?: number
+  정신력?: number
+  '치명타 저항'?: number
+  '추가 공격력'?: number
+  치명타?: number
+  '추가 방어력'?: number
+  공격력?: number
+  방어력?: number
+  명중?: number
+  회피?: number
+  막기?: number
 
-    // Center Node (0) is always the Divine Skill
-    stats[0] = {
-        id: 0,
-        type: 'skill',
-        name: `${god}의 권능`,
-        value: 'Active',
-        description: `60초 동안 ${god}의 힘을 빌려 강력한 버프를 부여합니다.`
-    };
+  // PVE 스탯
+  'PVE 공격력'?: number
+  'PVE 방어력'?: number
+  'PVE 명중'?: number
+  'PVE 회피'?: number
+  '보스 공격력'?: number
+  '보스 방어력'?: number
 
-    // Generate stats for nodes 1-89
-    for (let i = 1; i <= 89; i++) {
-        // Alternate between primary and secondary stats
-        // Inner nodes (1-30) are smaller values
-        // Outer nodes (31+) are larger values
-        const isPrimary = i % 2 !== 0;
-        const multiplier = i > 40 ? 2 : 1;
+  // PVP 스탯
+  'PVP 공격력'?: number
+  'PVP 방어력'?: number
+  'PVP 명중'?: number
+  'PVP 회피'?: number
+  'PVP 치명타'?: number
+  'PVP 치명타 저항'?: number
 
-        if (isPrimary) {
-            stats[i] = {
-                id: i,
-                type: 'stat',
-                name: statName,
-                value: `+${statVal * multiplier}`,
-                description: `${statName}을(를) ${statVal * multiplier}만큼 증가시킵니다.`
-            };
-        } else {
-            stats[i] = {
-                id: i,
-                type: 'stat',
-                name: altStatName,
-                value: `+${altStatVal * multiplier}`,
-                description: `${altStatName}을(를) ${altStatVal * multiplier}만큼 증가시킵니다.`
-            };
-        }
+  // 비율 보너스
+  '재사용 시간 감소'?: number // %
+  '전투 속도'?: number // %
+  '이동 속도'?: number // %
+  '공격력 증가'?: number // %
+  '방어력 증가'?: number // %
+  '치명타 증가'?: number // %
+  '피해 증폭'?: number // %
+  '피해 내성'?: number // %
+  '치명타 피해 증폭'?: number // %
+  '치명타 피해 내성'?: number // %
+  '다단 히트 적중'?: number // %
+  '다단 히트 저항'?: number // %
+
+  // 스킬 레벨 증가 (나중에 필요시 추가)
+  skills?: Record<string, number>
+}
+
+/**
+ * 대바니온 보드 스탯 데이터
+ * TODO: 각 보드의 노드 개수별 정확한 스탯을 게임 내에서 확인하여 추가 필요
+ */
+export const DAEVANION_BOARD_STATS: DaevanionBoardStats[] = [
+  {
+    boardId: 41,
+    name: '네자칸',
+    statsByNodeCount: {
+      85: {
+        생명력: 1100,
+        정신력: 450,
+        '치명타 저항': 90,
+        '추가 공격력': 50,
+        치명타: 100,
+        '재사용 시간 감소': 5,
+        '전투 속도': 5,
+        '추가 방어력': 500,
+      }
     }
-    return stats;
-};
+  },
+  {
+    boardId: 42,
+    name: '지켈',
+    statsByNodeCount: {
+      75: {
+        '피해 내성': 10,
+        생명력: 700,
+        정신력: 250,
+        '피해 증폭': 10,
+        '치명타 저항': 70,
+        '추가 공격력': 55,
+        치명타: 100,
+        '추가 방어력': 450,
+      }
+    }
+  },
+  {
+    boardId: 43,
+    name: '바이젤',
+    statsByNodeCount: {
+      81: {
+        생명력: 700,
+        '치명타 피해 증폭': 10,
+        정신력: 450,
+        '치명타 저항': 80,
+        '추가 공격력': 50,
+        '치명타 피해 내성': 10,
+        치명타: 110,
+        '추가 방어력': 500,
+      }
+    }
+  },
+  {
+    boardId: 44,
+    name: '트리니엘',
+    statsByNodeCount: {
+      103: {
+        생명력: 1200,
+        정신력: 600,
+        '다단 히트 저항': 9,
+        '치명타 저항': 90,
+        '추가 공격력': 70,
+        치명타: 150,
+        '다단 히트 적중': 9,
+        '추가 방어력': 650,
+      }
+    }
+  },
+  {
+    boardId: 45,
+    name: '아리엘',
+    statsByNodeCount: {
+      9: {
+        'PVE 공격력': 10,
+        'PVE 회피': 20,
+        정신력: 50,
+        '보스 공격력': 5,
+        '보스 방어력': 50,
+        'PVE 명중': 20,
+        'PVE 방어력': 50,
+      }
+    }
+  },
+  {
+    boardId: 46,
+    name: '아스펠',
+    statsByNodeCount: {
+      5: {
+        'PVP 치명타 저항': 5,
+        정신력: 50,
+        'PVP 치명타': 5,
+        'PVP 회피': 10,
+        'PVP 공격력': 10,
+      }
+    }
+  }
+]
 
-export const DAEVANION_STATS: Record<string, Record<number, NodeStat>> = {
-    'nezakan': generateStats('네자칸', '물리 공격력', 3, '물리 치명타', 12),
-    'zikel': generateStats('지켈', '생명력', 120, '물리 방어', 35),
-    'baizel': generateStats('바이젤', '회피', 15, '이동 속도', 1),
-    'triniel': generateStats('트리니엘', '명중', 20, '상태이상 적중', 10),
-    'ariel': generateStats('아리엘', '마법 증폭력', 18, '마법 적중', 15),
-    'asphel': generateStats('아스펠', '마법 치명타', 10, '마법 저항', 25),
-    // Fallbacks for ID access
-    'default': generateStats('주신', '능력치', 10, '보조 능력치', 5)
-};
+/**
+ * 활성화된 노드 개수에 따라 대바니온 스탯 반환
+ * @param boardId 보드 ID
+ * @param openNodeCount 활성화된 노드 개수
+ * @returns 해당 노드 개수의 스탯 보너스
+ */
+export function getDaevanionStats(boardId: number, openNodeCount: number): DaevanionStats | null {
+  const board = DAEVANION_BOARD_STATS.find(b => b.boardId === boardId)
+  if (!board) return null
+
+  // 정확한 노드 개수가 없으면 가장 가까운 값 찾기
+  const counts = Object.keys(board.statsByNodeCount).map(Number).sort((a, b) => b - a)
+  const closestCount = counts.find(count => count <= openNodeCount)
+
+  return closestCount ? board.statsByNodeCount[closestCount] : null
+}

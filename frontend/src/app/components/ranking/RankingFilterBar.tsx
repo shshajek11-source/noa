@@ -56,7 +56,7 @@ export default function RankingFilterBar() {
                         setServer(e.target.value)
                         handleFilterChange('server', e.target.value)
                     }}
-                    style={selectStyle}
+                    className={styles.dsSelect}
                 >
                     <option value="">전체 서버</option>
                     {SERVERS.map(s => (
@@ -70,7 +70,7 @@ export default function RankingFilterBar() {
                         setRace(e.target.value)
                         handleFilterChange('race', e.target.value)
                     }}
-                    style={selectStyle}
+                    className={styles.dsSelect}
                 >
                     <option value="">전체 종족</option>
                     {RACES.map(r => (
@@ -84,7 +84,7 @@ export default function RankingFilterBar() {
                         setClassName(e.target.value)
                         handleFilterChange('class', e.target.value)
                     }}
-                    style={selectStyle}
+                    className={styles.dsSelect}
                 >
                     <option value="">전체 직업</option>
                     {CLASSES.map(c => (
@@ -93,15 +93,17 @@ export default function RankingFilterBar() {
                 </select>
             </div>
 
-            <div className={styles.searchInputWrapper}>
-                <input
-                    type="text"
-                    placeholder="캐릭터 이름 검색..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className={styles.searchInput}
-                />
-                <Search className={styles.searchIcon} />
+            <div className={styles.dsSearchWrapper}>
+                <div className={styles.dsSearchInner}>
+                    <Search className={styles.searchIcon} />
+                    <input
+                        type="text"
+                        placeholder="캐릭터 이름 검색..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className={styles.searchInput}
+                    />
+                </div>
             </div>
         </div>
     )

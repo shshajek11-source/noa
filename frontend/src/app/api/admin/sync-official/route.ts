@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
-import { headers } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server'
+import { verifyAdminAuth } from '@/lib/adminAuth'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+    // 인증 검증
+    const auth = verifyAdminAuth(request)
+    if (!auth.authorized) {
+        return auth.error!
+    }
     // Initialize Supabase client inside handler to avoid build-time errors
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -26,7 +31,8 @@ export async function GET(request: Request) {
         const res = await fetch(apiUrl, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': 'https://aion2.plaync.com/'
+                'Referer': 'https://aion2.plaync.com/',
+                'Accept': 'application/json'
             }
         })
 
@@ -34,7 +40,21 @@ export async function GET(request: Request) {
             throw new Error(`Official API returned ${res.status}`)
         }
 
+        // Check content type before parsing
+        const contentType = res.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+            const text = await res.text()
+            console.error(`[Sync] API returned non-JSON response: ${text.substring(0, 200)}`)
+            throw new Error(`API returned HTML instead of JSON (possibly maintenance or rate limited)`)
+        }
+
         const json = await res.json()
+
+        // Check for API error response
+        if (json.error || json.errorCode) {
+            throw new Error(`API error: ${json.error || json.errorCode || 'Unknown error'}`)
+        }
+
         const list = json.rankingList || []
 
         console.log(`[Sync] Found ${list.length} characters in ranking list.`)

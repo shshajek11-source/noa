@@ -2,96 +2,32 @@
 import { useState, useEffect } from 'react'
 import type { DaevanionNode, DaevanionBoardResponse } from '../../types/daevanion'
 
+interface DaevanionBoardItem {
+    id: number
+    name: string
+    totalNodeCount: number
+    openNodeCount: number
+    icon?: string
+    open?: number
+}
+
 interface DaevanionBoardProps {
     characterId?: string
     serverId?: string
-    race?: string  // '천족', 'Elyos', '마족', 'Asmodian'
-    characterClass?: string  // 직업명
+    race?: string  // '천족', 'Elyos', '마족', 'Asmodian' - DEPRECATED, not used for boardId calculation
+    characterClass?: string  // 직업명 - DEPRECATED, not used for boardId calculation
+    boardList?: DaevanionBoardItem[]  // Use boardList IDs directly from API response
 }
 
-// Board ID mapping: Depends on BOTH race AND class
-// Elyos (천족): Warriors 11-16, Mages 21-26, Priests 31-36, Scouts 41-46
-// Asmodian (마족): Mages 51-56, Scouts 61-66, Warriors 71-76, Priests 81-86
+// God name mapping - maps god names to their index in the boardList array
 const GODS = [
-    { id: 'nezakan', name: '네자칸', baseIndex: 1, color: '#EF4444', desc: '물리 공격력 및 치명타 강화' },
-    { id: 'zikel', name: '지켈', baseIndex: 2, color: '#FACC15', desc: '방어력 및 생명력 강화' },
-    { id: 'baizel', name: '바이젤', baseIndex: 3, color: '#3B82F6', desc: '이동 속도 및 회피 강화' },
-    { id: 'triniel', name: '트리니엘', baseIndex: 4, color: '#10B981', desc: '상태이상 적중 및 저항' },
-    { id: 'ariel', name: '아리엘', baseIndex: 5, color: '#8B5CF6', desc: '마법 증폭 및 적중' },
-    { id: 'asphel', name: '아스펠', baseIndex: 6, color: '#EC4899', desc: '마법 상쇄 및 저항' }
+    { id: 'nezakan', name: '네자칸', color: '#EF4444', desc: '물리 공격력 및 치명타 강화' },
+    { id: 'zikel', name: '지켈', color: '#FACC15', desc: '방어력 및 생명력 강화' },
+    { id: 'baizel', name: '바이젤', color: '#3B82F6', desc: '이동 속도 및 회피 강화' },
+    { id: 'triniel', name: '트리니엘', color: '#10B981', desc: '상태이상 적중 및 저항' },
+    { id: 'ariel', name: '아리엘', color: '#8B5CF6', desc: '마법 증폭 및 적중' },
+    { id: 'asphel', name: '아스펠', color: '#EC4899', desc: '마법 상쇄 및 저항' }
 ]
-
-// Class category mapping (approximation - may need adjustment)
-const getClassCategory = (className: string): 'warrior' | 'mage' | 'priest' | 'scout' => {
-    const lower = className.toLowerCase()
-
-    // Warriors/Tanks: Gladiator (검성), Templar (수호성/템플러), etc.
-    if (lower.includes('글래디에이터') || lower.includes('gladiator') ||
-        lower.includes('검성') ||  // Gladiator Korean
-        lower.includes('템플러') || lower.includes('templar') ||
-        lower.includes('수호성') ||  // Templar Korean
-        lower.includes('전사') || lower.includes('warrior') ||
-        lower.includes('탱커') || lower.includes('tank')) {
-        return 'warrior'
-    }
-
-    // Scouts: Assassin (살성), Ranger (궁성), etc.
-    if (lower.includes('어쌔신') || lower.includes('assassin') ||
-        lower.includes('살성') ||  // Assassin Korean
-        lower.includes('레인저') || lower.includes('ranger') ||
-        lower.includes('궁성') ||  // Ranger Korean
-        lower.includes('정찰') || lower.includes('scout') ||
-        lower.includes('궁수') || lower.includes('archer')) {
-        return 'scout'
-    }
-
-    // Priests/Healers: Cleric (치유성), Chanter (호법성), etc.
-    if (lower.includes('클레릭') || lower.includes('cleric') ||
-        lower.includes('치유성') ||  // Cleric Korean
-        lower.includes('찬터') || lower.includes('chanter') ||
-        lower.includes('호법성') ||  // Chanter Korean
-        lower.includes('치유') || lower.includes('heal') ||
-        lower.includes('사제') || lower.includes('priest')) {
-        return 'priest'
-    }
-
-    // Mages: Sorcerer (마도성), Spiritmaster (정령성), etc.
-    if (lower.includes('소서러') || lower.includes('sorcerer') ||
-        lower.includes('마도성') ||  // Sorcerer Korean
-        lower.includes('스피릿마스터') || lower.includes('spiritmaster') ||
-        lower.includes('정령성') ||  // Spiritmaster Korean
-        lower.includes('마법사') || lower.includes('mage') ||
-        lower.includes('위저드') || lower.includes('wizard')) {
-        return 'mage'
-    }
-
-    // Default to scout if not matched (safest default as it's most common)
-    return 'scout'
-}
-
-const getBoardIdBase = (race: string, className: string): number => {
-    const isAsmodian = race === '마족' || race === 'Asmodian'
-    const category = getClassCategory(className)
-
-    if (isAsmodian) {
-        switch (category) {
-            case 'mage': return 50
-            case 'scout': return 60
-            case 'warrior': return 70
-            case 'priest': return 80
-            default: return 60 // fallback to scout
-        }
-    } else {
-        // Elyos
-        switch (category) {
-            case 'warrior': return 10
-            case 'mage': return 20
-            case 'priest': return 30
-            case 'scout': return 40
-            default: return 40 // fallback to scout
-        }
-    }
-}
 
 // Grid Constants for 15x15 board
 const GRID_SIZE = 15
@@ -112,44 +48,45 @@ const gradeColors: Record<string, string> = {
     'Start': '#10B981'
 }
 
-export default function DaevanionBoard({ characterId, serverId, race, characterClass }: DaevanionBoardProps) {
+export default function DaevanionBoard({ characterId, serverId, race, characterClass, boardList }: DaevanionBoardProps) {
     const [activeGodIndex, setActiveGodIndex] = useState(0)
     const [hoveredNode, setHoveredNode] = useState<DaevanionNode | null>(null)
     const [boardData, setBoardData] = useState<DaevanionBoardResponse | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    // Debug info state
-    const [debugInfo, setDebugInfo] = useState<{
-        apiUrl?: string
-        responseStatus?: number
-        responseTime?: number
-        errorDetails?: string
-    }>({})
-
     const activeGod = GODS[activeGodIndex]
 
-    // Determine correct boardId based on race AND class
-    const isAsmodian = race === '마족' || race === 'Asmodian'
-    const boardIdBase = characterClass ? getBoardIdBase(race || '', characterClass) : (isAsmodian ? 60 : 40)
-    const boardId = boardIdBase + activeGod.baseIndex
+    // Get boardId directly from boardList by matching god name
+    // This is the correct approach - use the API response directly instead of calculating!
+    const boardId = boardList && boardList.length > 0
+        ? boardList.find(board => board.name === activeGod.name)?.id || boardList[activeGodIndex]?.id || 0
+        : 0
 
     // Fetch board data when god changes
     useEffect(() => {
         // 🔍 DEBUG: Log received props
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
         console.log('🎯 [DAEVANION BOARD] useEffect triggered')
-        console.log('characterId:', characterId, '(type:', typeof characterId, ')')
-        console.log('serverId:', serverId, '(type:', typeof serverId, ')')
-        console.log('activeGod:', activeGod.name, 'boardId:', boardId)
+        console.log('📝 Props received:')
+        console.log('  - characterId:', characterId, '(type:', typeof characterId, ')')
+        console.log('  - serverId:', serverId, '(type:', typeof serverId, ')')
+        console.log('  - boardList:', boardList, '(length:', boardList?.length || 0, ')')
+        console.log('📊 Calculated values:')
+        console.log('  - activeGod:', activeGod.name)
+        console.log('  - FINAL boardId:', boardId, '(from boardList)')
 
         if (!characterId || !serverId) {
             console.warn('⚠️ [DAEVANION BOARD] Missing characterId or serverId - skipping fetch')
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
             setBoardData(null)
-            setDebugInfo({
-                errorDetails: 'characterId 또는 serverId가 없습니다.'
-            })
+            return
+        }
+
+        if (!boardList || boardList.length === 0 || boardId === 0) {
+            console.warn('⚠️ [DAEVANION BOARD] Missing boardList or invalid boardId - skipping fetch')
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+            setBoardData(null)
             return
         }
 
@@ -161,65 +98,31 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
             try {
                 const url = `/api/daevanion?characterId=${encodeURIComponent(characterId)}&serverId=${serverId}&boardId=${boardId}`
 
-                // Store URL for debug display
-                setDebugInfo(prev => ({ ...prev, apiUrl: url }))
-
                 // 🔍 DEBUG: Log API call
-                console.log('🌐 [DAEVANION BOARD] Fetching from API:')
-                console.log('URL:', url)
+                console.log('🌐 [DAEVANION BOARD] Fetching from API:', url)
 
                 const res = await fetch(url)
-                const endTime = Date.now()
-
-                // 🔍 DEBUG: Log response
-                console.log('📡 [DAEVANION BOARD] Response status:', res.status, res.statusText)
-
-                // Store response info
-                setDebugInfo(prev => ({
-                    ...prev,
-                    responseStatus: res.status,
-                    responseTime: endTime - startTime
-                }))
 
                 if (!res.ok) {
                     const errorData = await res.json().catch(() => null)
-                    console.error('❌ [DAEVANION BOARD] API request failed!')
-                    console.error('Status:', res.status)
-                    console.error('Error data:', errorData)
-
-                    setDebugInfo(prev => ({
-                        ...prev,
-                        errorDetails: errorData?.details || errorData?.error || `HTTP ${res.status} 오류`
-                    }))
-
+                    console.error('❌ [DAEVANION BOARD] API request failed!', res.status, errorData)
                     throw new Error(errorData?.details || 'API 요청 실패')
                 }
 
                 const data: DaevanionBoardResponse = await res.json()
 
                 // 🔍 DEBUG: Log successful data
-                console.log('✅ [DAEVANION BOARD] Data received successfully!')
-                console.log('nodeList count:', data.nodeList?.length || 0)
-                console.log('openStatEffectList count:', data.openStatEffectList?.length || 0)
-                console.log('openSkillEffectList count:', data.openSkillEffectList?.length || 0)
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+                console.log('✅ [DAEVANION BOARD] Data received successfully!', {
+                    nodeList: data.nodeList?.length || 0,
+                    effects: (data.openStatEffectList?.length || 0) + (data.openSkillEffectList?.length || 0)
+                })
 
                 setBoardData(data)
             } catch (err) {
-                console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-                console.error('💥 [DAEVANION BOARD] Error occurred:')
-                console.error('Error:', err)
-                console.error('Error message:', err instanceof Error ? err.message : '데이터 로드 실패')
-                console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-
+                console.error('💥 [DAEVANION BOARD] Error occurred:', err)
                 const errorMsg = err instanceof Error ? err.message : '데이터 로드 실패'
                 setError(errorMsg)
                 setBoardData(null)
-
-                setDebugInfo(prev => ({
-                    ...prev,
-                    errorDetails: prev.errorDetails || errorMsg
-                }))
             } finally {
                 setLoading(false)
             }
@@ -244,29 +147,29 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
             display: 'flex',
             gap: '1.5rem',
             height: '600px',
-            background: '#111318',
-            border: '1px solid #1F2433',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
             overflow: 'hidden'
         }}>
             {/* LEFT: God Selection Sidebar */}
             <div style={{
                 width: '260px',
-                background: '#0B0D12',
-                borderRight: '1px solid #1F2433',
+                background: 'var(--bg-hover)',
+                borderRight: '1px solid var(--border)',
                 display: 'flex',
                 flexDirection: 'column',
                 overflowY: 'auto'
             }}>
                 <div style={{
                     padding: '1.5rem',
-                    borderBottom: '1px solid #1F2433',
-                    background: '#111318'
+                    borderBottom: '1px solid var(--border)',
+                    background: 'var(--bg-secondary)'
                 }}>
-                    <h3 style={{ margin: 0, color: '#E5E7EB', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                    <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: 'bold' }}>
                         신성력 각인
                     </h3>
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#9CA3AF' }}>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                         6명의 주신이 부여하는 권능
                     </div>
                 </div>
@@ -344,7 +247,7 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                                         border: `1px solid ${activeGod.color}40`,
                                         borderRadius: '12px',
                                         fontSize: '0.8rem',
-                                        color: '#E5E7EB',
+                                        color: 'var(--text-main)',
                                         whiteSpace: 'nowrap'
                                     }}>
                                         {effect.desc}
@@ -356,121 +259,24 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
 
                     {/* Progress Stats */}
                     <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.9rem', color: '#9CA3AF', marginBottom: '0.25rem' }}>진행도</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#E5E7EB' }}>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>진행도</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-main)' }}>
                             <span style={{ color: activeGod.color }}>{activeNodes}</span> / {totalNodes}
-                            <span style={{ fontSize: '0.9rem', color: '#6B7280', marginLeft: '0.5rem' }}>({completionPercent}%)</span>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>({completionPercent}%)</span>
                         </div>
                     </div>
                 </div>
 
-                {/* 🔍 DEBUG INFO PANEL */}
-                <div style={{
-                    background: '#1A1D29',
-                    border: '1px solid #FACC15',
-                    borderRadius: '8px',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    fontSize: '0.85rem',
-                    fontFamily: 'monospace'
-                }}>
-                    <div style={{ fontWeight: 'bold', color: '#FACC15', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        🔍 디버그 정보
-                        <span style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>(문제 해결용)</span>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem', color: '#E5E7EB' }}>
-                        <div style={{ color: '#9CA3AF' }}>캐릭터 ID:</div>
-                        <div style={{ color: characterId ? '#10B981' : '#EF4444' }}>{characterId || '❌ 없음'}</div>
 
-                        <div style={{ color: '#9CA3AF' }}>서버 ID:</div>
-                        <div style={{ color: serverId ? '#10B981' : '#EF4444' }}>{serverId || '❌ 없음'}</div>
-
-                        <div style={{ color: '#9CA3AF' }}>종족/직업/보드 ID:</div>
-                        <div>{isAsmodian ? '마족' : '천족'} / {characterClass || 'Unknown'} / {boardId} ({activeGod.name})</div>
-
-                        {debugInfo.apiUrl && (
-                            <>
-                                <div style={{ color: '#9CA3AF' }}>API URL:</div>
-                                <div style={{ wordBreak: 'break-all', fontSize: '0.75rem' }}>{debugInfo.apiUrl}</div>
-                            </>
-                        )}
-
-                        {debugInfo.responseStatus && (
-                            <>
-                                <div style={{ color: '#9CA3AF' }}>응답 상태:</div>
-                                <div style={{ color: debugInfo.responseStatus === 200 ? '#10B981' : '#EF4444' }}>
-                                    HTTP {debugInfo.responseStatus} {debugInfo.responseStatus === 200 ? '✅ 성공' : '❌ 실패'}
-                                </div>
-                            </>
-                        )}
-
-                        {debugInfo.responseTime && (
-                            <>
-                                <div style={{ color: '#9CA3AF' }}>응답 시간:</div>
-                                <div>{debugInfo.responseTime}ms</div>
-                            </>
-                        )}
-
-                        {debugInfo.errorDetails && (
-                            <>
-                                <div style={{ color: '#EF4444' }}>에러 상세:</div>
-                                <div style={{ color: '#EF4444', wordBreak: 'break-word' }}>{debugInfo.errorDetails}</div>
-                            </>
-                        )}
-
-                        {boardData && (
-                            <>
-                                <div style={{ color: '#9CA3AF' }}>데이터 상태:</div>
-                                <div style={{ color: '#10B981' }}>
-                                    ✅ 로드 완료 (전체 노드: {boardData.nodeList?.length || 0}개)
-                                </div>
-
-                                <div style={{ color: '#9CA3AF' }}>유효 노드:</div>
-                                <div>{validNodes.length}개 (Start 제외: {validNodesExcludingStart.length}개)</div>
-
-                                <div style={{ color: '#9CA3AF' }}>활성 노드:</div>
-                                <div style={{ color: activeNodes > 0 ? '#10B981' : '#EF4444' }}>
-                                    {activeNodes}개 / {totalNodes}개 ({completionPercent}%)
-                                </div>
-
-                                <div style={{ color: '#9CA3AF' }}>스탯 효과:</div>
-                                <div>{boardData.openStatEffectList?.length || 0}개</div>
-
-                                <div style={{ color: '#9CA3AF' }}>스킬 효과:</div>
-                                <div>{boardData.openSkillEffectList?.length || 0}개</div>
-
-                                {/* Raw node data inspection */}
-                                <div style={{ gridColumn: '1 / -1', marginTop: '1rem', borderTop: '1px solid #374151', paddingTop: '1rem' }}>
-                                    <div style={{ color: '#FACC15', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                                        🔬 활성화된 노드 샘플 (open === 1인 처음 5개):
-                                    </div>
-                                    <div style={{ fontSize: '0.7rem', maxHeight: '200px', overflowY: 'auto', background: '#0B0D12', padding: '0.5rem', borderRadius: '4px' }}>
-                                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: '#E5E7EB' }}>
-                                            {JSON.stringify(
-                                                boardData.nodeList?.filter(n => n.open === 1).slice(0, 5) || [],
-                                                null,
-                                                2
-                                            )}
-                                        </pre>
-                                    </div>
-
-                                    <div style={{ color: '#9CA3AF', marginTop: '0.5rem', fontSize: '0.75rem' }}>
-                                        총 활성화된 노드: {boardData.nodeList?.filter(n => n.open === 1).length || 0}개
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
 
                 {/* BOARD VISUALIZATION AREA */}
                 <div style={{
                     flex: 1,
                     minHeight: '500px',
                     position: 'relative',
-                    background: '#0B0D12',
+                    background: 'var(--bg-hover)',
                     borderRadius: '12px',
-                    border: '1px solid #2D3748',
+                    border: '1px solid var(--border)',
                     marginBottom: '1.5rem',
                     overflow: 'hidden',
                     display: 'flex',
@@ -650,10 +456,10 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
 
                 {/* Active Effects Panel */}
                 <div style={{
-                    background: '#1A1D29',
+                    background: 'rgba(26, 29, 41, 0.4)',
                     borderRadius: '8px',
                     padding: '1rem',
-                    border: '1px solid #2D3748',
+                    border: '1px solid var(--border)',
                     minHeight: '100px',
                     maxHeight: '200px',
                     overflowY: 'auto',
@@ -674,16 +480,16 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                         </div>
                     ) : (
                         <>
-                            <h4 style={{ margin: '0 0 1rem 0', color: '#E5E7EB', fontSize: '1rem' }}>활성화된 효과</h4>
+                            <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1rem' }}>활성화된 효과</h4>
                             {boardData && (boardData.openStatEffectList.length > 0 || boardData.openSkillEffectList.length > 0) ? (
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
                                     {[...boardData.openStatEffectList, ...boardData.openSkillEffectList].map((effect, i) => (
                                         <div key={i} style={{
                                             padding: '0.75rem',
-                                            background: '#111318',
+                                            background: 'var(--bg-secondary)',
                                             borderRadius: '6px',
                                             borderLeft: `3px solid ${activeGod.color}`,
-                                            color: '#D1D5DB',
+                                            color: 'var(--text-secondary)',
                                             fontSize: '0.9rem'
                                         }}>
                                             {effect.desc}

@@ -1,0 +1,553 @@
+### Page state
+- Page URL: http://localhost:3001/c/%EC%A7%80%EC%BC%88/%EB%8F%84%EB%A3%A1%EB%87%BD
+- Page Title: 
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "NOA" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e5]:
+        - link "홈" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - link "랭킹" [ref=e7] [cursor=pointer]:
+          - /url: /ranking
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - heading "NOA" [level=1] [ref=e11]
+      - paragraph [ref=e12]: 실시간 캐릭터 정보를 빠르게 검색하세요.
+    - generic [ref=e14]:
+      - button "전체 서버" [ref=e15] [cursor=pointer]:
+        - text: 전체 서버
+        - img [ref=e16]
+      - textbox "캐릭터명을 입력하세요" [ref=e18]
+      - button [ref=e19] [cursor=pointer]:
+        - img [ref=e20]
+  - generic [ref=e24]:
+    - button "데이터 강제 갱신" [ref=e32] [cursor=pointer]:
+      - img [ref=e33]
+    - generic [ref=e38]:
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - img "도룡뇽" [ref=e44]
+            - img "S1 Badge" [ref=e45]
+          - generic [ref=e46]:
+            - heading "도룡뇽" [level=2] [ref=e47]
+            - generic [ref=e48]:
+              - generic [ref=e49]: Lv.45
+              - generic [ref=e50]: 살성
+              - generic [ref=e51]: 아이템 Lv.2801
+        - generic [ref=e53]:
+          - generic [ref=e54]: NOA 전투력
+          - generic [ref=e55]: 11,803
+          - generic [ref=e57]: Gold 2
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - generic [ref=e60]: 서버 랭킹
+            - generic [ref=e61]: "#N/A"
+          - generic [ref=e62]:
+            - generic [ref=e63]: 상위
+            - generic [ref=e64]: N/A
+          - generic [ref=e66]: Bronze
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - generic [ref=e69]: 서버
+            - generic [ref=e70]: 지켈
+          - generic [ref=e71]:
+            - generic [ref=e72]: 종족
+            - generic [ref=e73]: 마족
+        - generic [ref=e74]:
+          - generic [ref=e75]: Arcana
+          - generic [ref=e76]:
+            - generic [ref=e77] [cursor=pointer]:
+              - img "활력의 성배" [ref=e78]
+              - generic [ref=e79]: "+1"
+            - generic [ref=e80] [cursor=pointer]:
+              - img "활력의 양피지" [ref=e81]
+              - generic [ref=e82]: "+1"
+            - generic [ref=e83] [cursor=pointer]:
+              - img "마력의 나침반" [ref=e84]
+              - generic [ref=e85]: "+1"
+            - generic [ref=e86] [cursor=pointer]:
+              - img "활력의 종" [ref=e87]
+              - generic [ref=e88]: "+1"
+            - generic [ref=e89] [cursor=pointer]:
+              - img "활력의 거울" [ref=e90]
+              - generic [ref=e91]: "+1"
+          - generic [ref=e92]:
+            - generic [ref=e93]: 아르카나 합계
+            - generic [ref=e94]:
+              - generic [ref=e95]:
+                - generic [ref=e96]: 시간[시엘]
+                - generic [ref=e97]: "+20"
+              - generic [ref=e98]:
+                - generic [ref=e99]: 생명[유스티엘]
+                - generic [ref=e100]: "+20"
+              - generic [ref=e101]:
+                - generic [ref=e102]: 죽음[트리니엘]
+                - generic [ref=e103]: "+20"
+              - generic [ref=e104]:
+                - generic [ref=e105]: 정의[네자칸]
+                - generic [ref=e106]: "+20"
+              - generic [ref=e107]:
+                - generic [ref=e108]: 환상[카이시넬]
+                - generic [ref=e109]: "+20"
+      - generic [ref=e110]:
+        - generic [ref=e111]:
+          - button "장비" [ref=e112] [cursor=pointer]
+          - button "✨ 스킬" [ref=e113] [cursor=pointer]: ✨ 스킬
+          - button "능력치" [active] [ref=e114] [cursor=pointer]
+        - generic [ref=e830]:
+          - generic [ref=e831]:
+            - generic [ref=e832]: 📊 능력치 통합 뷰
+            - generic [ref=e833]: 총 51개
+          - generic [ref=e834]:
+            - button "📊 전체" [ref=e835] [cursor=pointer]:
+              - generic [ref=e836]: 📊
+              - generic [ref=e837]: 전체
+            - button "⚔️ 공격" [ref=e838] [cursor=pointer]:
+              - generic [ref=e839]: ⚔️
+              - generic [ref=e840]: 공격
+            - button "🛡️ 방어" [ref=e841] [cursor=pointer]:
+              - generic [ref=e842]: 🛡️
+              - generic [ref=e843]: 방어
+            - button "⚡ 치명" [ref=e844] [cursor=pointer]:
+              - generic [ref=e845]: ⚡
+              - generic [ref=e846]: 치명
+            - button "✨ 유틸" [ref=e847] [cursor=pointer]:
+              - generic [ref=e848]: ✨
+              - generic [ref=e849]: 유틸
+          - generic [ref=e851]:
+            - generic [ref=e853] [cursor=pointer]:
+              - generic [ref=e854]: 방어력
+              - generic [ref=e856]: 5,319
+            - generic [ref=e858] [cursor=pointer]:
+              - generic [ref=e859]: 생명력
+              - generic [ref=e861]: 3,342
+            - generic [ref=e863] [cursor=pointer]:
+              - generic [ref=e864]: 공격력
+              - generic [ref=e866]: 1,600
+            - generic [ref=e868] [cursor=pointer]:
+              - generic [ref=e869]: 관통
+              - generic [ref=e871]: 1,220
+            - generic [ref=e873] [cursor=pointer]:
+              - generic [ref=e874]: 치명타
+              - generic [ref=e876]: "310"
+            - generic [ref=e878] [cursor=pointer]:
+              - generic [ref=e879]: 명중
+              - generic [ref=e881]: "228"
+            - generic [ref=e883] [cursor=pointer]:
+              - generic [ref=e884]: 정신력
+              - generic [ref=e886]: "148"
+            - generic [ref=e888] [cursor=pointer]:
+              - generic [ref=e889]: 막기
+              - generic [ref=e891]: "116"
+            - generic [ref=e893] [cursor=pointer]:
+              - generic [ref=e894]: 위력
+              - generic [ref=e896]: "115"
+            - generic [ref=e898] [cursor=pointer]:
+              - generic [ref=e899]: 후방 방어력
+              - generic [ref=e901]: "98"
+            - generic [ref=e903] [cursor=pointer]:
+              - generic [ref=e904]: 정신력 자연 회복
+              - generic [ref=e906]: "96"
+            - generic [ref=e908] [cursor=pointer]:
+              - generic [ref=e909]: 생명력 자연 회복
+              - generic [ref=e911]: "52"
+            - generic [ref=e913] [cursor=pointer]:
+              - generic [ref=e914]: 봉혼석 추가 피해
+              - generic [ref=e916]: "52"
+            - generic [ref=e918] [cursor=pointer]:
+              - generic [ref=e919]: 회피
+              - generic [ref=e921]: "51"
+            - generic [ref=e923] [cursor=pointer]:
+              - generic [ref=e924]: 체력
+              - generic [ref=e926]: "50"
+            - generic [ref=e928] [cursor=pointer]:
+              - generic [ref=e929]: 지식
+              - generic [ref=e931]: "42"
+            - generic [ref=e933] [cursor=pointer]:
+              - generic [ref=e934]: 치명타 저항
+              - generic [ref=e936]: "37"
+            - generic [ref=e938] [cursor=pointer]:
+              - generic [ref=e939]: 전투 속도
+              - generic [ref=e942]: +32.9%
+            - generic [ref=e944] [cursor=pointer]:
+              - generic [ref=e945]: 생명력 물약 회복 증가
+              - generic [ref=e948]: +30.0%
+            - generic [ref=e950] [cursor=pointer]:
+              - generic [ref=e951]: 완벽
+              - generic [ref=e954]: +20.2%
+            - generic [ref=e956] [cursor=pointer]:
+              - generic [ref=e957]: 민첩
+              - generic [ref=e959]: "20"
+            - generic [ref=e961] [cursor=pointer]:
+              - generic [ref=e962]: 강타 저항
+              - generic [ref=e965]: +19.2%
+            - generic [ref=e967] [cursor=pointer]:
+              - generic [ref=e968]: 재생
+              - generic [ref=e971]: +15.6%
+            - generic [ref=e973] [cursor=pointer]:
+              - generic [ref=e974]: 생명력 증가
+              - generic [ref=e977]: +15.6%
+            - generic [ref=e979] [cursor=pointer]:
+              - generic [ref=e980]: 공격력 증가
+              - generic [ref=e983]: +15.5%
+            - generic [ref=e985] [cursor=pointer]:
+              - generic [ref=e986]: 치명타 증가
+              - generic [ref=e989]: +15.4%
+            - generic [ref=e991] [cursor=pointer]:
+              - generic [ref=e992]: 재생 관통
+              - generic [ref=e995]: +15.4%
+            - generic [ref=e997] [cursor=pointer]:
+              - generic [ref=e998]: 방어력 증가
+              - generic [ref=e1001]: +15.2%
+            - generic [ref=e1003] [cursor=pointer]:
+              - generic [ref=e1004]: 받는 치유량
+              - generic [ref=e1007]: +15.0%
+            - generic [ref=e1009] [cursor=pointer]:
+              - generic [ref=e1010]: 막기 증가
+              - generic [ref=e1013]: +13.6%
+            - generic [ref=e1015] [cursor=pointer]:
+              - generic [ref=e1016]: 이동 속도
+              - generic [ref=e1019]: +11.6%
+            - generic [ref=e1021] [cursor=pointer]:
+              - generic [ref=e1022]: 치명타 피해 내성
+              - generic [ref=e1025]: +10.2%
+            - generic [ref=e1027] [cursor=pointer]:
+              - generic [ref=e1028]: 다단 히트 적중
+              - generic [ref=e1031]: +10.1%
+            - generic [ref=e1033] [cursor=pointer]:
+              - generic [ref=e1034]: PVP 피해 증폭
+              - generic [ref=e1037]: +10.0%
+            - generic [ref=e1039] [cursor=pointer]:
+              - generic [ref=e1040]: 무기 피해 증폭
+              - generic [ref=e1043]: +10.0%
+            - generic [ref=e1045] [cursor=pointer]:
+              - generic [ref=e1046]: 회피 증가
+              - generic [ref=e1049]: +9.6%
+            - generic [ref=e1051] [cursor=pointer]:
+              - generic [ref=e1052]: 재사용 시간
+              - generic [ref=e1055]: +9.0%
+            - generic [ref=e1057] [cursor=pointer]:
+              - generic [ref=e1058]: 철벽 관통
+              - generic [ref=e1061]: +9.0%
+            - generic [ref=e1063] [cursor=pointer]:
+              - generic [ref=e1064]: 피해 증폭
+              - generic [ref=e1067]: +8.9%
+            - generic [ref=e1069] [cursor=pointer]:
+              - generic [ref=e1070]: 명중 증가
+              - generic [ref=e1073]: +7.6%
+            - generic [ref=e1075] [cursor=pointer]:
+              - generic [ref=e1076]: 정신력 소모량
+              - generic [ref=e1079]: +6.2%
+            - generic [ref=e1081] [cursor=pointer]:
+              - generic [ref=e1082]: 강타
+              - generic [ref=e1085]: +6.2%
+            - generic [ref=e1087] [cursor=pointer]:
+              - generic [ref=e1088]: 정신력 증가
+              - generic [ref=e1091]: +5.8%
+            - generic [ref=e1093] [cursor=pointer]:
+              - generic [ref=e1094]: 철벽
+              - generic [ref=e1097]: +5.8%
+            - generic [ref=e1099] [cursor=pointer]:
+              - generic [ref=e1100]: PVP 피해 내성
+              - generic [ref=e1103]: +5.0%
+            - generic [ref=e1105] [cursor=pointer]:
+              - generic [ref=e1106]: 상태이상 적중
+              - generic [ref=e1109]: +4.2%
+            - generic [ref=e1111] [cursor=pointer]:
+              - generic [ref=e1112]: 완벽 저항
+              - generic [ref=e1115]: +4.0%
+            - generic [ref=e1117] [cursor=pointer]:
+              - generic [ref=e1118]: 치명타 공격력
+              - generic [ref=e1120]: "3"
+            - generic [ref=e1122] [cursor=pointer]:
+              - generic [ref=e1123]: PVE 피해 내성
+              - generic [ref=e1126]: +2.0%
+            - generic [ref=e1128] [cursor=pointer]:
+              - generic [ref=e1129]: 치명타 저항 증가
+              - generic [ref=e1132]: +2.0%
+            - generic [ref=e1134] [cursor=pointer]:
+              - generic [ref=e1135]: PVE 피해 증폭
+              - generic [ref=e1138]: +1.0%
+      - generic [ref=e369]:
+        - generic [ref=e370]:
+          - generic [ref=e371]:
+            - heading "타이틀" [level=3] [ref=e372]
+            - generic [ref=e373]:
+              - text: "194"
+              - generic [ref=e374]: /305
+          - generic [ref=e375]:
+            - generic [ref=e376]:
+              - generic [ref=e377]:
+                - img [ref=e379]
+                - generic [ref=e383]: 공격계열
+              - generic [ref=e384]:
+                - text: "0"
+                - generic [ref=e385]: /104
+              - generic [ref=e386]: 샛노란 광채
+              - generic [ref=e387]:
+                - generic [ref=e388]: • 치명타 공격력 +35
+                - generic [ref=e389]: • 치명타 피해 증폭 +5.5%
+                - generic [ref=e390]: • 완벽 +4%
+            - generic [ref=e391]:
+              - generic [ref=e392]:
+                - img [ref=e394]
+                - generic [ref=e397]: 방어계열
+              - generic [ref=e398]:
+                - text: "0"
+                - generic [ref=e399]: /101
+              - generic [ref=e400]: 알트가르드의 성자
+              - generic [ref=e401]:
+                - generic [ref=e402]: • 추가 방어력 +300
+                - generic [ref=e403]: • 피해 내성 +5%
+                - generic [ref=e404]: • 막기 +110
+            - generic [ref=e405]:
+              - generic [ref=e406]:
+                - img [ref=e408]
+                - generic [ref=e414]: 기타계열
+              - generic [ref=e415]:
+                - text: "0"
+                - generic [ref=e416]: /101
+              - generic [ref=e417]: 지켈의 근원을 마주하다
+              - generic [ref=e418]:
+                - generic [ref=e419]: • 생명력 물약 회복 +550
+                - generic [ref=e420]: • 이동 속도 +5%
+                - generic [ref=e421]: • 생명력 +800
+        - generic [ref=e423]:
+          - generic [ref=e424]:
+            - generic [ref=e426]: 주요 능력치
+            - generic [ref=e427] [cursor=pointer]:
+              - generic [ref=e429]: 기본
+              - generic [ref=e430]: 상세
+          - generic [ref=e431]:
+            - generic [ref=e432]:
+              - img "Offense" [ref=e435]
+              - generic [ref=e436]:
+                - generic [ref=e437]: 위력
+                - generic [ref=e438]: "115"
+            - generic [ref=e439]:
+              - img "Offense" [ref=e442]
+              - generic [ref=e443]:
+                - generic [ref=e444]: 민첩
+                - generic [ref=e445]: "20"
+            - generic [ref=e446]:
+              - img "Offense" [ref=e449]
+              - generic [ref=e450]:
+                - generic [ref=e451]: 지식
+                - generic [ref=e452]: "42"
+            - generic [ref=e453]:
+              - img "Support" [ref=e456]
+              - generic [ref=e457]:
+                - generic [ref=e458]: 체력
+                - generic [ref=e459]: "50"
+            - generic [ref=e460]:
+              - img "Offense" [ref=e463]
+              - generic [ref=e464]:
+                - generic [ref=e465]: 정확
+                - generic [ref=e466]: "0"
+            - generic [ref=e467]:
+              - img "Support" [ref=e470]
+              - generic [ref=e471]:
+                - generic [ref=e472]: 의지
+                - generic [ref=e473]: "0"
+            - generic [ref=e474]:
+              - img "Support" [ref=e477]
+              - generic [ref=e478]:
+                - generic [ref=e479]: 정의[네자칸]
+                - generic [ref=e480]: "76"
+            - generic [ref=e481]:
+              - img "Support" [ref=e484]
+              - generic [ref=e485]:
+                - generic [ref=e486]: 자유[바이젤]
+                - generic [ref=e487]: "38"
+            - generic [ref=e488]:
+              - img "Support" [ref=e491]
+              - generic [ref=e492]:
+                - generic [ref=e493]: 환상[카이시넬]
+                - generic [ref=e494]: "45"
+            - generic [ref=e495]:
+              - img "Support" [ref=e498]
+              - generic [ref=e499]:
+                - generic [ref=e500]: 생명[유스티엘]
+                - generic [ref=e501]: "53"
+            - generic [ref=e502]:
+              - img "Support" [ref=e505]
+              - generic [ref=e506]:
+                - generic [ref=e507]: 시간[시엘]
+                - generic [ref=e508]: "96"
+            - generic [ref=e509]:
+              - img "Support" [ref=e512]
+              - generic [ref=e513]:
+                - generic [ref=e514]: 파괴[지켈]
+                - generic [ref=e515]: "20"
+            - generic [ref=e516]:
+              - img "Support" [ref=e519]
+              - generic [ref=e520]:
+                - generic [ref=e521]: 죽음[트리니엘]
+                - generic [ref=e522]: "77"
+            - generic [ref=e523]:
+              - img "Support" [ref=e526]
+              - generic [ref=e527]:
+                - generic [ref=e528]: 지혜[루미엘]
+                - generic [ref=e529]: "31"
+            - generic [ref=e530]:
+              - img "Support" [ref=e533]
+              - generic [ref=e534]:
+                - generic [ref=e535]: 운명[마르쿠탄]
+                - generic [ref=e536]: "29"
+            - generic [ref=e537]:
+              - img "Support" [ref=e540]
+              - generic [ref=e541]:
+                - generic [ref=e542]: 공간[이스라펠]
+                - generic [ref=e543]: "58"
+        - generic [ref=e544]:
+          - generic [ref=e545]: 데바니온
+          - generic [ref=e546]:
+            - generic [ref=e547]:
+              - generic [ref=e548]: 네자칸
+              - generic [ref=e549]: 85/88
+            - generic [ref=e550]:
+              - generic [ref=e551]: 지켈
+              - generic [ref=e552]: 75/88
+            - generic [ref=e553]:
+              - generic [ref=e554]: 바이젤
+              - generic [ref=e555]: 81/88
+            - generic [ref=e556]:
+              - generic [ref=e557]: 트리니엘
+              - generic [ref=e558]: 103/116
+            - generic [ref=e559]:
+              - generic [ref=e560]: 아리엘
+              - generic [ref=e561]: 9/152
+            - generic [ref=e562]:
+              - generic [ref=e563]: 아스펠
+              - generic [ref=e564]: 5/152
+      - generic [ref=e566]:
+        - heading "랭킹 정보" [level=3] [ref=e567]
+        - generic [ref=e568]:
+          - generic [ref=e569]:
+            - img "어비스 포인트" [ref=e571]
+            - generic [ref=e572]: 어비스 포인트
+            - generic [ref=e573]: "-"
+          - generic [ref=e574]:
+            - img "초월" [ref=e576]
+            - generic [ref=e577]: 초월
+            - generic [ref=e578]: 6830위
+            - generic [ref=e579]: 브론즈
+          - generic [ref=e580]:
+            - img "악몽" [ref=e582]
+            - generic [ref=e583]: 악몽
+            - generic [ref=e584]: "-"
+          - generic [ref=e585]:
+            - img "고독의 투기장" [ref=e587]
+            - generic [ref=e588]: 고독의 투기장
+            - generic [ref=e589]: "-"
+          - generic [ref=e590]:
+            - img "협력의 투기장" [ref=e592]
+            - generic [ref=e593]: 협력의 투기장
+            - generic [ref=e594]: "-"
+          - generic [ref=e595]:
+            - img "토벌전" [ref=e597]
+            - generic [ref=e598]: 토벌전
+            - generic [ref=e599]: "-"
+          - generic [ref=e600]:
+            - img "각성전" [ref=e602]
+            - generic [ref=e603]: 각성전
+            - generic [ref=e604]: 8236위
+            - generic [ref=e605]: 브론즈
+      - generic [ref=e607]:
+        - generic [ref=e608]:
+          - button "성장그래프" [ref=e609] [cursor=pointer]
+          - button "장비상세보기" [ref=e610] [cursor=pointer]
+          - button "데바니온" [ref=e611] [cursor=pointer]
+          - button "레기온" [ref=e612] [cursor=pointer]
+        - generic [ref=e614]:
+          - generic [ref=e615]:
+            - generic [ref=e616]: 📈 기간별 성장률
+            - generic [ref=e617]:
+              - generic [ref=e618]:
+                - generic [ref=e619]: 일평균
+                - generic [ref=e620]: "+0.5"
+                - generic [ref=e621]: 레벨/일
+              - generic [ref=e622]:
+                - generic [ref=e623]: 주평균
+                - generic [ref=e624]: "+4.0"
+                - generic [ref=e625]: 레벨/주
+              - generic [ref=e626]:
+                - generic [ref=e627]: 월평균
+                - generic [ref=e628]: "+15"
+                - generic [ref=e629]: 레벨/월
+          - generic [ref=e630]:
+            - button "7일" [ref=e631] [cursor=pointer]
+            - button "30일" [ref=e632] [cursor=pointer]
+            - button "90일" [ref=e633] [cursor=pointer]
+            - button "전체" [ref=e634] [cursor=pointer]
+          - generic [ref=e635]:
+            - generic [ref=e636] [cursor=pointer]:
+              - checkbox "아이템 레벨" [checked] [ref=e637]
+              - generic [ref=e638]: 아이템 레벨
+            - generic [ref=e639] [cursor=pointer]:
+              - checkbox "NOA 전투력" [checked] [ref=e640]
+              - generic [ref=e641]: NOA 전투력
+          - generic [ref=e642]:
+            - heading "성장 추이" [level=4] [ref=e643]
+            - generic [ref=e645]:
+              - list [ref=e647]:
+                - listitem [ref=e648]:
+                  - img "NOA 전투력 legend icon" [ref=e649]
+                  - text: NOA 전투력
+                - listitem [ref=e651]:
+                  - img "아이템 레벨 legend icon" [ref=e652]
+                  - text: 아이템 레벨
+              - application [ref=e654]:
+                - generic [ref=e751]:
+                  - generic [ref=e752]:
+                    - generic [ref=e754]: 12/8
+                    - generic [ref=e756]: 12/9
+                    - generic [ref=e758]: 12/11
+                    - generic [ref=e760]: 12/13
+                    - generic [ref=e762]: 12/15
+                    - generic [ref=e764]: 12/17
+                    - generic [ref=e766]: 12/19
+                    - generic [ref=e768]: 12/21
+                    - generic [ref=e770]: 12/23
+                    - generic [ref=e772]: 12/25
+                    - generic [ref=e774]: 12/27
+                    - generic [ref=e776]: 12/29
+                    - generic [ref=e778]: 12/31
+                    - generic [ref=e780]: 1/1
+                    - generic [ref=e782]: 1/2
+                    - generic [ref=e784]: 1/3
+                    - generic [ref=e786]: 1/4
+                    - generic [ref=e788]: 1/5
+                    - generic [ref=e790]: 1/6
+                    - generic [ref=e792]: 1/7
+                    - generic [ref=e794]: 1/8
+                    - generic [ref=e796]: 1/9
+                    - generic [ref=e798]: 1/10
+                    - generic [ref=e800]: 1/11
+                    - generic [ref=e802]: 1/12
+                    - generic [ref=e804]: 1/13
+                  - generic [ref=e805]:
+                    - generic [ref=e807]: "0"
+                    - generic [ref=e809]: "25"
+                    - generic [ref=e811]: "50"
+                    - generic [ref=e813]: "75"
+                    - generic [ref=e815]: "100"
+                  - generic [ref=e816]: 아이템 레벨
+                  - generic [ref=e817]:
+                    - generic [ref=e819]: "0"
+                    - generic [ref=e821]: "1500"
+                    - generic [ref=e823]: "3000"
+                    - generic [ref=e825]: "4500"
+                    - generic [ref=e827]: "6000"
+                  - generic [ref=e828]: NOA 전투력
+  - button "전체 데이터 삭제" [ref=e27] [cursor=pointer]:
+    - img [ref=e28]
+    - text: 전체 데이터 삭제
+  - alert [ref=e31]
+  - generic [ref=e829]: "1500"
+```

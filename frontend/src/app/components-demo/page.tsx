@@ -1,737 +1,217 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import { Button, Card, Badge, Input, Container, Grid, SearchInput, SearchBar } from '@/components/ui';
-import type { SearchSuggestion } from '@/components/ui';
-import { theme } from '@/lib/theme';
+import React, { useState } from 'react'
+import DSButton from '../components/design-system/DSButton'
+import DSCard from '../components/design-system/DSCard'
+import DSInput from '../components/design-system/DSInput'
+import DSSearchBar from '../components/design-system/DSSearchBar'
+import DSBadge from '../components/design-system/DSBadge'
+import DSTabs from '../components/design-system/DSTabs'
+import DSTable from '../components/design-system/DSTable'
 
-export default function ComponentsDemo() {
-  const [inputValue, setInputValue] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [showError, setShowError] = useState(false);
-
-  // Search states
-  const [searchValue, setSearchValue] = useState('');
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<string[]>([]);
-
-  const mockSuggestions: SearchSuggestion[] = [
-    { id: '1', text: 'Siel서버', type: 'trending', metadata: '인기 검색어' },
-    { id: '2', text: 'TestChar123', type: 'suggestion', metadata: '캐릭터' },
-    { id: '3', text: 'Israphel서버', type: 'trending', metadata: '인기 검색어' },
-    { id: '4', text: 'PlayerName', type: 'suggestion', metadata: '캐릭터' },
-  ];
-
-  const handleSearch = (value: string) => {
-    console.log('Searching for:', value);
-    setSearchLoading(true);
-    setTimeout(() => {
-      setSearchResults([value]);
-      setSearchLoading(false);
-    }, 1000);
-  };
+export default function ComponentsDemoPage() {
+  const [inputValue, setInputValue] = useState('')
 
   return (
-    <div className="page">
-      <Container maxWidth="xl">
-        <header className="header">
-          <h1 className="title">UI 컴포넌트 라이브러리</h1>
-          <p className="subtitle">
-            dak.gg 테마를 기반으로 한 재사용 가능한 컴포넌트 시스템
-          </p>
-        </header>
+    <div className="container" style={{ padding: '4rem 2rem' }}>
+      <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1rem', color: 'var(--brand-white)' }}>
+        <span style={{ color: 'var(--brand-red-main)' }}>Design System</span> Reference
+      </h1>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem' }}>
+        Centralized components based on the new brand identity.
+      </p>
 
-        {/* Color Palette */}
-        <section className="section">
-          <h2 className="section-title">Color Palette</h2>
-          <div className="color-grid">
-            <div className="color-section">
-              <h3 className="color-section-title">Brand Colors</h3>
-              <div className="color-items">
-                <div className="color-item">
-                  <div className="color-box" style={{ backgroundColor: theme.colors.brand.primary }} />
-                  <div className="color-info">
-                    <div className="color-name">Primary</div>
-                    <div className="color-value">{theme.colors.brand.primary}</div>
-                  </div>
-                </div>
-                <div className="color-item">
-                  <div className="color-box" style={{ backgroundColor: theme.colors.brand.secondary }} />
-                  <div className="color-info">
-                    <div className="color-name">Secondary</div>
-                    <div className="color-value">{theme.colors.brand.secondary}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
 
-            <div className="color-section">
-              <h3 className="color-section-title">Background Colors</h3>
-              <div className="color-items">
-                <div className="color-item">
-                  <div className="color-box" style={{ backgroundColor: theme.colors.background.primary }} />
-                  <div className="color-info">
-                    <div className="color-name">Primary</div>
-                    <div className="color-value">{theme.colors.background.primary}</div>
-                  </div>
-                </div>
-                <div className="color-item">
-                  <div className="color-box" style={{ backgroundColor: theme.colors.background.secondary }} />
-                  <div className="color-info">
-                    <div className="color-name">Secondary</div>
-                    <div className="color-value">{theme.colors.background.secondary}</div>
-                  </div>
-                </div>
-                <div className="color-item">
-                  <div className="color-box" style={{ backgroundColor: theme.colors.background.tertiary }} />
-                  <div className="color-info">
-                    <div className="color-name">Tertiary</div>
-                    <div className="color-value">{theme.colors.background.tertiary}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="color-section">
-              <h3 className="color-section-title">State Colors</h3>
-              <div className="color-items">
-                <div className="color-item">
-                  <div className="color-box" style={{ backgroundColor: theme.colors.state.success }} />
-                  <div className="color-info">
-                    <div className="color-name">Success</div>
-                    <div className="color-value">{theme.colors.state.success}</div>
-                  </div>
-                </div>
-                <div className="color-item">
-                  <div className="color-box" style={{ backgroundColor: theme.colors.state.error }} />
-                  <div className="color-info">
-                    <div className="color-name">Error</div>
-                    <div className="color-value">{theme.colors.state.error}</div>
-                  </div>
-                </div>
-                <div className="color-item">
-                  <div className="color-box" style={{ backgroundColor: theme.colors.state.warning }} />
-                  <div className="color-info">
-                    <div className="color-name">Warning</div>
-                    <div className="color-value">{theme.colors.state.warning}</div>
-                  </div>
-                </div>
-                <div className="color-item">
-                  <div className="color-box" style={{ backgroundColor: theme.colors.state.info }} />
-                  <div className="color-info">
-                    <div className="color-name">Info</div>
-                    <div className="color-value">{theme.colors.state.info}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* 1. Buttons */}
+        <section>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid #374151', paddingBottom: '0.5rem' }}>
+            1. Buttons
+          </h2>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <DSButton>Primary Action</DSButton>
+            <DSButton variant="secondary">Secondary Action</DSButton>
+            <DSButton variant="ghost">Ghost Button</DSButton>
+            <DSButton variant="danger">Danger Zone</DSButton>
+            <div style={{ width: '1px', height: '30px', background: '#374151', margin: '0 1rem' }}></div>
+            <DSButton size="sm">Small</DSButton>
+            <DSButton size="lg">Large Button</DSButton>
+            <DSButton disabled>Disabled</DSButton>
           </div>
         </section>
 
-        {/* Buttons */}
-        <section className="section">
-          <h2 className="section-title">Buttons</h2>
+        {/* 2. Inputs */}
+        <section>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid #374151', paddingBottom: '0.5rem' }}>
+            2. Inputs
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            <DSCard title="Input Variants">
+              <DSInput
+                label="Character Name"
+                placeholder="Enter name..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+              />
+              <DSInput
+                label="Search"
+                placeholder="Search everything..."
+                icon={<span>🔍</span>}
+              />
+              <DSInput
+                label="Error State"
+                placeholder="Invalid input"
+                error="This field is required"
+              />
+            </DSCard>
 
-          <div className="demo-group">
-            <h3 className="demo-group-title">Variants</h3>
-            <div className="button-grid">
-              <Button variant="primary">Primary Button</Button>
-              <Button variant="secondary">Secondary Button</Button>
-              <Button variant="ghost">Ghost Button</Button>
-              <Button variant="outline">Outline Button</Button>
-              <Button variant="danger">Danger Button</Button>
-            </div>
-          </div>
+            <DSCard title="Search Component" noPadding>
+              <div style={{ padding: '2rem' }}>
+                <h5 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>Standard Gradient Search</h5>
+                <DSSearchBar placeholder="Search for characters..." />
 
-          <div className="demo-group">
-            <h3 className="demo-group-title">Sizes</h3>
-            <div className="button-grid">
-              <Button size="sm">Small</Button>
-              <Button size="md">Medium</Button>
-              <Button size="lg">Large</Button>
-            </div>
-          </div>
+                <h5 style={{ marginTop: '2rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Small Wrapper</h5>
+                <div style={{ width: '300px' }}>
+                  <DSSearchBar placeholder="Compact search..." />
+                </div>
+              </div>
+            </DSCard>
 
-          <div className="demo-group">
-            <h3 className="demo-group-title">Filter Buttons (Interactive)</h3>
-            <div className="button-grid">
-              <Button
-                variant="filter"
-                active={activeFilter === 'all'}
-                onClick={() => setActiveFilter('all')}
-              >
-                전체
-              </Button>
-              <Button
-                variant="filter"
-                active={activeFilter === 'lol'}
-                onClick={() => setActiveFilter('lol')}
-              >
-                리그 오브 레전드
-              </Button>
-              <Button
-                variant="filter"
-                active={activeFilter === 'tft'}
-                onClick={() => setActiveFilter('tft')}
-              >
-                전략적 팀 전투
-              </Button>
-              <Button
-                variant="filter"
-                active={activeFilter === 'valorant'}
-                onClick={() => setActiveFilter('valorant')}
-              >
-                발로란트
-              </Button>
-            </div>
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">States</h3>
-            <div className="button-grid">
-              <Button>Normal</Button>
-              <Button disabled>Disabled</Button>
-            </div>
           </div>
         </section>
 
-        {/* Cards */}
-        <section className="section">
-          <h2 className="section-title">Cards</h2>
-          <Grid columns={3} gap="4">
-            <Card variant="default">
-              <h3 className="card-title">Default Card</h3>
-              <p className="card-text">
-                기본 카드 스타일입니다. 그림자 효과가 있습니다.
+        {/* 3. Cards & Structure */}
+        <section>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid #374151', paddingBottom: '0.5rem' }}>
+            3. Cards & Structure
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            <DSCard title="Standard Card" action={<DSButton size="sm" variant="ghost">More</DSButton>}>
+              <p style={{ color: 'var(--text-secondary)' }}>
+                This is a standard card component with a title, action button area, and content padding.
+                It uses the brand's dark background and subtle borders.
               </p>
-            </Card>
-            <Card variant="elevated">
-              <h3 className="card-title">Elevated Card</h3>
-              <p className="card-text">
-                더 강한 그림자 효과가 있는 카드입니다.
-              </p>
-            </Card>
-            <Card variant="flat">
-              <h3 className="card-title">Flat Card</h3>
-              <p className="card-text">
-                그림자가 없는 평면 카드입니다.
-              </p>
-            </Card>
-          </Grid>
+            </DSCard>
 
-          <div className="demo-group">
-            <h3 className="demo-group-title">Hoverable Cards</h3>
-            <Grid columns={2} gap="4">
-              <Card variant="default" hoverable>
-                <h3 className="card-title">Hover Me!</h3>
-                <p className="card-text">
-                  마우스를 올려보세요. 호버 효과가 있습니다.
-                </p>
-              </Card>
-              <Card variant="elevated" onClick={() => alert('Card clicked!')}>
-                <h3 className="card-title">Clickable Card</h3>
-                <p className="card-text">
-                  클릭할 수 있는 카드입니다. 호버 효과와 커서가 변경됩니다.
-                </p>
-              </Card>
-            </Grid>
-          </div>
-        </section>
+            <DSCard title="Hover Effect" hoverEffect={true}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', textAlign: 'center' }}>
+                <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'var(--brand-red-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🚀</div>
+                <h4 style={{ margin: 0 }}>Interactive Card</h4>
+                <p style={{ fontSize: '0.9rem', color: '#9CA3AF' }}>Hover over this card to see the interaction effect designed for clickable items.</p>
+              </div>
+            </DSCard>
 
-        {/* Badges */}
-        <section className="section">
-          <h2 className="section-title">Badges</h2>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Variants</h3>
-            <div className="badge-grid">
-              <Badge variant="default">Default</Badge>
-              <Badge variant="success">Success</Badge>
-              <Badge variant="error">Error</Badge>
-              <Badge variant="warning">Warning</Badge>
-              <Badge variant="info">Info</Badge>
-            </div>
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Sizes</h3>
-            <div className="badge-grid">
-              <Badge size="sm">Small</Badge>
-              <Badge size="md">Medium</Badge>
-              <Badge size="lg">Large</Badge>
-            </div>
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Usage Example</h3>
-            <Card variant="default">
-              <div className="badge-card">
-                <h3 className="card-title">
-                  사용자 프로필 <Badge variant="success">인증됨</Badge>
-                </h3>
-                <p className="card-text">
-                  최근 업데이트: <Badge variant="info">2시간 전</Badge>
-                </p>
-                <p className="card-text">
-                  상태: <Badge variant="warning">대기 중</Badge>
+            <DSCard noPadding>
+              <div style={{ padding: '1.5rem', background: 'linear-gradient(45deg, var(--brand-red-main), var(--brand-red-dark))' }}>
+                <h3 style={{ color: 'white', margin: 0 }}>No Padding Mode</h3>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  Useful for cards that need full-bleed images or custom headers.
                 </p>
               </div>
-            </Card>
+            </DSCard>
           </div>
         </section>
 
-        {/* Inputs */}
-        <section className="section">
-          <h2 className="section-title">Inputs</h2>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Basic Input</h3>
-            <Input
-              placeholder="텍스트를 입력하세요"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-            />
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">With Label</h3>
-            <Input
-              label="사용자 이름"
-              placeholder="닉네임을 입력하세요"
-            />
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">With Helper Text</h3>
-            <Input
-              label="이메일"
-              placeholder="example@email.com"
-              helperText="이메일 주소를 정확히 입력해주세요"
-            />
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">With Error (Interactive)</h3>
-            <Input
-              label="비밀번호"
-              type="password"
-              placeholder="비밀번호를 입력하세요"
-              error={showError ? '비밀번호는 8자 이상이어야 합니다' : undefined}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowError(!showError)}
-            >
-              {showError ? 'Hide Error' : 'Show Error'}
-            </Button>
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Full Width</h3>
-            <Input
-              label="서버 선택"
-              placeholder="서버 이름을 입력하세요"
-              fullWidth
-            />
+        {/* 4. Badges */}
+        <section>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid #374151', paddingBottom: '0.5rem' }}>
+            4. Badges & Tags
+          </h2>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <DSBadge variant="primary">New Badge</DSBadge>
+            <DSBadge variant="outline">Outline</DSBadge>
+            <DSBadge variant="dark">Dark Tag</DSBadge>
+            <DSBadge variant="success">Active</DSBadge>
+            <DSBadge variant="warning">Pending</DSBadge>
           </div>
         </section>
 
-        {/* Search Components */}
-        <section className="section">
-          <h2 className="section-title">Search Components</h2>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Basic Search Input</h3>
-            <SearchInput
-              placeholder="캐릭터를 검색하세요..."
-              onSearch={handleSearch}
+        {/* 6. Navigation (Tabs) */}
+        <section>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid #374151', paddingBottom: '0.5rem' }}>
+            6. Navigation
+          </h2>
+          <DSCard title="Tabs Component">
+            <DSTabs
+              tabs={[
+                { id: 'overview', label: 'Overview', content: <div style={{ padding: '1rem' }}>Overview Content Area</div> },
+                { id: 'stats', label: 'Statistics', content: <div style={{ padding: '1rem' }}>Stats Charts & Graphs</div> },
+                { id: 'history', label: 'Match History', content: <div style={{ padding: '1rem' }}>Recent matches list...</div> },
+                { id: 'settings', label: 'Settings', disabled: true }
+              ]}
             />
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Search with Loading State</h3>
-            <SearchInput
-              placeholder="검색..."
-              loading={searchLoading}
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              onSearch={handleSearch}
-            />
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Search Sizes</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[4] }}>
-              <SearchInput size="sm" placeholder="Small search..." />
-              <SearchInput size="md" placeholder="Medium search..." />
-              <SearchInput size="lg" placeholder="Large search..." />
+            <div style={{ marginTop: '2rem' }}>
+              <DSTabs
+                variant="pill"
+                tabs={[
+                  { id: 'daily', label: 'Daily', content: <div>Daily Stats</div> },
+                  { id: 'weekly', label: 'Weekly', content: <div>Weekly Stats</div> },
+                  { id: 'monthly', label: 'Monthly', content: <div>Monthly Stats</div> }
+                ]}
+              />
             </div>
-          </div>
+          </DSCard>
+        </section>
 
-          <div className="demo-group">
-            <h3 className="demo-group-title">Full Width Search</h3>
-            <SearchInput
-              placeholder="전체 너비 검색..."
-              fullWidth
-              onSearch={handleSearch}
-            />
-          </div>
+        {/* 7. Data Display (Table) */}
+        <section>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid #374151', paddingBottom: '0.5rem' }}>
+            7. Data Table
+          </h2>
+          <DSTable
+            columns={[
+              { key: 'rank', title: '#', width: '50px', align: 'center' },
+              { key: 'name', title: 'Player' },
+              { key: 'class', title: 'Class', render: (row) => <DSBadge size="sm" variant="dark">{row.class}</DSBadge> },
+              { key: 'points', title: 'Points', align: 'right', render: (row) => <span style={{ color: 'var(--brand-red-main)', fontWeight: 'bold' }}>{row.points.toLocaleString()}</span> }
+            ]}
+            data={[
+              { id: 1, rank: 1, name: 'SlayerGod', class: 'Gladiator', points: 15420 },
+              { id: 2, rank: 2, name: 'HealBot', class: 'Cleric', points: 14200 },
+              { id: 3, rank: 3, name: 'ShadowStep', class: 'Assassin', points: 13850 },
+            ]}
+          />
+        </section>
 
-          <div className="demo-group">
-            <h3 className="demo-group-title">Advanced Search Bar with Autocomplete</h3>
-            <SearchBar
-              placeholder="서버/캐릭터 이름을 검색하세요..."
-              suggestions={mockSuggestions}
-              onSearch={handleSearch}
-              showRecentSearches
-              fullWidth
-            />
-          </div>
+        {/* 8. Interactive (Modal) */}
+        <section>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid #374151', paddingBottom: '0.5rem' }}>
+            8. Interactive
+          </h2>
+          <DSButton onClick={() => alert('Modal demo would open here')}>Open Demo Modal</DSButton>
+        </section>
 
-          <div className="demo-group">
-            <h3 className="demo-group-title">Search Bar with Loading</h3>
-            <SearchBar
-              placeholder="검색 중..."
-              suggestions={mockSuggestions}
-              onSearch={handleSearch}
-              loading={searchLoading}
-              fullWidth
-            />
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Search Results</h3>
-            {searchResults.length > 0 && (
-              <Card variant="elevated">
-                <h4 className="card-title">검색 결과</h4>
-                {searchResults.map((result, idx) => (
-                  <p key={idx} className="card-text">"{result}" 검색 완료</p>
-                ))}
-              </Card>
-            )}
+        {/* 5. Colors Reference */}
+        <section>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid #374151', paddingBottom: '0.5rem' }}>
+            5. Color Palette
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
+            {[
+              { name: 'Red Main', var: 'var(--brand-red-main)' },
+              { name: 'Red Dark', var: 'var(--brand-red-dark)' },
+              { name: 'Red Muted', var: 'var(--brand-red-muted)' },
+              { name: 'Black', var: 'var(--brand-black)' },
+              { name: 'White', var: 'var(--brand-white)' },
+            ].map((c) => (
+              <div key={c.name} style={{ textAlign: 'center' }}>
+                <div style={{
+                  height: '80px',
+                  background: c.var,
+                  borderRadius: '8px',
+                  border: '1px solid #374151',
+                  marginBottom: '0.5rem'
+                }}></div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{c.name}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{c.var}</div>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* Grid & Layout */}
-        <section className="section">
-          <h2 className="section-title">Grid & Layout</h2>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">2 Columns</h3>
-            <Grid columns={2} gap="4">
-              <Card variant="flat">
-                <div className="grid-demo-card">1</div>
-              </Card>
-              <Card variant="flat">
-                <div className="grid-demo-card">2</div>
-              </Card>
-            </Grid>
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">3 Columns</h3>
-            <Grid columns={3} gap="4">
-              <Card variant="flat">
-                <div className="grid-demo-card">1</div>
-              </Card>
-              <Card variant="flat">
-                <div className="grid-demo-card">2</div>
-              </Card>
-              <Card variant="flat">
-                <div className="grid-demo-card">3</div>
-              </Card>
-            </Grid>
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">4 Columns</h3>
-            <Grid columns={4} gap="4">
-              <Card variant="flat">
-                <div className="grid-demo-card">1</div>
-              </Card>
-              <Card variant="flat">
-                <div className="grid-demo-card">2</div>
-              </Card>
-              <Card variant="flat">
-                <div className="grid-demo-card">3</div>
-              </Card>
-              <Card variant="flat">
-                <div className="grid-demo-card">4</div>
-              </Card>
-            </Grid>
-          </div>
-
-          <div className="demo-group">
-            <h3 className="demo-group-title">Auto Fill</h3>
-            <Grid columns="auto" gap="4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Card key={i} variant="flat">
-                  <div className="grid-demo-card">{i + 1}</div>
-                </Card>
-              ))}
-            </Grid>
-          </div>
-        </section>
-
-        {/* Real-world Example */}
-        <section className="section">
-          <h2 className="section-title">실전 예제</h2>
-          <Card variant="elevated" padding="6">
-            <div className="example-header">
-              <h3 className="example-title">
-                게임 카드 목록 <Badge variant="success">317,660개</Badge>
-              </h3>
-              <Button variant="primary">카드 만들기</Button>
-            </div>
-
-            <div className="filter-section">
-              <Button variant="filter" active={true}>
-                전체
-              </Button>
-              <Button variant="filter">리그 오브 레전드</Button>
-              <Button variant="filter">전략적 팀 전투</Button>
-              <Button variant="filter">발로란트</Button>
-            </div>
-
-            <Grid columns={3} gap="4">
-              <Card variant="default" hoverable>
-                <div className="game-card">
-                  <div className="game-card-header">
-                    <Badge variant="info">LOL</Badge>
-                    <span className="game-card-time">2시간 전</span>
-                  </div>
-                  <h4 className="game-card-title">플레이어 1</h4>
-                  <p className="game-card-stats">랭크: 다이아몬드 III</p>
-                </div>
-              </Card>
-              <Card variant="default" hoverable>
-                <div className="game-card">
-                  <div className="game-card-header">
-                    <Badge variant="warning">TFT</Badge>
-                    <span className="game-card-time">3시간 전</span>
-                  </div>
-                  <h4 className="game-card-title">플레이어 2</h4>
-                  <p className="game-card-stats">랭크: 마스터</p>
-                </div>
-              </Card>
-              <Card variant="default" hoverable>
-                <div className="game-card">
-                  <div className="game-card-header">
-                    <Badge variant="error">VAL</Badge>
-                    <span className="game-card-time">5시간 전</span>
-                  </div>
-                  <h4 className="game-card-title">플레이어 3</h4>
-                  <p className="game-card-stats">랭크: 불멸</p>
-                </div>
-              </Card>
-            </Grid>
-          </Card>
-        </section>
-      </Container>
-
-      <style jsx>{`
-        .page {
-          min-height: 100vh;
-          background-color: ${theme.colors.background.primary};
-          color: ${theme.colors.text.primary};
-          padding: ${theme.spacing[10]} 0;
-          font-family: ${theme.typography.fontFamily.primary};
-        }
-
-        .header {
-          text-align: center;
-          margin-bottom: ${theme.spacing[16]};
-        }
-
-        .title {
-          font-size: ${theme.typography.fontSize['4xl']};
-          font-weight: ${theme.typography.fontWeight.bold};
-          margin-bottom: ${theme.spacing[4]};
-          color: ${theme.colors.text.primary};
-        }
-
-        .subtitle {
-          font-size: ${theme.typography.fontSize.lg};
-          color: ${theme.colors.text.secondary};
-        }
-
-        .section {
-          margin-bottom: ${theme.spacing[16]};
-        }
-
-        .section-title {
-          font-size: ${theme.typography.fontSize['2xl']};
-          font-weight: ${theme.typography.fontWeight.bold};
-          margin-bottom: ${theme.spacing[6]};
-          color: ${theme.colors.text.primary};
-          padding-bottom: ${theme.spacing[3]};
-          border-bottom: 2px solid ${theme.colors.brand.primary};
-        }
-
-        .demo-group {
-          margin-bottom: ${theme.spacing[8]};
-        }
-
-        .demo-group-title {
-          font-size: ${theme.typography.fontSize.lg};
-          font-weight: ${theme.typography.fontWeight.semibold};
-          margin-bottom: ${theme.spacing[4]};
-          color: ${theme.colors.text.secondary};
-        }
-
-        .button-grid,
-        .badge-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: ${theme.spacing[3]};
-          align-items: center;
-        }
-
-        .card-title {
-          font-size: ${theme.typography.fontSize.lg};
-          font-weight: ${theme.typography.fontWeight.semibold};
-          margin-bottom: ${theme.spacing[2]};
-          color: ${theme.colors.text.primary};
-        }
-
-        .card-text {
-          color: ${theme.colors.text.secondary};
-          line-height: ${theme.typography.lineHeight.relaxed};
-        }
-
-        .badge-card {
-          display: flex;
-          flex-direction: column;
-          gap: ${theme.spacing[2]};
-        }
-
-        .grid-demo-card {
-          text-align: center;
-          padding: ${theme.spacing[8]} 0;
-          font-size: ${theme.typography.fontSize['2xl']};
-          font-weight: ${theme.typography.fontWeight.bold};
-          color: ${theme.colors.text.primary};
-        }
-
-        /* Color Palette */
-        .color-grid {
-          display: flex;
-          flex-direction: column;
-          gap: ${theme.spacing[8]};
-        }
-
-        .color-section {
-          background-color: ${theme.colors.background.secondary};
-          padding: ${theme.spacing[6]};
-          border-radius: ${theme.borderRadius.lg};
-        }
-
-        .color-section-title {
-          font-size: ${theme.typography.fontSize.lg};
-          font-weight: ${theme.typography.fontWeight.semibold};
-          margin-bottom: ${theme.spacing[4]};
-          color: ${theme.colors.text.primary};
-        }
-
-        .color-items {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: ${theme.spacing[4]};
-        }
-
-        .color-item {
-          display: flex;
-          align-items: center;
-          gap: ${theme.spacing[3]};
-          padding: ${theme.spacing[3]};
-          background-color: ${theme.colors.background.tertiary};
-          border-radius: ${theme.borderRadius.md};
-        }
-
-        .color-box {
-          width: 48px;
-          height: 48px;
-          border-radius: ${theme.borderRadius.md};
-          border: 1px solid ${theme.colors.border.light};
-        }
-
-        .color-info {
-          flex: 1;
-        }
-
-        .color-name {
-          font-size: ${theme.typography.fontSize.sm};
-          font-weight: ${theme.typography.fontWeight.medium};
-          color: ${theme.colors.text.primary};
-          margin-bottom: ${theme.spacing[1]};
-        }
-
-        .color-value {
-          font-size: ${theme.typography.fontSize.xs};
-          font-family: ${theme.typography.fontFamily.mono};
-          color: ${theme.colors.text.muted};
-        }
-
-        /* Real-world Example */
-        .example-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: ${theme.spacing[6]};
-        }
-
-        .example-title {
-          font-size: ${theme.typography.fontSize['2xl']};
-          font-weight: ${theme.typography.fontWeight.bold};
-          display: flex;
-          align-items: center;
-          gap: ${theme.spacing[3]};
-        }
-
-        .filter-section {
-          display: flex;
-          gap: ${theme.spacing[2]};
-          margin-bottom: ${theme.spacing[6]};
-          flex-wrap: wrap;
-        }
-
-        .game-card {
-          padding: ${theme.spacing[2]};
-        }
-
-        .game-card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: ${theme.spacing[3]};
-        }
-
-        .game-card-time {
-          font-size: ${theme.typography.fontSize.xs};
-          color: ${theme.colors.text.muted};
-        }
-
-        .game-card-title {
-          font-size: ${theme.typography.fontSize.lg};
-          font-weight: ${theme.typography.fontWeight.semibold};
-          margin-bottom: ${theme.spacing[2]};
-          color: ${theme.colors.text.primary};
-        }
-
-        .game-card-stats {
-          font-size: ${theme.typography.fontSize.sm};
-          color: ${theme.colors.text.secondary};
-        }
-
-        @media (max-width: 768px) {
-          .example-header {
-            flex-direction: column;
-            gap: ${theme.spacing[4]};
-            align-items: flex-start;
-          }
-        }
-      `}</style>
+      </div>
     </div>
-  );
+  )
 }

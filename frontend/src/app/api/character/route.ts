@@ -1,15 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { CLASSES } from '../../constants/game-data'
+import { calculateCombatPower } from '../../utils/combatPower'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit'
+import type {
+    ExternalDetailResponse,
+    TransformedItemDetail,
+    StatListItem,
+    EquipmentItem,
+    EquipmentForCalc,
+    CharacterStats
+} from '@/types/api'
 
 /**
  * Transform detail data from AION2 API to standardized format
  * Actual API response structure: { mainStats, subStats, magicStoneStat, godStoneStat, sources }
  */
-function transformDetailData(detailData: any) {
+function transformDetailData(detailData: ExternalDetailResponse | null): TransformedItemDetail | null {
     if (!detailData) return null
 
-    const result: any = {
+    const result: TransformedItemDetail = {
         options: [],
         randomOptions: [],
         manastones: [],
@@ -22,7 +32,7 @@ function transformDetailData(detailData: any) {
 
     // 1. Main Stats (기본 옵션) - 공격력, 명중, 치명타 등
     if (detailData.mainStats && Array.isArray(detailData.mainStats)) {
-        result.options = detailData.mainStats.map((stat: any) => ({
+        result.options = detailData.mainStats.map((stat) => ({
             name: stat.name,
             value: stat.value + (stat.extra && stat.extra !== '0' ? ` (+${stat.extra})` : '')
         }))
@@ -30,7 +40,7 @@ function transformDetailData(detailData: any) {
 
     // 2. Sub Stats (랜덤 옵션) - 전투 속도, 무기 피해 증폭 등
     if (detailData.subStats && Array.isArray(detailData.subStats)) {
-        result.randomOptions = detailData.subStats.map((stat: any) => ({
+        result.randomOptions = detailData.subStats.map((stat) => ({
             name: stat.name,
             value: stat.value
         }))
@@ -38,17 +48,16 @@ function transformDetailData(detailData: any) {
 
     // 3. Magic Stones (마석)
     if (detailData.magicStoneStat && Array.isArray(detailData.magicStoneStat)) {
-        result.manastones = detailData.magicStoneStat.map((stone: any) => ({
-            type: stone.name,
+        result.manastones = detailData.magicStoneStat.map((stone) => ({
+            type: stone.type,
             value: stone.value,
-            grade: stone.grade,
-            icon: stone.icon
+            grade: stone.grade
         }))
     }
 
     // 4. God Stones (신석)
     if (detailData.godStoneStat && Array.isArray(detailData.godStoneStat)) {
-        result.godstones = detailData.godStoneStat.map((stone: any) => ({
+        result.godstones = detailData.godStoneStat.map((stone) => ({
             name: stone.name,
             desc: stone.desc,
             grade: stone.grade,
@@ -58,27 +67,22 @@ function transformDetailData(detailData: any) {
 
     // 5. Arcanas (아르카나) - subSkills에서 가져옴
     if (detailData.subSkills && Array.isArray(detailData.subSkills)) {
-        console.log('[API] 📦 Processing subSkills (arcana skills):', detailData.subSkills)
-        result.arcanas = detailData.subSkills.map((skill: any) => ({
+        result.arcanas = detailData.subSkills.map((skill) => ({
             id: skill.id,
             name: skill.name,
             level: skill.level,
-            icon: skill.icon,
-            _raw: skill
+            icon: skill.icon
         }))
     }
 
     // Also check arcanaStat (for equipment with arcana stones)
     if (detailData.arcanaStat && Array.isArray(detailData.arcanaStat)) {
-        console.log('[API] 📦 Processing arcanaStat:', detailData.arcanaStat)
-        if (!result.arcanas) result.arcanas = []
-        result.arcanas.push(...detailData.arcanaStat.map((arcana: any) => ({
+        result.arcanas.push(...detailData.arcanaStat.map((arcana) => ({
             name: arcana.name,
             desc: arcana.desc,
             grade: arcana.grade,
             icon: arcana.icon,
-            value: arcana.value,
-            ...arcana
+            value: arcana.value
         })))
     }
 
@@ -102,7 +106,7 @@ function transformDetailData(detailData: any) {
     return result
 }
 
-function calculateNoaScore(stats: any, className: string) {
+function calculateNoaScore(stats: CharacterStats | null, className: string): number {
     if (!stats) return 0;
 
     // Basic mapping - logic can be refined based on class
@@ -134,6 +138,12 @@ function calculateNoaScore(stats: any, className: string) {
 }
 
 export async function GET(request: NextRequest) {
+    // Rate Limiting (외부 API 호출이므로 엄격하게)
+    const rateLimit = checkRateLimit(request, RATE_LIMITS.external)
+    if (!rateLimit.success) {
+        return rateLimit.error!
+    }
+
     const searchParams = request.nextUrl.searchParams
     const characterId = searchParams.get('id')
     const serverId = searchParams.get('server')
@@ -170,34 +180,13 @@ export async function GET(request: NextRequest) {
         const equipData = await equipRes.json()
 
         // Extract Combat Power from statList (공식 API는 stat.statList 배열 안에 전투력 정보를 담고 있음)
-        console.log('[DEBUG] statList:', JSON.stringify(infoData.stat?.statList || [], null, 2))
-        console.log('[DEBUG] statList names:', (infoData.stat?.statList || []).map((s: any) => s.name))
-
-        const cpStat = (infoData.stat?.statList || []).find((s: any) => s.name === '전투력')
+        const statList: StatListItem[] = infoData.stat?.statList || []
+        const cpStat = statList.find((s) => s.name === '전투력')
         const combatPower = cpStat?.value || 0
-        console.log(`[API] Found CP stat:`, cpStat)
         console.log(`[API] Combat Power for ${infoData.profile.characterName}: ${combatPower}`)
 
-
-
-        // Debug Daevanion -> Write to file for inspection
-        try {
-            const fs = require('fs');
-            const path = require('path');
-            const debugPath = path.join(process.cwd(), 'debug_daevanion.json');
-            fs.writeFileSync(debugPath, JSON.stringify({
-                keys: Object.keys(infoData),
-                daevanion: infoData.daevanion,
-                full_info_sample: infoData
-            }, null, 2));
-            console.log('[API] Debug file written to', debugPath);
-        } catch (err) {
-            console.error('[API] Failed to write debug file', err);
-        }
-
-
         // 2. Fetch Detailed Info for EACH item in parallel
-        let enrichedEquipmentList: any[] = []
+        let enrichedEquipmentList: EquipmentItem[] = []
 
         if (equipData.equipment && equipData.equipment.equipmentList) {
             // Check if equipment data already contains detailed info
@@ -207,10 +196,11 @@ export async function GET(request: NextRequest) {
             }
 
             // Fetch detail for each item using the correct /item endpoint
-            console.log(`[API] Fetching details for ${equipData.equipment.equipmentList.length} items using /item endpoint...`)
+            const equipmentList = equipData.equipment.equipmentList as EquipmentItem[]
+            console.log(`[API] Fetching details for ${equipmentList.length} items using /item endpoint...`)
 
             enrichedEquipmentList = await Promise.all(
-                equipData.equipment.equipmentList.map(async (item: any) => {
+                equipmentList.map(async (item) => {
                     try {
                         // Use the correct endpoint: /api/character/equipment/item
                         const itemId = item.id || item.itemId
@@ -219,8 +209,8 @@ export async function GET(request: NextRequest) {
                             return { ...item, detail: null }
                         }
 
-                        // Correct endpoint and parameters
-                        const detailUrl = `https://aion2.plaync.com/api/character/equipment/item?id=${encodeURIComponent(itemId)}&enchantLevel=${item.enchantLevel || 0}&characterId=${encodeURIComponent(characterId)}&serverId=${serverId}&slotPos=${item.slotPos}&lang=ko`
+                        // Correct endpoint and parameters (exceedLevel 추가!)
+                        const detailUrl = `https://aion2.plaync.com/api/character/equipment/item?id=${encodeURIComponent(itemId)}&enchantLevel=${item.enchantLevel || 0}&exceedLevel=${item.exceedLevel || 0}&characterId=${encodeURIComponent(characterId)}&serverId=${serverId}&slotPos=${item.slotPos}&lang=ko`
 
                         const detailRes = await fetch(detailUrl, { headers })
 
@@ -229,17 +219,7 @@ export async function GET(request: NextRequest) {
                             return { ...item, detail: null }
                         }
 
-                        const detailData = await detailRes.json()
-
-                        // Log first item for debugging
-                        if (item.slotPos === 1) {
-                            console.log('[API] ✅ Sample Detail Response:', JSON.stringify(detailData, null, 2))
-                        }
-
-                        // Log arcana items (slotPos 41-45)
-                        if (item.slotPos >= 41 && item.slotPos <= 45) {
-                            console.log(`[API] 🔮 Arcana Detail (slotPos ${item.slotPos}):`, JSON.stringify(detailData, null, 2))
-                        }
+                        const detailData: ExternalDetailResponse = await detailRes.json()
 
                         // Transform detail to standardized format
                         const transformedDetail = transformDetailData(detailData)
@@ -253,8 +233,16 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        // Calculate NOA Score
-        const noaScore = calculateNoaScore(infoData.stat, infoData.profile.className);
+        // Calculate NOA Score (HITON 전투력) - 캐릭터 상세 페이지와 동일한 방식
+        // 장비 데이터를 calculateCombatPower 형식으로 변환
+        const mappedEquipmentForCalc: EquipmentForCalc[] = enrichedEquipmentList.map((item) => ({
+            itemLevel: item.itemLevel || 0,
+            enhancement: (item.enchantLevel ?? 0) > 0 ? `+${item.enchantLevel}` : '',
+            breakthrough: item.exceedLevel || 0,
+            soulEngraving: item.soulEngraving,
+            manastones: item.manastoneList || []
+        }))
+        const noaScore = calculateCombatPower(infoData.stat, mappedEquipmentForCalc);
 
         // 3. Construct Final Response
         const finalData = {
@@ -284,7 +272,6 @@ export async function GET(request: NextRequest) {
                 server_id: parseInt(infoData.profile.serverId || '0'),
                 name: infoData.profile.characterName,
                 level: infoData.profile.characterLevel,
-                item_level: infoData.profile.jobLevel || 0,
                 class_name: (() => {
                     const rawClass = infoData.profile.className;
                     // Check if it's already Korean (simple check)
@@ -305,6 +292,14 @@ export async function GET(request: NextRequest) {
                 race_name: infoData.profile.raceName,
                 combat_power: combatPower, // Extract from statList
                 noa_score: noaScore,
+                item_level: (() => {
+                    // stats.statList에서 아이템레벨 찾기
+                    const itemStatList: StatListItem[] = infoData.stat?.statList || []
+                    const itemLevelStat = itemStatList.find((s) =>
+                        s.name === '아이템레벨' || s.type === 'ItemLevel'
+                    )
+                    return itemLevelStat?.value || 0
+                })(),
                 ranking_ap: 0, // Placeholder, need to map from infoData if available
                 ranking_gp: 0, // Placeholder
                 profile_image: infoData.profile.profileImage,
@@ -336,8 +331,9 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(finalData)
 
-    } catch (err: any) {
-        console.error('[API Error]', err)
-        return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
+    } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err))
+        console.error('[API Error]', error)
+        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
     }
 }

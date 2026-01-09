@@ -5,15 +5,25 @@ import EquipmentDetailView from './EquipmentDetailView'
 import DaevanionBoard from './DevanionBoard'
 import LegionView from './LegionView'
 
+interface DaevanionBoardItem {
+    id: number
+    name: string
+    totalNodeCount: number
+    openNodeCount: number
+    icon?: string
+    open?: number
+}
+
 interface DetailedViewSectionProps {
     daevanion?: any
     characterId?: string
     serverId?: string
     race?: string
     characterClass?: string
+    boardList?: DaevanionBoardItem[]
 }
 
-export default function DetailedViewSection({ daevanion, characterId, serverId, race, characterClass }: DetailedViewSectionProps) {
+export default function DetailedViewSection({ daevanion, characterId, serverId, race, characterClass, boardList }: DetailedViewSectionProps) {
     const [activeTab, setActiveTab] = useState<'growth' | 'equipment' | 'daevanion' | 'legion'>('growth')
 
     return (
@@ -51,7 +61,7 @@ export default function DetailedViewSection({ daevanion, characterId, serverId, 
             <div>
                 {activeTab === 'growth' && <GrowthChartView />}
                 {activeTab === 'equipment' && <EquipmentDetailView />}
-                {activeTab === 'daevanion' && <DaevanionBoard characterId={characterId} serverId={serverId} race={race} characterClass={characterClass} />}
+                {activeTab === 'daevanion' && <DaevanionBoard characterId={characterId} serverId={serverId} race={race} characterClass={characterClass} boardList={boardList} />}
                 {activeTab === 'legion' && <LegionView />}
             </div>
         </div>

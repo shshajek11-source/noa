@@ -1,10 +1,30 @@
 'use client'
 
+import { useEffect } from 'react'
+
 interface EquipmentTooltipProps {
     item: any
 }
 
 export default function EquipmentTooltip({ item }: EquipmentTooltipProps) {
+    // 디버그 패널에 정보 전송
+    useEffect(() => {
+        if (item && typeof window !== 'undefined' && (window as any).setDebugInfo) {
+            const detail = item.detail || item.raw?.detail
+            const rDetail = detail?._raw || detail
+
+                ; (window as any).setDebugInfo({
+                    '아이템': item.name,
+                    'slot': item.slot,
+                    'slotPos': item.raw?.slotPos,
+                    'breakthrough': item.breakthrough,
+                    'enhancement': item.enhancement,
+                    'subStats': rDetail?.subStats || '없음',
+                    'mainStats': rDetail?.mainStats?.map((s: any) => `${s.name}: ${s.value}`) || '없음',
+                })
+        }
+    }, [item])
+
     if (!item) return null
 
     // Reusing tier color logic (could be shared utility)
@@ -15,6 +35,45 @@ export default function EquipmentTooltip({ item }: EquipmentTooltipProps) {
     }
 
     const tierColor = getTierColor(item.tier)
+
+    // 돌파 보너스 계산 함수
+    const calculateBreakthroughBonus = () => {
+        const breakthroughLevel = item.breakthrough || item.raw?.exceedLevel || 0
+        if (!breakthroughLevel || breakthroughLevel <= 0) return null
+
+        const slot = item.slot || ''
+        const category = item.category || item.raw?.categoryName || ''
+        const slotPos = item.raw?.slotPos || 0
+
+        // 슬롯 이름 체크 (한글이므로 toLowerCase 제거)
+        const isWeapon = slot.includes('주무기') || slot.includes('무기') || slotPos === 1
+        const isGuard = slot.includes('보조') || category.includes('가더') || slotPos === 2
+        const isArmor = slot.includes('투구') || slot.includes('견갑') || slot.includes('흉갑') ||
+            slot.includes('장갑') || slot.includes('각반') || slot.includes('장화') || slot.includes('망토') ||
+            [3, 4, 5, 6, 7, 8, 9].includes(slotPos)
+        const isAccessory = slot.includes('귀걸이') || slot.includes('목걸이') ||
+            slot.includes('반지') || slot.includes('벨트') || slot.includes('아뮬렛') || slot.includes('팔찌') ||
+            [10, 11, 12, 13, 14, 15, 16, 17].includes(slotPos)
+
+        const bonuses: { name: string, value: string }[] = []
+
+        if (isWeapon || isGuard) {
+            bonuses.push({ name: '공격력', value: `+${30 * breakthroughLevel}` })
+            bonuses.push({ name: '공격력 증가', value: `+${1 * breakthroughLevel}%` })
+        } else if (isArmor) {
+            bonuses.push({ name: '방어력', value: `+${40 * breakthroughLevel}` })
+            bonuses.push({ name: '생명력', value: `+${40 * breakthroughLevel}` })
+            bonuses.push({ name: '방어력 증가', value: `+${1 * breakthroughLevel}%` })
+        } else if (isAccessory) {
+            bonuses.push({ name: '공격력', value: `+${20 * breakthroughLevel}` })
+            bonuses.push({ name: '방어력', value: `+${20 * breakthroughLevel}` })
+            bonuses.push({ name: '공격력 증가', value: `+${1 * breakthroughLevel}%` })
+        }
+
+        return bonuses.length > 0 ? { level: breakthroughLevel, bonuses } : null
+    }
+
+    const breakthroughBonus = calculateBreakthroughBonus()
 
     return (
         <div style={{
@@ -50,6 +109,11 @@ export default function EquipmentTooltip({ item }: EquipmentTooltipProps) {
                 <div style={{ color: tierColor, fontSize: '0.95rem', fontWeight: 'bold', lineHeight: '1.4' }}>
                     {item.enhancement && <span style={{ color: '#FACC15', marginRight: '6px' }}>{item.enhancement}</span>}
                     {item.name}
+                    {breakthroughBonus && (
+                        <span style={{ color: '#3B82F6', marginLeft: '6px', fontSize: '0.85rem' }}>
+                            {'◆'.repeat(breakthroughBonus.level)}
+                        </span>
+                    )}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: '4px' }}>
                     {item.category || item.slot}
@@ -107,11 +171,28 @@ export default function EquipmentTooltip({ item }: EquipmentTooltipProps) {
                     )
                 )}
 
-                {/* 2. Random Options (랜덤 옵션) - Usually highlighted */}
+                {/* 1.5 돌파 보너스 (파란색) */}
+                {breakthroughBonus && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.8rem', marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed #374151' }}>
+                        <div style={{ color: '#60A5FA', fontWeight: 'bold', fontSize: '0.75rem', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ color: '#3B82F6' }}>◆</span>
+                            돌파 {breakthroughBonus.level}단계
+                        </div>
+                        {breakthroughBonus.bonuses.map((bonus, idx) => (
+                            <div key={`bt-${idx}`} style={{ display: 'flex', justifyContent: 'space-between', color: '#60A5FA' }}>
+                                <span>{bonus.name}</span>
+                                <span>{bonus.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* 2. 영혼각인 옵션 (Green) */}
                 {item.detail?.randomOptions && item.detail.randomOptions.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.8rem', color: '#86EFAC' }}>
+                    <div style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed #374151' }}>
+                        <div style={{ color: '#86EFAC', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '2px' }}>영혼각인</div>
                         {item.detail.randomOptions.map((opt: any, idx: number) => (
-                            <div key={`rnd-${idx}`} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <div key={`rnd-${idx}`} style={{ display: 'flex', justifyContent: 'space-between', color: '#86EFAC', fontSize: '0.8rem' }}>
                                 <span>{opt.name}</span>
                                 <span>+{opt.value}</span>
                             </div>

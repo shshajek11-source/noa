@@ -1,5 +1,4 @@
 'use client'
-import RankingIcon from './RankingIcon'
 
 interface RankingItem {
     name: string
@@ -74,98 +73,95 @@ export default function RankingCard({ rankings, isEmbedded = false }: RankingCar
         }
     })
 
+    const abyssRanking = dataToShow.find(item => item.key === 'abyss')
+    const otherRankings = dataToShow.filter(item => item.key !== 'abyss')
+
     return (
         <div style={{
-            background: '#111318',
-            border: '1px solid #1F2433',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
             padding: '1.25rem',
-            width: '100%'
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
         }}>
             {/* 타이틀 */}
             <h3 style={{
                 fontSize: '0.95rem',
                 fontWeight: 'bold',
-                color: '#E5E7EB',
+                color: 'var(--text-main)',
                 margin: 0,
-                marginBottom: '1rem'
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
             }}>
-                랭킹 정보
+                <span style={{ color: '#FACC15' }}>🏆</span> 랭킹 정보
             </h3>
 
-            {/* 7열 그리드 */}
+            {/* 1. 상단: 어비스 포인트 (강조) */}
+            {abyssRanking && (
+                <div style={{
+                    background: 'linear-gradient(180deg, var(--bg-hover) 0%, var(--bg-secondary) 100%)',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: '8px',
+                    padding: '0.75rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                }}>
+                    {/* 이미지 상단 배치 - 더 크게 */}
+                    <img
+                        src="/메달/1.png"
+                        alt="어비스 포인트"
+                        style={{ width: 64, height: 64, objectFit: 'contain' }}
+                    />
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{abyssRanking.label}</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem' }}>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--brand-red-main)' }}>
+                            {abyssRanking.info?.value || '-'}
+                        </div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 'bold', color: 'white' }}>
+                            {abyssRanking.info?.rank && abyssRanking.info.rank > 0 ? `${abyssRanking.info.rank}위` : '-'}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 2. 하단: 나머지 랭킹 (3열 그리드) */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(7, 1fr)',
-                gap: '0.75rem'
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '0.4rem',
+                flex: 1
             }}>
-                {dataToShow.map(item => (
+                {otherRankings.map(item => (
                     <div key={item.key} style={{
-                        background: '#0B0D12',
-                        border: '1px solid #1F2433',
-                        borderRadius: '8px',
-                        padding: '0.75rem',
+                        background: 'var(--bg-hover)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px',
+                        padding: '0.35rem',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '0.5rem',
+                        justifyContent: 'center',
+                        gap: '0.1rem',
                         textAlign: 'center'
                     }}>
-                        {/* 메달 이미지 */}
-                        <div style={{
-                            width: '83px',
-                            height: '83px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <img
-                                src={item.key === 'abyss' ? '/메달/1.png' : '/메달/2.png'}
-                                alt={item.label}
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'contain'
-                                }}
-                            />
+                        <img
+                            src="/메달/2.png"
+                            alt={item.label}
+                            style={{ width: 28, height: 28, objectFit: 'contain' }}
+                        />
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{item.label}</div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-main)' }}>
+                            {item.info?.rank && item.info.rank > 0 ? `${item.info.rank}위` : <span style={{ color: 'var(--text-disabled)' }}>-</span>}
                         </div>
-
-                        {/* 라벨 */}
-                        <span style={{
-                            fontSize: '0.75rem',
-                            color: '#9CA3AF',
-                            lineHeight: '1.2',
-                            minHeight: '2.4em',
-                            display: 'flex',
-                            alignItems: 'center'
-                        }}>
-                            {item.label}
-                        </span>
-
-                        {/* 순위 */}
-                        {item.info ? (
-                            <>
-                                <div style={{
-                                    fontSize: '0.9rem',
-                                    fontWeight: 'bold',
-                                    color: '#E5E7EB'
-                                }}>
-                                    {item.info.rank > 0 ? `${item.info.rank}위` : '-'}
-                                </div>
-
-                                {/* 값/티어 */}
-                                {item.info.extra && (
-                                    <span style={{
-                                        fontSize: '0.7rem',
-                                        color: item.iconColor,
-                                        fontWeight: '500'
-                                    }}>
-                                        {item.info.extra}
-                                    </span>
-                                )}
-                            </>
-                        ) : (
-                            <span style={{ color: '#4B5563', fontSize: '0.8rem' }}>-</span>
+                        {item.info?.extra && (
+                            <div style={{ fontSize: '0.65rem', color: item.iconColor }}>{item.info.extra}</div>
                         )}
                     </div>
                 ))}

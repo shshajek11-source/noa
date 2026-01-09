@@ -1,6 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+    // Rate Limiting (외부 API 호출이므로 엄격하게)
+    const rateLimit = checkRateLimit(request, RATE_LIMITS.external)
+    if (!rateLimit.success) {
+        return rateLimit.error!
+    }
+
     try {
         const { name, serverId, race, page } = await request.json()
 
@@ -15,6 +22,8 @@ export async function POST(request: Request) {
         if (serverId) url.searchParams.append('serverId', serverId.toString())
         if (race) url.searchParams.append('race', race.toString())
 
+        console.log('[Live Search] Fetching:', url.toString())
+
         const response = await fetch(url.toString(), {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -24,10 +33,13 @@ export async function POST(request: Request) {
         })
 
         if (!response.ok) {
+            const errorText = await response.text()
+            console.error('[Live Search] AION API error:', response.status, errorText)
             throw new Error(`AION API returned ${response.status}`)
         }
 
         const data = await response.json()
+        console.log('[Live Search] Results:', data.list?.length || 0, 'items, total:', data.pagination?.total)
         return NextResponse.json(data)
 
     } catch (error) {

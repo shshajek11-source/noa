@@ -1,3 +1,11 @@
+import { SERVER_MAP } from '../app/constants/servers'
+import type {
+    ExternalCharacterResult,
+    LocalCharacterRecord,
+    CharacterStats,
+    EquipmentItem,
+    TransformedItemDetail
+} from '../types/api'
 
 const SUPABASE_PROJECT_URL = 'https://mnbngmdjiszyowfvnzhk.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uYm5nbWRqaXN6eW93ZnZuemhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTY0ODAsImV4cCI6MjA4MjU3MjQ4MH0.AIvvGxd_iQKpQDbmOBoe4yAmii1IpB92Pp7Scs8Lz7U'
@@ -13,22 +21,14 @@ export interface CharacterSearchResult {
     server: string
     server_id?: number // Added for detail fetch
     job: string
+    className?: string // Alias for job
     level: number
     race: string
     imageUrl?: string
-}
-
-import { SERVER_MAP, SERVERS } from '../app/constants/servers'
-
-export interface CharacterSearchResult {
-    characterId: string
-    name: string
-    server: string
-    server_id?: number // Added for detail fetch
-    job: string
-    level: number
-    race: string
-    imageUrl?: string
+    profileImage?: string // Alias for imageUrl
+    item_level?: number // 아이템 레벨
+    noa_score?: number // HITON 전투력
+    raw?: ExternalCharacterResult
 }
 
 // Use centralized server constants
@@ -51,13 +51,13 @@ export interface CharacterDetail {
     race_name: string
     combat_power: number
     profile_image: string
-    stats: any
-    equipment: any
-    titles: any
-    rankings: any
-    daevanion: any
-    pet_wing: any
-    skills: any
+    stats: CharacterStats | null
+    equipment: { equipmentList?: EquipmentItem[] } | null
+    titles: Record<string, unknown> | null
+    rankings: Record<string, unknown> | null
+    daevanion: Record<string, unknown> | null
+    pet_wing: Record<string, unknown> | null
+    skills: Record<string, unknown> | null
     created_at: string
     updated_at: string
 }
@@ -146,7 +146,7 @@ export const supabaseApi = {
         let allResults: CharacterSearchResult[] = []
 
         if (data && Array.isArray(data.list)) {
-            const resolveRace = (raceValue: any, raceName?: string) => {
+            const resolveRace = (raceValue: number | string | undefined, raceName?: string): string => {
                 if (typeof raceName === 'string') {
                     if (raceName.includes('천족') || raceName.toLowerCase().includes('elyos')) return 'Elyos'
                     if (raceName.includes('마족') || raceName.toLowerCase().includes('asmodian')) return 'Asmodian'
@@ -166,10 +166,10 @@ export const supabaseApi = {
                 return 'Asmodian'
             }
 
-            const stripTags = (value: string) => value.replace(/<\/?[^>]+(>|$)/g, '')
+            const stripTags = (value: string): string => value.replace(/<\/?[^>]+(>|$)/g, '')
 
-            allResults = data.list
-                .filter((item: any) => {
+            allResults = (data.list as ExternalCharacterResult[])
+                .filter((item) => {
                     // Validation: Skip characters with invalid data
                     if (!item.level || item.level <= 0) {
                         console.warn(`Skipping character: invalid level (${item.level})`);
@@ -181,7 +181,7 @@ export const supabaseApi = {
                     }
                     return true;
                 })
-                .map((item: any) => {
+                .map((item) => {
                     // Determine class name with multiple fallbacks
                     let jobName = PC_ID_TO_CLASS_NAME[item.pcId];
                     if (!jobName) {
@@ -214,6 +214,42 @@ export const supabaseApi = {
                 })
         }
 
+        // 로컬 DB에서 추가 정보(item_level, noa_score) 조회하여 병합
+        if (allResults.length > 0) {
+            try {
+                const characterIds = allResults.map(r => r.characterId).filter(Boolean)
+                if (characterIds.length > 0) {
+                    const localRes = await fetch(`${SUPABASE_PROJECT_URL}/rest/v1/characters?character_id=in.(${characterIds.map(id => `"${id}"`).join(',')})&select=character_id,item_level,noa_score`, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    if (localRes.ok) {
+                        const localData: LocalCharacterRecord[] = await localRes.json()
+                        const localMap = new Map<string, LocalCharacterRecord>(
+                            localData.map((item) => [item.character_id, item])
+                        )
+                        allResults = allResults.map(r => {
+                            const local = localMap.get(r.characterId)
+                            if (local) {
+                                return {
+                                    ...r,
+                                    item_level: local.item_level,
+                                    noa_score: local.noa_score
+                                }
+                            }
+                            return r
+                        })
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to fetch local data for live results', e)
+            }
+        }
+
         return allResults
     },
 
@@ -221,7 +257,7 @@ export const supabaseApi = {
      * Search for a character in Local DB via PostgREST.
      */
     async searchLocalCharacter(name: string, serverId?: number, race?: string): Promise<CharacterSearchResult[]> {
-        const queryParams: any = {
+        const queryParams: Record<string, string> = {
             select: '*',
             name: `ilike.*${name}*`,
             limit: '20'
@@ -265,7 +301,7 @@ export const supabaseApi = {
 
             if (!Array.isArray(data)) return []
 
-            return data.map((item: any) => ({
+            return (data as LocalCharacterRecord[]).map((item) => ({
                 characterId: item.character_id,
                 name: item.name,
                 server: SERVER_ID_TO_NAME[item.server_id] || 'Unknown',
@@ -274,7 +310,8 @@ export const supabaseApi = {
                 level: item.level,
                 race: item.race_name,
                 imageUrl: item.profile_image ? (item.profile_image.startsWith('http') ? item.profile_image : `https://profileimg.plaync.com${item.profile_image}`) : undefined,
-                raw: item
+                item_level: item.item_level,
+                noa_score: item.noa_score
             }))
         } catch (e) {
             console.error("Local search exception", e)
