@@ -187,10 +187,9 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                                             textOverflow: 'ellipsis',
                                             whiteSpace: 'nowrap'
                                         }}
-                                        dangerouslySetInnerHTML={{
-                                            __html: char.name.replace(/<strong>/g, '<span style="color: #fbbf24;">').replace(/<\/strong>/g, '</span>')
-                                        }}
-                                    />
+                                    >
+                                        {char.name.replace(/<\/?[^>]+(>|$)/g, '')}
+                                    </span>
                                     {char.noa_score !== undefined && char.noa_score > 0 && (
                                         <span style={{
                                             color: '#fbbf24',

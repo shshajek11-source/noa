@@ -10,6 +10,7 @@ export interface PartyMember {
     server: string;
     isMvp: boolean;
     level?: number;
+    isMainCharacter?: boolean;
 }
 
 export interface AnalysisResult {
@@ -23,6 +24,34 @@ export const usePartyScanner = () => {
     const [logs, setLogs] = useState<string[]>([]);
     const [scanBottomOnly, setScanBottomOnly] = useState(true);
 
+    // 이미지 전처리: 그레이스케일 + 대비 강화
+    const preprocessImage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+
+        // 그레이스케일 변환 + 대비 강화
+        const contrastFactor = 1.5; // 대비 강화 계수
+        for (let i = 0; i < data.length; i += 4) {
+            // 그레이스케일 (가중 평균)
+            const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+
+            // 대비 강화
+            let enhanced = ((gray - 128) * contrastFactor) + 128;
+            enhanced = Math.max(0, Math.min(255, enhanced));
+
+            // 이진화에 가깝게 (임계값 기반)
+            const threshold = 128;
+            const final = enhanced > threshold ? 255 : enhanced < 50 ? 0 : enhanced;
+
+            data[i] = final;     // R
+            data[i + 1] = final; // G
+            data[i + 2] = final; // B
+            // Alpha는 유지
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+    };
+
     const cropBottomPart = (base64Image: string): Promise<string> => {
         return new Promise((resolve) => {
             const img = new Image();
@@ -31,20 +60,23 @@ export const usePartyScanner = () => {
                 const ctx = canvas.getContext('2d');
                 if (!ctx) { resolve(base64Image); return; }
 
-                // Crop bottom 35% (Targeting Party List)
-                if (img.height < 300) {
-                    resolve(base64Image);
-                    return;
-                }
+                // 고정 픽셀 기반 크롭 (해상도별 파티바 높이 계산)
+                // 1080p: ~65px, 1440p: ~80px, 4K: ~100px
+                const heightRatio = img.height / 1080;
+                const baseHeight = 65; // 1080p 기준 파티바 높이
+                const cropHeight = Math.max(60, Math.min(120, Math.round(baseHeight * heightRatio)));
 
-                const cropRatio = 0.35;
-                const startY = img.height * (1 - cropRatio);
-                const cropHeight = img.height * cropRatio;
+                const startY = img.height - cropHeight;
 
                 canvas.width = img.width;
                 canvas.height = cropHeight;
 
+                // 크롭된 영역 그리기
                 ctx.drawImage(img, 0, startY, img.width, cropHeight, 0, 0, canvas.width, canvas.height);
+
+                // 이미지 전처리 적용 (대비 강화 + 그레이스케일)
+                preprocessImage(ctx, canvas.width, canvas.height);
+
                 resolve(canvas.toDataURL('image/png'));
             };
             img.onerror = () => resolve(base64Image);
@@ -74,17 +106,10 @@ export const usePartyScanner = () => {
                 return;
             }
 
-            if (idx < lines.length - 1) {
-                const nextLine = lines[idx + 1];
-                if (statusKeywords.test(nextLine)) {
-                    if (!/[\[\]]/.test(line) && line.length >= 2 && line.length < 12) {
-                        addMember(line, 'Unknown');
-                    }
-                }
-            }
+            // 서버명 [서버]가 없는 경우는 무시 - 정확한 매칭만 허용
         });
 
-        return matches.slice(0, 6);
+        return matches.slice(0, 4); // 파티 총원 4명 제한
     };
 
     const generateMockData = (membersInput: any[]): AnalysisResult => {
@@ -98,14 +123,9 @@ export const usePartyScanner = () => {
 
         const finalMembers = [...membersInput];
 
-        // Only fill up to detect count or at least some? 
-        // Logic: if we detect 0, we might want to fail? 
-        // For now, let's stick to the previous logic: Fill up to 6 for demo
-        while (finalMembers.length < 6) {
-            finalMembers.push({ name: `Unknown${finalMembers.length + 1}`, server: 'Israphel' });
-        }
+        // 서버명이 있는 실제 인식된 파티원만 사용 - Unknown 채우기 제거
 
-        const members = finalMembers.slice(0, 6).map((m, i) => {
+        const members = finalMembers.slice(0, 4).map((m, i) => { // 파티 총원 4명 제한
             const name = typeof m === 'string' ? m : m.name;
             const server = typeof m === 'object' && m.server ? m.server : 'Israphel';
             const role = roles[i % roles.length];
@@ -147,7 +167,7 @@ export const usePartyScanner = () => {
                     let imageToScan = originalImage;
 
                     if (scanBottomOnly) {
-                        setLogs(prev => [...prev, 'Cropping image (Bottom 35%)...']);
+                        setLogs(prev => [...prev, 'Cropping party bar + applying preprocessing...']);
                         imageToScan = await cropBottomPart(originalImage);
                     }
 
@@ -162,10 +182,8 @@ export const usePartyScanner = () => {
 
                     const parsedMembers = smartParse(text);
 
-                    // Fallback
-                    const finalMembers = parsedMembers.length > 0
-                        ? parsedMembers
-                        : text.split('\n').filter(l => l.trim().length > 2).map(l => ({ name: l.trim(), server: 'Unknown' }));
+                    // 서버명이 있는 파싱된 멤버만 사용 (Unknown fallback 제거)
+                    const finalMembers = parsedMembers;
 
                     setLogs(prev => [...prev, 'Generating analysis...']);
 

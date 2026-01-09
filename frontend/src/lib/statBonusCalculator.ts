@@ -254,7 +254,7 @@ export class StatBonusCalculator {
       }
     }
 
-    const weights = styleWeights[combatStyle]
+    const weights = styleWeights[combatStyle] as Record<string, number>
     const result: Record<string, number> = {}
 
     Object.entries(baseStats).forEach(([statName, value]) => {

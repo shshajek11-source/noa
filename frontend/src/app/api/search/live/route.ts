@@ -1,6 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+    // Rate Limiting (외부 API 호출이므로 엄격하게)
+    const rateLimit = checkRateLimit(request, RATE_LIMITS.external)
+    if (!rateLimit.success) {
+        return rateLimit.error!
+    }
+
     try {
         const { name, serverId, race, page } = await request.json()
 

@@ -89,12 +89,13 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
             setIsSearching(true)
             try {
                 const serverId = server ? SERVER_NAME_TO_ID[server] : undefined
+                const raceFilter = race === 'elyos' ? 'elyos' : 'asmodian'
 
-                // 로컬 DB 검색
-                const localResults = await supabaseApi.searchLocalCharacter(name.trim())
+                // 로컬 DB 검색 (서버 및 종족 필터 적용)
+                const localResults = await supabaseApi.searchLocalCharacter(name.trim(), serverId, raceFilter)
 
-                // 라이브 API 검색 (종족 필터 없이 전체 검색)
-                const liveResults = await supabaseApi.searchCharacter(name.trim(), serverId, undefined, 1)
+                // 라이브 API 검색 (서버 및 종족 필터 적용)
+                const liveResults = await supabaseApi.searchCharacter(name.trim(), serverId, raceFilter, 1)
 
                 // 병합 및 중복 제거
                 const allResults = [...localResults]
@@ -106,10 +107,15 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
                     }
                 }
 
-                // noa_score 기준 정렬
-                allResults.sort((a, b) => (b.noa_score ?? 0) - (a.noa_score ?? 0))
+                // 서버 필터링 (선택된 경우)
+                const filteredResults = serverId
+                    ? allResults.filter(r => r.server_id === serverId || r.server === server)
+                    : allResults
 
-                setResults(allResults.slice(0, 5))
+                // noa_score 기준 정렬
+                filteredResults.sort((a, b) => (b.noa_score ?? 0) - (a.noa_score ?? 0))
+
+                setResults(filteredResults.slice(0, 5))
                 setShowResults(true)
             } catch (e) {
                 console.error('Search failed', e)
@@ -421,7 +427,9 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
                                 )}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-main)' }} dangerouslySetInnerHTML={{ __html: char.name }} />
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                                    {char.name.replace(/<\/?[^>]+(>|$)/g, '')}
+                                </div>
                                 <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>
                                     {char.server} · {char.job || char.className}
                                 </div>

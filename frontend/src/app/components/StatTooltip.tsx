@@ -90,7 +90,7 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
                   <span>{source.name}</span>
                   <span style={{ color: stat.color }}>
                     {source.value > 0 && `+${source.value.toLocaleString()}`}
-                    {source.percentage > 0 && ` +${source.percentage}%`}
+                    {(source.percentage ?? 0) > 0 && ` +${source.percentage}%`}
                   </span>
                 </div>
               ))}
@@ -119,7 +119,7 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
                     <span>{source.name}</span>
                     <span style={{ color: stat.color }}>
                       {displayValue}
-                      {source.percentage > 0 && ` +${source.percentage}%`}
+                      {(source.percentage ?? 0) > 0 && ` +${source.percentage}%`}
                     </span>
                   </div>
                 )
@@ -147,7 +147,7 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
                   <span>{source.name}</span>
                   <span style={{ color: stat.color }}>
                     {source.value > 0 && `+${source.value.toLocaleString()}`}
-                    {source.percentage > 0 && ` +${source.percentage}%`}
+                    {(source.percentage ?? 0) > 0 && ` +${source.percentage}%`}
                   </span>
                 </div>
               ))}
@@ -174,7 +174,7 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
                   <span>{source.name}</span>
                   <span style={{ color: stat.color }}>
                     {source.value > 0 && `+${source.value.toLocaleString()}`}
-                    {source.percentage > 0 && ` +${source.percentage}%`}
+                    {(source.percentage ?? 0) > 0 && ` +${source.percentage}%`}
                   </span>
                 </div>
               ))}

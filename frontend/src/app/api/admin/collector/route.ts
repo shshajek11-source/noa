@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAdminAuth } from '@/lib/adminAuth'
 import {
     CollectorState,
     CollectorConfig,
@@ -238,6 +239,12 @@ const formatDuration = (ms: number): string => {
 
 // GET: 상태 조회
 export async function GET(request: NextRequest) {
+    // 인증 검증
+    const auth = verifyAdminAuth(request)
+    if (!auth.authorized) {
+        return auth.error!
+    }
+
     const type = request.nextUrl.searchParams.get('type') || 'status'
 
     switch (type) {
@@ -257,6 +264,12 @@ export async function GET(request: NextRequest) {
 
 // POST: 제어 명령
 export async function POST(request: NextRequest) {
+    // 인증 검증
+    const auth = verifyAdminAuth(request)
+    if (!auth.authorized) {
+        return auth.error!
+    }
+
     const body = await request.json()
     const { action, config } = body
 

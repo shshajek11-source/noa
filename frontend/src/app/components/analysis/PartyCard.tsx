@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Sword, Crown, User } from 'lucide-react';
+import { Shield, Sword, Crown, User, Star } from 'lucide-react';
 
 interface Member {
     id: string;
@@ -9,7 +9,8 @@ interface Member {
     gearScore: number;
     server: string;
     isMvp: boolean;
-    level?: number; // Optional level if available
+    level?: number;
+    isMainCharacter?: boolean;
 }
 
 interface PartyCardProps {
@@ -18,10 +19,11 @@ interface PartyCardProps {
 }
 
 export default function PartyCard({ member, index }: PartyCardProps) {
-    // MVP Styling
+    // MVP & Main Character Styling
     const isMvp = member.isMvp;
-    const glowColor = isMvp ? 'rgba(245, 158, 11, 0.4)' : 'rgba(255, 255, 255, 0.05)';
-    const borderColor = isMvp ? '#F59E0B' : 'rgba(255, 255, 255, 0.1)';
+    const isMain = member.isMainCharacter;
+    const glowColor = isMain ? 'rgba(250, 204, 21, 0.4)' : isMvp ? 'rgba(245, 158, 11, 0.4)' : 'rgba(255, 255, 255, 0.05)';
+    const borderColor = isMain ? '#FACC15' : isMvp ? '#F59E0B' : 'rgba(255, 255, 255, 0.1)';
 
     // Class Icon Mock (Replace with real icons later if needed)
     const renderClassIcon = () => {
@@ -29,13 +31,13 @@ export default function PartyCard({ member, index }: PartyCardProps) {
             <div style={{
                 width: '40px', height: '40px',
                 borderRadius: '50%',
-                background: isMvp ? 'linear-gradient(135deg, #F59E0B, #B45309)' : '#1F2937',
+                background: isMain ? 'linear-gradient(135deg, #FACC15, #B45309)' : isMvp ? 'linear-gradient(135deg, #F59E0B, #B45309)' : '#1F2937',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: isMvp ? '2px solid #FFF' : '1px solid #374151',
-                color: isMvp ? 'white' : '#9CA3AF',
-                boxShadow: isMvp ? '0 4px 6px rgba(0,0,0,0.2)' : 'none'
+                border: isMain ? '2px solid #FACC15' : isMvp ? '2px solid #FFF' : '1px solid #374151',
+                color: isMain || isMvp ? 'white' : '#9CA3AF',
+                boxShadow: isMain || isMvp ? '0 4px 6px rgba(0,0,0,0.2)' : 'none'
             }}>
-                {isMvp ? <Crown size={20} /> : <User size={20} />}
+                {isMain ? <Star size={20} /> : isMvp ? <Crown size={20} /> : <User size={20} />}
             </div>
         );
     };
@@ -49,14 +51,16 @@ export default function PartyCard({ member, index }: PartyCardProps) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '0.8rem 1rem',
-                background: isMvp
+                background: isMain
+                    ? 'linear-gradient(90deg, rgba(250, 204, 21, 0.1), rgba(0,0,0,0.2))'
+                    : isMvp
                     ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.1), rgba(0,0,0,0.2))'
                     : 'rgba(255, 255, 255, 0.02)',
-                border: isMvp ? `1px solid ${borderColor}` : '1px solid rgba(255, 255, 255, 0.05)',
+                border: (isMain || isMvp) ? `1px solid ${borderColor}` : '1px solid rgba(255, 255, 255, 0.05)',
                 borderRadius: '8px',
                 marginBottom: '0.5rem',
                 transition: 'all 0.2s',
-                boxShadow: isMvp ? `0 4px 20px -5px ${glowColor}` : 'none',
+                boxShadow: (isMain || isMvp) ? `0 4px 20px -5px ${glowColor}` : 'none',
                 animation: `fadeInUp 0.5s ease-out forwards ${index * 50}ms`,
                 opacity: 0,
                 cursor: 'default'
@@ -80,7 +84,7 @@ export default function PartyCard({ member, index }: PartyCardProps) {
                 {/* Rank # */}
                 <div style={{
                     fontSize: '0.8rem', fontWeight: 700,
-                    color: isMvp ? '#F59E0B' : 'var(--text-secondary)',
+                    color: isMain ? '#FACC15' : isMvp ? '#F59E0B' : 'var(--text-secondary)',
                     width: '1.5rem', textAlign: 'center'
                 }}>
                     {index + 1}
@@ -107,12 +111,21 @@ export default function PartyCard({ member, index }: PartyCardProps) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{
-                            color: isMvp ? '#FDE68A' : 'var(--text-main)',
+                            color: isMain ? '#FACC15' : isMvp ? '#FDE68A' : 'var(--text-main)',
                             fontWeight: 600, fontSize: '0.9rem'
                         }}>
                             {member.name}
                         </span>
-                        {isMvp && (
+                        {isMain && (
+                            <span style={{
+                                background: 'linear-gradient(135deg, #FACC15, #B45309)',
+                                color: 'white',
+                                fontSize: '0.6rem', fontWeight: 800,
+                                padding: '1px 5px', borderRadius: '4px',
+                                boxShadow: '0 2px 4px rgba(250, 204, 21, 0.3)'
+                            }}>대표</span>
+                        )}
+                        {isMvp && !isMain && (
                             <span style={{
                                 background: 'linear-gradient(135deg, #F59E0B, #D97706)',
                                 color: 'white',
@@ -134,7 +147,7 @@ export default function PartyCard({ member, index }: PartyCardProps) {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{
-                        color: isMvp ? '#F59E0B' : 'var(--brand-red-main)',
+                        color: isMain ? '#FACC15' : isMvp ? '#F59E0B' : 'var(--brand-red-main)',
                         fontWeight: 700, fontSize: '0.95rem', fontFamily: 'monospace'
                     }}>
                         {member.cp.toLocaleString()}

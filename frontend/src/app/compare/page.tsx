@@ -13,6 +13,7 @@ import { ComparisonCharacter, ComparisonEquipmentItem } from '@/types/character'
 import { CharacterSearchResult, getApiBaseUrl, SERVER_ID_TO_NAME } from '@/lib/supabaseApi'
 import { SERVER_MAP } from '@/app/constants/servers'
 import { Copy, Check, Share2 } from 'lucide-react'
+import { MainCharacter, MAIN_CHARACTER_KEY } from '@/app/components/SearchBar'
 
 // 장비 데이터 매핑 함수
 const mapEquipmentForComparison = (rawEquipment: any): ComparisonEquipmentItem[] => {
@@ -46,10 +47,16 @@ function ComparePageContent() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
+    const [mounted, setMounted] = useState(false)
 
     // 캐릭터 추가 모달 상태
     const [showAddModal, setShowAddModal] = useState(false)
     const [addingSlot, setAddingSlot] = useState<'A' | 'B'>('A')
+
+    // 클라이언트 마운트 확인
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     // URL 공유 기능
     const handleShare = async () => {
@@ -63,7 +70,33 @@ function ComparePageContent() {
         }
     }
 
+    // 대표캐릭터 자동 추가 (URL에 타겟이 없을 때)
     useEffect(() => {
+        if (!mounted) return
+        if (targetQuery) return // 이미 URL에 타겟이 있으면 스킵
+
+        try {
+            const saved = localStorage.getItem(MAIN_CHARACTER_KEY)
+            if (saved) {
+                const mainChar: MainCharacter = JSON.parse(saved)
+                console.log('[Compare] Auto-adding main character:', mainChar.name)
+
+                // 대표캐릭터를 첫 번째 타겟으로 URL에 추가
+                const serverId = mainChar.server_id || 1001
+                const newTarget = `${mainChar.characterId}_${serverId}`
+
+                const url = new URL(window.location.href)
+                url.searchParams.set('targets', newTarget)
+                router.replace(url.pathname + url.search, { scroll: false })
+            }
+        } catch (e) {
+            console.error('Failed to load main character for compare', e)
+        }
+    }, [mounted, targetQuery, router])
+
+    useEffect(() => {
+        if (!mounted) return
+
         const loadData = async () => {
             let targets: string[] = []
 
@@ -214,13 +247,13 @@ function ComparePageContent() {
         }
 
         loadData()
-    }, [targetQuery])
+    }, [targetQuery, mounted])
 
     // Generate Radar Data - 실제 있는 수치만 비교 (정규화된 비율로 표시)
     const generateRadarData = (): RadarDataPoint[] => {
         if (characters.length < 2) return []
-        const charA = characters[0] || {} as any
-        const charB = characters[1] || {} as any
+        const charA = (characters[0] || {}) as unknown as Record<string, number>
+        const charB = (characters[1] || {}) as unknown as Record<string, number>
 
         // 정규화된 레이더 차트 - 각 항목별로 최대값 대비 비율로 표시
         const createNormalizedPoint = (subject: string, key: string) => {

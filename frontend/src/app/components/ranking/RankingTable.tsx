@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, memo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -94,7 +94,7 @@ const RankingSkeleton = () => (
 )
 
 // 변동 셀 컴포넌트
-const RankChangeCell = ({ change, prevRank, currentRank }: { change: RankChange, prevRank?: number | null, currentRank: number }) => {
+const RankChangeCell = memo(function RankChangeCell({ change, prevRank, currentRank }: { change: RankChange, prevRank?: number | null, currentRank: number }) {
     const [showTooltip, setShowTooltip] = useState(false)
 
     const getChangeDisplay = () => {
@@ -149,10 +149,10 @@ const RankChangeCell = ({ change, prevRank, currentRank }: { change: RankChange,
             )}
         </div>
     )
-}
+})
 
 // 티어 뱃지 컴포넌트 (오픈 레이아웃 - 카드 없음)
-const TierBadge = ({ tierInfo, isPromoted }: { tierInfo: TierInfo, isPromoted: boolean }) => {
+const TierBadge = memo(function TierBadge({ tierInfo, isPromoted }: { tierInfo: TierInfo, isPromoted: boolean }) {
     return (
         <div style={{
             display: 'flex',
@@ -181,7 +181,7 @@ const TierBadge = ({ tierInfo, isPromoted }: { tierInfo: TierInfo, isPromoted: b
             </span>
         </div>
     )
-}
+})
 
 export default function RankingTable({ type }: RankingTableProps) {
     const searchParams = useSearchParams()

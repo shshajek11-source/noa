@@ -1,10 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
-
+import { NextRequest, NextResponse } from 'next/server'
+import { verifyAdminAuth } from '@/lib/adminAuth'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+    // 인증 검증
+    const auth = verifyAdminAuth(request)
+    if (!auth.authorized) {
+        return auth.error!
+    }
     const { searchParams } = new URL(request.url)
     const dryRun = searchParams.get('dryRun') === 'true'
 

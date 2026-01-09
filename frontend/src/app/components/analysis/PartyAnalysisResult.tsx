@@ -58,7 +58,7 @@ export default function PartyAnalysisResult({ data, isScanning, onReset, onManua
 
     const gridStyle: React.CSSProperties = {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+        gridTemplateColumns: 'repeat(4, 1fr)',
         gap: '1rem',
     };
 
@@ -253,8 +253,8 @@ export default function PartyAnalysisResult({ data, isScanning, onReset, onManua
                             <PartyCard key={idx} member={member} index={idx} />
                         ))
                     ) : (
-                        // Empty Skeleton Slots
-                        Array.from({ length: 6 }).map((_, i) => (
+                        // Empty Skeleton Slots (4명 파티)
+                        Array.from({ length: 4 }).map((_, i) => (
                             <div key={i} style={{
                                 height: '80px',
                                 background: 'rgba(255,255,255,0.02)',

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAdminAuth } from '@/lib/adminAuth'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5분 타임아웃
@@ -29,6 +30,12 @@ async function updateCharacter(characterId: string, serverId: number, baseUrl: s
 }
 
 export async function POST(request: NextRequest) {
+    // 인증 검증
+    const auth = verifyAdminAuth(request)
+    if (!auth.authorized) {
+        return auth.error!
+    }
+
     try {
         const body = await request.json()
         const { action, batchSize = 10 } = body
@@ -119,6 +126,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+    // 인증 검증
+    const auth = verifyAdminAuth(request)
+    if (!auth.authorized) {
+        return auth.error!
+    }
+
     // GET으로 상태 확인
     if (!supabaseUrl || !supabaseKey) {
         return NextResponse.json({ error: 'Supabase credentials missing' }, { status: 500 })

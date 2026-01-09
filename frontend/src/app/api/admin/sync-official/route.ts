@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
-import { headers } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server'
+import { verifyAdminAuth } from '@/lib/adminAuth'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+    // 인증 검증
+    const auth = verifyAdminAuth(request)
+    if (!auth.authorized) {
+        return auth.error!
+    }
     // Initialize Supabase client inside handler to avoid build-time errors
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''

@@ -274,7 +274,7 @@ export class StatsValidationCache {
 
   static isValid(key: string): boolean {
     const cached = this.cache.get(key)
-    return cached !== null && cached.result.isValid
+    return cached != null && cached.result.isValid
   }
 }
 

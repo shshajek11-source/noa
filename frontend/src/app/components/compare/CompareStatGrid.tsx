@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 interface StatRowProps {
     label: string
     valueA: number
@@ -5,7 +7,7 @@ interface StatRowProps {
     format?: (val: number) => string
 }
 
-function StatRow({ label, valueA, valueB, format = (v) => v.toLocaleString() }: StatRowProps) {
+const StatRow = memo(function StatRow({ label, valueA, valueB, format = (v) => v.toLocaleString() }: StatRowProps) {
     // 둘 다 0이면 표시하지 않음
     if (valueA === 0 && valueB === 0) return null
 
@@ -92,7 +94,7 @@ function StatRow({ label, valueA, valueB, format = (v) => v.toLocaleString() }: 
             </div>
         </div>
     )
-}
+})
 
 import { ComparisonCharacter } from '@/types/character'
 

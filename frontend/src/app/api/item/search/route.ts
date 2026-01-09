@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
 
         // 공식 API 검색 시도 (source가 'official' 또는 'all'인 경우)
         if (source === 'official' || source === 'all') {
-            const officialResult = await searchOfficialAPI(keyword, category, grade, page)
+            const officialResult = await searchOfficialAPI(keyword, category ?? undefined, grade ?? undefined, page)
             if (officialResult.success && officialResult.data) {
                 officialApiAvailable = true
                 // 공식 API 응답 형식에 맞게 변환 (실제 응답 구조에 따라 조정 필요)

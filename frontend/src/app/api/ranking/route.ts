@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic' // No caching for rankings to ensure freshness
 
 export async function GET(request: NextRequest) {
+    // Rate Limiting
+    const rateLimit = checkRateLimit(request, RATE_LIMITS.standard)
+    if (!rateLimit.success) {
+        return rateLimit.error!
+    }
     const searchParams = request.nextUrl.searchParams
 
     // Filters

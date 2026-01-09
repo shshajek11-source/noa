@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAdminAuth } from '@/lib/adminAuth'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit'
 
 export async function POST(request: NextRequest) {
+    // Rate Limiting
+    const rateLimit = checkRateLimit(request, RATE_LIMITS.admin)
+    if (!rateLimit.success) {
+        return rateLimit.error!
+    }
+
+    // 인증 검증
+    const auth = verifyAdminAuth(request)
+    if (!auth.authorized) {
+        return auth.error!
+    }
+
     try {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
         const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
