@@ -107,10 +107,10 @@ export const DEFAULT_SETTINGS: CrawlSettings = {
 // Content Types
 export const CONTENT_TYPES = [
     { id: 1, name: '어비스 포인트', icon: '⚔️', color: '#EF4444' },
-    { id: 2, name: '초월', icon: '🔥', color: '#F59E0B' },
+    { id: 21, name: '초월', icon: '🔥', color: '#F59E0B' },
     { id: 3, name: '악몽', icon: '👻', color: '#8B5CF6' },
     { id: 4, name: '고독의 투기장', icon: '🗡️', color: '#3B82F6' },
     { id: 5, name: '협력의 투기장', icon: '🤝', color: '#10B981' },
     { id: 6, name: '토벌전', icon: '🏰', color: '#EC4899' },
-    { id: 7, name: '각성전', icon: '✨', color: '#FACC15' },
+    { id: 20, name: '각성전', icon: '✨', color: '#FACC15' },
 ]

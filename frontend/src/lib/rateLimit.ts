@@ -153,8 +153,8 @@ export const RATE_LIMITS = {
     standard: { limit: 100, windowMs: 60 * 1000 },
     /** 검색 API: 분당 60회 */
     search: { limit: 60, windowMs: 60 * 1000 },
-    /** 외부 API 프록시: 분당 30회 */
-    external: { limit: 30, windowMs: 60 * 1000 },
+    /** 외부 API 프록시: 분당 100회 (개발용으로 증가) */
+    external: { limit: 100, windowMs: 60 * 1000 },
     /** Admin API: 분당 20회 */
     admin: { limit: 20, windowMs: 60 * 1000 },
     /** 무거운 작업: 분당 10회 */

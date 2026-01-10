@@ -1,5 +1,6 @@
 'use client'
 import EquipmentCard from './EquipmentCard'
+import styles from './ProfileSection.module.css'
 
 interface EquipmentGridProps {
     equipment: any[]
@@ -7,7 +8,7 @@ interface EquipmentGridProps {
     pets?: any[]
     wings?: any[]
     appearance?: any[]
-    debugInfo?: any // Added for debugging
+    debugInfo?: any
     onItemClick?: (item: any) => void
 }
 
@@ -41,30 +42,13 @@ export default function EquipmentGrid({ equipment = [], accessories = [], pets =
     ]
 
     return (
-        <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.5rem', // Slight gap between major sections
-            // height: '100%' // Removed to prevent stretching
-        }}>
+        <div className={styles.container}>
             {/* Weapons & Armor */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{
-                    color: '#E5E7EB',
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold',
-                    margin: 0,
-                    marginBottom: '0.5rem'
-                }}>
+            <div>
+                <h3 className={styles.sectionTitle}>
                     무기 / 방어구
                 </h3>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                    gap: '2px',
-                    alignContent: 'start',
-                    // flex: 1
-                }}>
+                <div className={styles.equipmentRows}>
                     {weaponSlots.map(slot => {
                         const item = equipment?.find(e => e.slot === slot)
                         return <EquipmentCard key={slot} slot={slot} item={item} onClick={onItemClick} />
@@ -73,23 +57,11 @@ export default function EquipmentGrid({ equipment = [], accessories = [], pets =
             </div>
 
             {/* Accessories */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{
-                    color: '#E5E7EB',
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold',
-                    margin: 0,
-                    marginBottom: '0.5rem'
-                }}>
+            <div style={{ marginTop: '0.5rem' }}>
+                <h3 className={styles.sectionTitle}>
                     장신구 / 룬
                 </h3>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                    gap: '2px',
-                    alignContent: 'start',
-                    // flex: 1
-                }}>
+                <div className={styles.equipmentRows}>
                     {accessorySlots.map(slot => {
                         const item = accessories?.find(a => a.slot === slot)
                         return <EquipmentCard key={slot} slot={slot} item={item} onClick={onItemClick} />
@@ -99,22 +71,11 @@ export default function EquipmentGrid({ equipment = [], accessories = [], pets =
 
             {/* Pets & Wings */}
             {(pets.length > 0 || wings.length > 0) && (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{
-                        color: '#E5E7EB',
-                        fontSize: '0.9rem',
-                        fontWeight: 'bold',
-                        margin: 0,
-                        marginBottom: '0.5rem'
-                    }}>
+                <div style={{ marginTop: '0.5rem' }}>
+                    <h3 className={styles.sectionTitle}>
                         펫 / 날개
                     </h3>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                        gap: '2px',
-                        alignContent: 'start'
-                    }}>
+                    <div className={styles.equipmentRows}>
                         {pets.map((pet, idx) => (
                             <EquipmentCard key={`pet-${idx}`} slot="펫" item={pet} onClick={onItemClick} />
                         ))}
@@ -127,22 +88,11 @@ export default function EquipmentGrid({ equipment = [], accessories = [], pets =
 
             {/* Appearance */}
             {appearance.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{
-                        color: '#E5E7EB',
-                        fontSize: '0.9rem',
-                        fontWeight: 'bold',
-                        margin: 0,
-                        marginBottom: '0.5rem'
-                    }}>
+                <div style={{ marginTop: '0.5rem' }}>
+                    <h3 className={styles.sectionTitle}>
                         외형 / 모션
                     </h3>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                        gap: '2px',
-                        alignContent: 'start'
-                    }}>
+                    <div className={styles.equipmentRows}>
                         {/* Sort Appearance Items: Head -> Body -> Hands -> Legs -> Feet -> Others */}
                         {[...appearance].sort((a, b) => {
                             const order: Record<string, number> = {

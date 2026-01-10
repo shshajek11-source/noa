@@ -173,3 +173,43 @@ export function getDaevanionStats(boardId: number, openNodeCount: number): Daeva
 
   return closestCount ? board.statsByNodeCount[closestCount] : null
 }
+
+/**
+ * 보드 이름으로 대바니온 스탯 반환 (비례 계산 지원)
+ * @param boardName 보드 이름 (네자칸, 지켈 등)
+ * @param openNodeCount 활성화된 노드 개수
+ * @param totalNodeCount 총 노드 개수
+ * @returns 비례 계산된 스탯 보너스
+ */
+export function getDaevanionStatsByName(boardName: string, openNodeCount: number, totalNodeCount: number): DaevanionStats | null {
+  if (!openNodeCount || openNodeCount <= 0) return null
+
+  const board = DAEVANION_BOARD_STATS.find(b => b.name === boardName)
+  if (!board) return null
+
+  // 정의된 최대 노드 수의 스탯을 기준으로 비례 계산
+  const counts = Object.keys(board.statsByNodeCount).map(Number).sort((a, b) => b - a)
+  const maxDefinedCount = counts[0]
+  const maxStats = board.statsByNodeCount[maxDefinedCount]
+
+  if (!maxStats) return null
+
+  // 활성화된 노드 수에 비례해서 스탯 계산
+  // 실제 게임에서 총 노드 수가 다를 수 있으므로 totalNodeCount 사용
+  const baseCount = totalNodeCount || maxDefinedCount
+  const ratio = openNodeCount / baseCount
+
+  const scaledStats: DaevanionStats = {}
+
+  Object.entries(maxStats).forEach(([key, value]) => {
+    if (key === 'skills' || typeof value !== 'number') return
+
+    // 비례 계산 (소수점 버림)
+    const scaledValue = Math.floor(value * ratio)
+    if (scaledValue > 0) {
+      (scaledStats as any)[key] = scaledValue
+    }
+  })
+
+  return Object.keys(scaledStats).length > 0 ? scaledStats : null
+}

@@ -14,6 +14,8 @@ import { CharacterSearchResult, getApiBaseUrl, SERVER_ID_TO_NAME } from '@/lib/s
 import { SERVER_MAP } from '@/app/constants/servers'
 import { Copy, Check, Share2 } from 'lucide-react'
 import { MainCharacter, MAIN_CHARACTER_KEY } from '@/app/components/SearchBar'
+import { aggregateStats } from '@/lib/statsAggregator'
+import { calculateCombatPowerFromStats } from '@/lib/combatPower'
 
 // 장비 데이터 매핑 함수
 const mapEquipmentForComparison = (rawEquipment: any): ComparisonEquipmentItem[] => {
@@ -166,6 +168,15 @@ function ComparePageContent() {
 
                     // 장비 매핑
                     const equipment = mapEquipmentForComparison(detail.equipment)
+                    const rawEquipList = detail.equipment?.equipmentList || []
+
+                    // HITON 전투력 계산 (새 시스템)
+                    const titles = detail.titles || { titleList: [] }
+                    const daevanion = detail.daevanion || { boardList: [] }
+                    const equippedTitleId = profile.titleId
+                    const aggregatedStats = aggregateStats(rawEquipList, titles, daevanion, detail.stats, equippedTitleId)
+                    const combatPowerResult = calculateCombatPowerFromStats(aggregatedStats, detail.stats)
+                    const hitonCombatPower = combatPowerResult.totalScore
 
                     // 실제 API 스탯 추출 (statList의 name 기준)
                     const itemLevel = getStatValue('아이템레벨', 'ItemLevel')
@@ -196,14 +207,14 @@ function ComparePageContent() {
                         profile_image: profile.profileImage || '/placeholder-avatar.svg',
                         guild_name: profile.guildName,
 
-                        hiton_score: profile.noa_score || 0,
+                        hiton_score: hitonCombatPower,
                         ranking_ap: 0,
                         ranking_gp: 0,
                         item_level: itemLevel || 0,
                         prev_rank: null,
 
-                        // noa_score는 API에서 계산된 값 사용
-                        combat_power: profile.noa_score || 0,
+                        // HITON 전투력 사용
+                        combat_power: hitonCombatPower,
 
                         // 기본 스탯
                         hp: con,
@@ -273,7 +284,7 @@ function ComparePageContent() {
         }
 
         const points = [
-            createNormalizedPoint('NOA점수', 'combat_power'),
+            createNormalizedPoint('HITON전투력', 'combat_power'),
             createNormalizedPoint('아이템레벨', 'item_level'),
             createNormalizedPoint('위력', 'attack_power'),
             createNormalizedPoint('정확', 'accuracy'),

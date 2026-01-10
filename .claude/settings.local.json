@@ -95,7 +95,14 @@
       "WebFetch(domain:shugo.gg)",
       "Bash(grep:*)",
       "Bash(python3:*)",
-      "Bash(ping:*)"
+      "Bash(ping:*)",
+      "Bash(dir /s /b \"C:\\\\Users\\\\shsha\\\\OneDrive\\\\바탕 화면\\\\hiton2\\\\frontend\")",
+      "WebFetch(domain:guide.ncloud-docs.com)",
+      "WebFetch(domain:api.ncloud-docs.com)",
+      "Bash(dir:*)",
+      "WebFetch(domain:aon2.info)",
+      "WebFetch(domain:aion2tool.com)",
+      "Bash(git reset:*)"
     ]
   }
 }

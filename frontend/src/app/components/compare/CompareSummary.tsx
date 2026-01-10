@@ -9,7 +9,7 @@ interface CompareSummaryProps {
 
 // 비교할 스탯 목록 - 실제 API에서 오는 스탯 기준
 const COMPARE_STATS: { key: keyof ComparisonCharacter; label: string }[] = [
-    { key: 'combat_power', label: 'NOA 점수' },
+    { key: 'combat_power', label: 'HITON 전투력' },
     { key: 'item_level', label: '아이템 레벨' },
     { key: 'attack_power', label: '위력' },
     { key: 'crit_strike', label: '민첩' },

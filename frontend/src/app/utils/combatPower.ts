@@ -1,5 +1,5 @@
 // HITON Combat Power & Tier System
-// 상대 평가 시스템: 1등 기준으로 티어 계산
+// 절대 평가 시스템: 전투력 기준으로 티어 계산
 // 티어 순서: Bronze → Silver → Gold → Platinum → Emerald → Sapphire → Ruby → Diamond (모든 티어 1~5)
 
 export interface TierInfo {
@@ -8,20 +8,20 @@ export interface TierInfo {
     color: string
     displayName: string
     image: string
-    percentage: number // 1등 대비 비율
+    percentage: number // 1등 대비 비율 (레거시 호환)
 }
 
-// 티어 설정 (순서대로)
-// 각 티어는 전체의 약 12.5% 구간 (8티어 x 5단계 = 40단계)
+// 티어 설정 (순서대로) - 절대 전투력 기준
+// 현재 랭킹 1등 (~37,000) = D5, 미래 성장 여유 확보
 export const TIER_CONFIG = [
-    { name: 'Bronze', color: '#CD7F32', image: '/tear/bronze.png' },
-    { name: 'Silver', color: '#C0C0C0', image: '/tear/silver.png' },
-    { name: 'Gold', color: '#FFD700', image: '/tear/gold.png' },
-    { name: 'Platinum', color: '#E5E4E2', image: '/tear/platinum.png' },
-    { name: 'Emerald', color: '#50C878', image: '/tear/emarald.png' },
-    { name: 'Sapphire', color: '#0F52BA', image: '/tear/sapa.png' },
-    { name: 'Ruby', color: '#E0115F', image: '/tear/rubi.png' },
-    { name: 'Diamond', color: '#B9F2FF', image: '/tear/diamond.png' },
+    { name: 'Bronze', abbr: 'B', color: '#CD7F32', image: '/tear/bronze.png', min: 0, max: 2000 },
+    { name: 'Silver', abbr: 'Si', color: '#C0C0C0', image: '/tear/silver.png', min: 2000, max: 4000 },
+    { name: 'Gold', abbr: 'G', color: '#FFD700', image: '/tear/gold.png', min: 4000, max: 7000 },
+    { name: 'Platinum', abbr: 'P', color: '#E5E4E2', image: '/tear/platinum.png', min: 7000, max: 11000 },
+    { name: 'Emerald', abbr: 'E', color: '#50C878', image: '/tear/emarald.png', min: 11000, max: 17000 },
+    { name: 'Sapphire', abbr: 'Sa', color: '#0F52BA', image: '/tear/sapa.png', min: 17000, max: 25000 },
+    { name: 'Ruby', abbr: 'R', color: '#E0115F', image: '/tear/rubi.png', min: 25000, max: 35000 },
+    { name: 'Diamond', abbr: 'D', color: '#B9F2FF', image: '/tear/diamond.png', min: 35000, max: 100000 },
 ]
 
 // Stat weights for combat power calculation
@@ -99,40 +99,56 @@ export function calculateCombatPower(stats: any, equipment: any[]): number {
 }
 
 /**
- * 상대 평가 시스템: 1등 전투력 기준으로 티어 계산
- * 1등 = Diamond 2 기준 (현재 임시, 나중에 전투력 상승하면 Diamond 3,4,5도 가능)
+ * 절대 평가 시스템: 전투력 기준으로 티어 계산
+ * 현재 랭킹 1등 (~37,000) = D5
+ * 각 티어 내에서 5단계로 세분화 (1이 최고, 5가 최저)
  *
  * @param combatPower - 해당 캐릭터의 전투력
- * @param topPower - 1등의 전투력
+ * @param topPower - 1등의 전투력 (레거시 호환, 사용하지 않음)
  */
 export function getTierInfo(combatPower: number, topPower?: number): TierInfo {
-    // 1등 전투력이 없으면 기본값 사용
-    const maxPower = topPower || combatPower || 1
+    // Diamond 최대치 이상은 D1 고정
+    if (combatPower >= 100000) {
+        const tierConfig = TIER_CONFIG[7] // Diamond
+        return {
+            tier: tierConfig.name,
+            subLevel: 1,
+            color: tierConfig.color,
+            displayName: `${tierConfig.abbr}1`,
+            image: tierConfig.image,
+            percentage: 100
+        }
+    }
 
-    // 1등 = Diamond 2 기준으로 계산
-    // Diamond 2 = 37단계 (8티어 x 5단계 = 40단계 중 37번째)
-    // 1등 전투력을 37단계로 매핑
-    const diamond2Step = 37
-    const stepPerPower = diamond2Step / maxPower
+    // 각 티어에서 세분화 계산
+    for (let i = TIER_CONFIG.length - 1; i >= 0; i--) {
+        const tier = TIER_CONFIG[i]
+        if (combatPower >= tier.min) {
+            const range = tier.max - tier.min
+            const position = combatPower - tier.min
+            // 5등분하여 1~5 계산 (높을수록 1에 가까움)
+            const subLevel = 5 - Math.min(4, Math.floor((position / range) * 5))
 
-    // 현재 캐릭터의 단계 계산
-    const currentStep = Math.min(40, Math.max(1, Math.floor(combatPower * stepPerPower)))
+            return {
+                tier: tier.name,
+                subLevel,
+                color: tier.color,
+                displayName: `${tier.abbr}${subLevel}`,
+                image: tier.image,
+                percentage: topPower ? Math.min(100, (combatPower / topPower) * 100) : 0
+            }
+        }
+    }
 
-    // 단계에서 티어와 세부 레벨 계산
-    // 1~5: Bronze 1~5, 6~10: Silver 1~5, ... 36~40: Diamond 1~5
-    const tierIndex = Math.min(7, Math.floor((currentStep - 1) / 5))
-    const subLevel = ((currentStep - 1) % 5) + 1
-
-    const tierConfig = TIER_CONFIG[tierIndex]
-    const percentage = Math.min(100, (combatPower / maxPower) * 100)
-
+    // 기본값: Bronze 5
+    const tierConfig = TIER_CONFIG[0]
     return {
         tier: tierConfig.name,
-        subLevel,
+        subLevel: 5,
         color: tierConfig.color,
-        displayName: `${tierConfig.name} ${subLevel}`,
+        displayName: `${tierConfig.abbr}5`,
         image: tierConfig.image,
-        percentage: Math.round(percentage * 10) / 10
+        percentage: 0
     }
 }
 

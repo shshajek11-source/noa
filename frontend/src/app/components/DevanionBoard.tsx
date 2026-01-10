@@ -109,7 +109,10 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                     throw new Error(errorData?.details || 'API 요청 실패')
                 }
 
-                const data: DaevanionBoardResponse = await res.json()
+                const response = await res.json()
+
+                // API returns { success: true, data: {...} } format
+                const data: DaevanionBoardResponse = response.data || response
 
                 // 🔍 DEBUG: Log successful data
                 console.log('✅ [DAEVANION BOARD] Data received successfully!', {
@@ -134,9 +137,10 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
     // Calculate stats from API data (matching official site logic)
     // Denominator: Valid nodes (grade !== "None" OR type !== "None") minus Start node
     // Numerator: Active nodes (open === 1)
-    const validNodes = boardData?.nodeList.filter(
+    const nodeList = boardData?.nodeList || []
+    const validNodes = nodeList.filter(
         (n) => n.grade !== "None" || n.type !== "None"
-    ) ?? []
+    )
     const validNodesExcludingStart = validNodes.filter((n) => n.type !== "Start")
     const activeNodes = validNodes.filter((n) => n.open === 1).length
     const totalNodes = validNodesExcludingStart.length
@@ -232,7 +236,7 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                         </h2>
 
                         {/* Active Effects Summary */}
-                        {boardData && (boardData.openStatEffectList.length > 0 || boardData.openSkillEffectList.length > 0) && (
+                        {boardData && ((boardData.openStatEffectList?.length || 0) > 0 || (boardData.openSkillEffectList?.length || 0) > 0) && (
                             <div style={{
                                 display: 'flex',
                                 gap: '0.5rem',
@@ -240,7 +244,7 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                                 marginTop: '0.75rem',
                                 maxWidth: '700px'
                             }}>
-                                {[...boardData.openStatEffectList, ...boardData.openSkillEffectList].map((effect, i) => (
+                                {[...(boardData.openStatEffectList || []), ...(boardData.openSkillEffectList || [])].map((effect, i) => (
                                     <span key={i} style={{
                                         padding: '0.25rem 0.75rem',
                                         background: 'rgba(17, 19, 24, 0.6)',
@@ -343,7 +347,7 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                                 </defs>
 
                                 {/* Nodes */}
-                                {boardData.nodeList.map((node) => {
+                                {(boardData.nodeList || []).map((node) => {
                                     const x = toSvgCoord(node.col)
                                     const y = toSvgCoord(node.row)
                                     const isActive = node.open === 1
@@ -427,7 +431,7 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                             <span style={{ color: activeGod.color, fontWeight: 'bold', marginRight: '0.5rem' }}>
                                 {hoveredNode.name}
                             </span>
-                            {hoveredNode.effectList.length > 0 && (
+                            {(hoveredNode.effectList?.length || 0) > 0 && (
                                 <span>{hoveredNode.effectList[0].desc}</span>
                             )}
                         </div>
@@ -472,7 +476,7 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                             <p style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.25rem', color: '#fff' }}>
                                 {hoveredNode.name}
                             </p>
-                            {hoveredNode.effectList.map((effect, i) => (
+                            {(hoveredNode.effectList || []).map((effect, i) => (
                                 <p key={i} style={{ color: activeGod.color, fontSize: '0.9rem', margin: '0.25rem 0' }}>
                                     {effect.desc}
                                 </p>
@@ -481,9 +485,9 @@ export default function DaevanionBoard({ characterId, serverId, race, characterC
                     ) : (
                         <>
                             <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1rem' }}>활성화된 효과</h4>
-                            {boardData && (boardData.openStatEffectList.length > 0 || boardData.openSkillEffectList.length > 0) ? (
+                            {boardData && ((boardData.openStatEffectList?.length || 0) > 0 || (boardData.openSkillEffectList?.length || 0) > 0) ? (
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-                                    {[...boardData.openStatEffectList, ...boardData.openSkillEffectList].map((effect, i) => (
+                                    {[...(boardData.openStatEffectList || []), ...(boardData.openSkillEffectList || [])].map((effect, i) => (
                                         <div key={i} style={{
                                             padding: '0.75rem',
                                             background: 'var(--bg-secondary)',

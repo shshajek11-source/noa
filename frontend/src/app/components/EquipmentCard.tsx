@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import EquipmentTooltip from './EquipmentTooltip'
+import styles from './ProfileSection.module.css'
 
 interface EquipmentCardProps {
     slot: string
@@ -56,9 +57,6 @@ const getItemNameColor = (grade: string): string => {
 
 export default function EquipmentCard({ slot, item, onClick }: EquipmentCardProps) {
     const [isHovered, setIsHovered] = useState(false)
-
-    // Unified render to ensure consistent size
-    // If no item, we just render placeholders
     const isEmpty = !item
 
     // Default colors for empty state
@@ -67,24 +65,13 @@ export default function EquipmentCard({ slot, item, onClick }: EquipmentCardProp
     const isDisplayHighTier = !isEmpty && item.tier >= 4
 
     return (
-        <div style={{
-            padding: '0.35rem',
-            background: '#111318',
-            border: '1px solid #1F2433',
-            borderRadius: '6px',
-            position: 'relative',
-            cursor: isEmpty ? 'default' : 'pointer',
-            transition: 'all 0.2s',
-            display: 'flex',
-            gap: '0.35rem',
-            alignItems: 'center',
-            width: '100%',
-            height: '46px', // Slightly more compact height
-            boxSizing: 'border-box',
-            zIndex: isHovered && !isEmpty ? 9999 : 1,
-            // opacity: isEmpty ? 1 : 1 // Removing opacity change for uniformity
-        }}
-            className={isEmpty ? '' : "equipment-card-hover"}
+        <div
+            className={styles.equipmentCard}
+            style={{
+                cursor: isEmpty ? 'default' : 'pointer',
+                borderColor: isHovered && !isEmpty ? 'rgba(255, 255, 255, 0.3)' : undefined,
+                overflow: 'visible' // Allow Tooltip to overflow
+            }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onClick={() => !isEmpty && item && onClick?.(item)}
@@ -92,158 +79,48 @@ export default function EquipmentCard({ slot, item, onClick }: EquipmentCardProp
             {/* Tooltip */}
             {!isEmpty && isHovered && item && <EquipmentTooltip item={item} />}
 
-            {/* Breakthrough Badge (Placeholder if empty) */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '20px',
-                height: '32px',
-                flexShrink: 0,
-                marginRight: '3px',
-                visibility: !isEmpty && item.breakthrough != null && item.breakthrough > 0 ? 'visible' : 'hidden'
-            }}>
+            {/* Breakthrough Badge */}
+            <div className={styles.breakthroughWrapper}
+                style={{ visibility: !isEmpty && item.breakthrough != null && item.breakthrough > 0 ? 'visible' : 'hidden' }}>
                 {!isEmpty && item.breakthrough != null && item.breakthrough > 0 && (
-                    <div style={{
-                        position: 'relative',
-                        width: '16px',
-                        height: '16px',
-                        transform: 'rotate(45deg)',
-                        background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 40%, #2563EB 60%, #1D4ED8 100%)',
-                        border: '1.5px solid #93C5FD',
-                        borderRadius: '2px',
-                        boxShadow: `
-                            0 0 6px rgba(59, 130, 246, 0.8),
-                            0 0 12px rgba(96, 165, 250, 0.4),
-                            inset 0 -2px 3px rgba(0, 0, 0, 0.4),
-                            inset 2px 2px 4px rgba(147, 197, 253, 0.6),
-                            inset -1px -1px 2px rgba(29, 78, 216, 0.6)
-                        `,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        animation: 'gemSparkle 2s ease-in-out infinite'
-                    }}>
-                        <span style={{
-                            transform: 'rotate(-45deg)',
-                            fontWeight: '900',
-                            fontSize: '0.6rem',
-                            color: '#FFFFFF',
-                            textShadow: `
-                                0 1px 2px rgba(0, 0, 0, 0.8),
-                                0 0 3px rgba(147, 197, 253, 0.8)
-                            `,
-                            lineHeight: '1',
-                            letterSpacing: '-0.5px'
-                        }}>
+                    <div className={styles.breakthroughBadge}>
+                        <span className={styles.breakthroughText}>
                             {item.breakthrough}
                         </span>
                     </div>
                 )}
             </div>
 
-            <style jsx>{`
-                @keyframes gemSparkle {
-                    0%, 100% {
-                        filter: brightness(1);
-                    }
-                    50% {
-                        filter: brightness(1.15);
-                    }
-                }
-            `}</style>
-
             {/* Item Image */}
-            <div style={{
-                width: '32px',
-                height: '32px',
-                background: '#0B0D12',
-                borderRadius: '4px',
-                border: `1px solid ${isDisplayHighTier ? displayTierColor + '60' : '#1F2433'}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                flexShrink: 0,
-                position: 'relative'
-            }}>
+            <div className={styles.equipmentIconWrapper}
+                style={{
+                    borderColor: isDisplayHighTier ? displayTierColor + '60' : undefined
+                }}>
                 {!isEmpty && item.image ? (
-                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={item.image} alt={item.name} className={styles.itemImage} />
                 ) : (
-                    <div style={{ fontSize: '0.5rem', color: '#374151', textAlign: 'center' }}>Empty</div>
+                    <div style={{ fontSize: '0.45rem', color: '#374151', textAlign: 'center', width: '100%', lineHeight: '28px' }}>Empty</div>
                 )}
 
                 {/* Enhancement Badge (Overlay on Image) */}
                 {!isEmpty && item.enhancement && (
-                    <div style={{
-                        position: 'absolute',
-                        bottom: '0',
-                        right: '0',
-                        background: 'rgba(11,13,18,0.95)',
-                        color: displayEnhancementColor,
-                        fontSize: '0.6rem',
-                        fontWeight: 'bold',
-                        padding: '0 2px',
-                        borderTopLeftRadius: '2px',
-                        lineHeight: '1'
-                    }}>
+                    <div className={styles.enhancementBadge} style={{ color: displayEnhancementColor }}>
                         {item.enhancement}
                     </div>
                 )}
             </div>
 
             {/* Info Column */}
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div className={styles.equipmentInfo}>
                 {/* Slot Name */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.65rem', color: '#9CA3AF' }}>{slot}</span>
-                </div>
+                <div className={styles.slotName}>{slot}</div>
 
                 {/* Item Name */}
-                <div style={{
-                    fontSize: '0.75rem',
-                    color: !isEmpty ? getItemNameColor(item.grade || '') : '#4B5563',
-                    fontWeight: !isEmpty ? '500' : 'normal',
-                    marginTop: '2px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                }}>
+                <div className={styles.itemName} style={{ color: !isEmpty ? getItemNameColor(item.grade || '') : '#4B5563' }}>
                     {!isEmpty ? item.name : '장착 없음'}
                 </div>
 
-                {/* Manastones (very compact) - Placeholder if empty to keep height? No, flex center handles vertical */}
-                {!isEmpty && item.manastones && item.manastones.length > 0 && (
-                    <div style={{
-                        marginTop: '2px',
-                        display: 'flex',
-                        gap: '2px',
-                        alignItems: 'center'
-                    }}>
-                        {item.manastones.slice(0, 4).map((stone, idx) => (
-                            <div key={idx}
-                                title={`${stone.type} +${stone.value}`}
-                                style={{
-                                    width: '5px',
-                                    height: '5px',
-                                    borderRadius: '50%',
-                                    background: stone.type.includes('공격') ? '#EF4444' : stone.type.includes('치명') ? '#F59E0B' : '#3B82F6',
-                                }} />
-                        ))}
-                        {item.manastones.length > 4 && (
-                            <span style={{ fontSize: '0.55rem', color: '#9CA3AF' }}>+{item.manastones.length - 4}</span>
-                        )}
-                    </div>
-                )}
             </div>
-
-            <style jsx>{`
-        .equipment-card-hover:hover {
-          border-color: #FACC15;
-          transform: translateY(-1px);
-        }
-      `}</style>
         </div>
     )
 }
-

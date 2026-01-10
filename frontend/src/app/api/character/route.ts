@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { CLASSES } from '../../constants/game-data'
-import { calculateCombatPower } from '../../utils/combatPower'
+import { aggregateStats } from '@/lib/statsAggregator'
+import { calculateCombatPowerFromStats } from '@/lib/combatPower'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit'
 import type {
     ExternalDetailResponse,
     TransformedItemDetail,
     StatListItem,
     EquipmentItem,
-    EquipmentForCalc,
     CharacterStats
 } from '@/types/api'
 
@@ -46,10 +46,10 @@ function transformDetailData(detailData: ExternalDetailResponse | null): Transfo
         }))
     }
 
-    // 3. Magic Stones (마석)
+    // 3. Magic Stones (마석) - API returns name field, not type
     if (detailData.magicStoneStat && Array.isArray(detailData.magicStoneStat)) {
-        result.manastones = detailData.magicStoneStat.map((stone) => ({
-            type: stone.type,
+        result.manastones = detailData.magicStoneStat.map((stone: any) => ({
+            type: stone.name || stone.type || '',  // API uses 'name' not 'type'
             value: stone.value,
             grade: stone.grade
         }))
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        console.log(`[API] Fetching data for ${characterId} / ${serverId}`)
+        console.log(`[API] Fetching data for characterId=${characterId}, serverId=${serverId}`)
 
         // Common headers to look like a browser
         const headers = {
@@ -162,9 +162,16 @@ export async function GET(request: NextRequest) {
             'Accept': 'application/json'
         }
 
+        // characterId가 이미 인코딩되어 있는지 확인 (% 문자 포함 여부)
+        const needsEncoding = !characterId.includes('%')
+        const encodedCharId = needsEncoding ? encodeURIComponent(characterId) : characterId
+        console.log(`[API] needsEncoding=${needsEncoding}, encodedCharId=${encodedCharId}`)
+
         // 1. Fetch Basic Info & Equipment List in Parallel
-        const infoUrl = `https://aion2.plaync.com/api/character/info?lang=ko&characterId=${encodeURIComponent(characterId)}&serverId=${serverId}`
-        const equipUrl = `https://aion2.plaync.com/api/character/equipment?lang=ko&characterId=${encodeURIComponent(characterId)}&serverId=${serverId}`
+        const infoUrl = `https://aion2.plaync.com/api/character/info?lang=ko&characterId=${encodedCharId}&serverId=${serverId}`
+        const equipUrl = `https://aion2.plaync.com/api/character/equipment?lang=ko&characterId=${encodedCharId}&serverId=${serverId}`
+
+        console.log(`[API] infoUrl=${infoUrl}`)
 
         const [infoRes, equipRes] = await Promise.all([
             fetch(infoUrl, { headers }),
@@ -172,8 +179,10 @@ export async function GET(request: NextRequest) {
         ])
 
         if (!infoRes.ok || !equipRes.ok) {
-            console.error(`[API] Basic fetch failed. Info: ${infoRes.status}, Equip: ${equipRes.status}`)
-            throw new Error('Failed to fetch from AION API')
+            const infoText = await infoRes.text().catch(() => '')
+            const equipText = await equipRes.text().catch(() => '')
+            console.error(`[API] Basic fetch failed. Info: ${infoRes.status} (${infoText.slice(0, 200)}), Equip: ${equipRes.status} (${equipText.slice(0, 200)})`)
+            throw new Error(`Failed to fetch from AION API (info: ${infoRes.status}, equip: ${equipRes.status})`)
         }
 
         const infoData = await infoRes.json()
@@ -183,7 +192,7 @@ export async function GET(request: NextRequest) {
         const statList: StatListItem[] = infoData.stat?.statList || []
         const cpStat = statList.find((s) => s.name === '전투력')
         const combatPower = cpStat?.value || 0
-        console.log(`[API] Combat Power for ${infoData.profile.characterName}: ${combatPower}`)
+        // console.log(`[API] Combat Power for ${infoData.profile.characterName}: ${combatPower}`)
 
         // 2. Fetch Detailed Info for EACH item in parallel
         let enrichedEquipmentList: EquipmentItem[] = []
@@ -197,7 +206,7 @@ export async function GET(request: NextRequest) {
 
             // Fetch detail for each item using the correct /item endpoint
             const equipmentList = equipData.equipment.equipmentList as EquipmentItem[]
-            console.log(`[API] Fetching details for ${equipmentList.length} items using /item endpoint...`)
+            // console.log(`[API] Fetching details for ${equipmentList.length} items using /item endpoint...`)
 
             enrichedEquipmentList = await Promise.all(
                 equipmentList.map(async (item) => {
@@ -210,7 +219,7 @@ export async function GET(request: NextRequest) {
                         }
 
                         // Correct endpoint and parameters (exceedLevel 추가!)
-                        const detailUrl = `https://aion2.plaync.com/api/character/equipment/item?id=${encodeURIComponent(itemId)}&enchantLevel=${item.enchantLevel || 0}&exceedLevel=${item.exceedLevel || 0}&characterId=${encodeURIComponent(characterId)}&serverId=${serverId}&slotPos=${item.slotPos}&lang=ko`
+                        const detailUrl = `https://aion2.plaync.com/api/character/equipment/item?id=${encodeURIComponent(itemId)}&enchantLevel=${item.enchantLevel || 0}&exceedLevel=${item.exceedLevel || 0}&characterId=${encodedCharId}&serverId=${serverId}&slotPos=${item.slotPos}&lang=ko`
 
                         const detailRes = await fetch(detailUrl, { headers })
 
@@ -233,16 +242,31 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        // Calculate NOA Score (HITON 전투력) - 캐릭터 상세 페이지와 동일한 방식
-        // 장비 데이터를 calculateCombatPower 형식으로 변환
-        const mappedEquipmentForCalc: EquipmentForCalc[] = enrichedEquipmentList.map((item) => ({
-            itemLevel: item.itemLevel || 0,
-            enhancement: (item.enchantLevel ?? 0) > 0 ? `+${item.enchantLevel}` : '',
-            breakthrough: item.exceedLevel || 0,
-            soulEngraving: item.soulEngraving,
-            manastones: item.manastoneList || []
-        }))
-        const noaScore = calculateCombatPower(infoData.stat, mappedEquipmentForCalc);
+        // Calculate NOA Score (HITON 전투력) - 새로운 방식: aggregateStats + calculateCombatPowerFromStats
+        // 장비, 칭호, 대바니온, 스탯 집계 후 전투력 계산
+        const titles = infoData.title || { titleList: [] }
+        const daevanion = infoData.daevanion || { boardList: [] }
+        const equippedTitleId = infoData.profile?.titleId
+
+        // 전투력 계산에서 제외할 아이템 필터링 - 클라이언트와 동일한 계산 방식
+        // - 아르카나: slotPos 41-45 또는 slotPosName이 'Arcana'로 시작
+        // - 펫: slotPos 51
+        // - 날개: slotPos 52
+        const equipmentForCalc = enrichedEquipmentList.filter((item: any) => {
+            const pos = item.slotPos
+            const slotName = item.slotPosName || ''
+            const isArcana = (pos >= 41 && pos <= 45) || slotName.startsWith('Arcana')
+            const isPet = pos === 51
+            const isWings = pos === 52
+            return !isArcana && !isPet && !isWings
+        })
+
+        // 스탯 집계
+        const aggregatedStats = aggregateStats(equipmentForCalc, titles, daevanion, infoData.stat, equippedTitleId)
+
+        // 새 전투력 계산
+        const combatPowerResult = calculateCombatPowerFromStats(aggregatedStats, infoData.stat)
+        const noaScore = combatPowerResult.totalScore
 
         // 3. Construct Final Response
         const finalData = {
@@ -323,7 +347,7 @@ export async function GET(request: NextRequest) {
             if (upsertError) {
                 console.error('[Supabase] Upsert error:', upsertError)
             } else {
-                console.log(`[Supabase] Successfully saved character ${infoData.profile.characterName}`)
+                // console.log(`[Supabase] Successfully saved character ${infoData.profile.characterName}`)
             }
         } else {
             // console.warn('[Supabase] Credentials missing, skipping DB save')

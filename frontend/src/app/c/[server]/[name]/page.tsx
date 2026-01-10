@@ -74,8 +74,8 @@ const mapEquipment = (rawEquipment: any, rawPetWings: any = [], rawAppearance: a
     safePetWings = [...safePetWings, ...potentialArrays.flat()]
   }
 
-  console.log('[DEBUG] mappedEquipment - rawPetWings:', rawPetWings)
-  console.log('[DEBUG] mappedEquipment - safePetWings:', safePetWings)
+  // console.log('[DEBUG] mappedEquipment - rawPetWings:', rawPetWings)
+  // console.log('[DEBUG] mappedEquipment - safePetWings:', safePetWings)
 
   // Check for potential appearance list in rawEquipment
   // Based on debug: keys include 'equipmentList' and 'skinList'
@@ -84,7 +84,7 @@ const mapEquipment = (rawEquipment: any, rawPetWings: any = [], rawAppearance: a
 
   // Merge all lists
   const list = [...(rawEquipment?.equipmentList || []), ...safePetWings, ...appearanceList, ...skinList, ...(Array.isArray(rawAppearance) ? rawAppearance : [])]
-  console.log('[DEBUG] mappedEquipment - Merged List Length:', list.length)
+  // console.log('[DEBUG] mappedEquipment - Merged List Length:', list.length)
 
   if (list.length === 0) return { equipment: [], accessories: [], arcana: [], pets: [], wings: [], appearance: [], debugInfo: null } // Early return if empty
 
@@ -197,11 +197,11 @@ const mapEquipment = (rawEquipment: any, rawPetWings: any = [], rawAppearance: a
 
     // Check if this is Pet (slotPos 51 or contains "펫")
     const isPet = item.slotPos === 51 || slotName?.includes('펫') || slotName?.includes('Pet')
-    if (isPet) console.log('[DEBUG] Found Pet:', item.name, item.slotPos)
+    // if (isPet) console.log('[DEBUG] Found Pet:', item.name, item.slotPos)
 
     // Check if this is Wings (slotPos 52 or contains "날개")
     const isWings = item.slotPos === 52 || slotName?.includes('날개') || slotName?.includes('Wing')
-    if (isWings) console.log('[DEBUG] Found Wings:', item.name, item.slotPos)
+    // if (isWings) console.log('[DEBUG] Found Wings:', item.name, item.slotPos)
 
     let isAccessory = false
     let isEquipment = false
@@ -245,7 +245,9 @@ const mapEquipment = (rawEquipment: any, rawPetWings: any = [], rawAppearance: a
       category: item.categoryName,
       breakthrough: item.exceedLevel || 0, // 공식 사이트와 동일한 필드명 사용!
       soulEngraving: item.soulEngraving ? { grade: item.soulEngraving.grade, percentage: item.soulEngraving.value } : undefined,
-      manastones: item.manastoneList?.map((m: any) => ({ type: m.name, value: m.point })) || [],
+      manastones: (item.manastoneList && item.manastoneList.length > 0)
+        ? item.manastoneList.map((m: any) => ({ type: m.name || m.type, value: m.point || m.value }))
+        : (item.detail?.manastones || []).map((m: any) => ({ type: m.type || m.name, value: m.value })),
       detail: item.detail, // Explicitly pass the detail object
       raw: item
     }
@@ -308,7 +310,7 @@ const mapStats = (rawStats: any): any[] => {
 
 const mapDevanion = (rawDevanion: any) => {
   // DEBUG: Log raw structure to terminal to identify correct keys
-  console.log('[[DEBUG]] mapDevanion raw input:', JSON.stringify(rawDevanion, null, 2));
+  // console.log('[[DEBUG]] mapDevanion raw input:', JSON.stringify(rawDevanion, null, 2));
 
   const result: any = {
     boards: {},
@@ -394,6 +396,15 @@ export default function CharacterDetailPage() {
   const [rawData, setRawData] = useState<CharacterDetail | null>(null) // Keep full DB response if needed
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // 디버그 로그
+  const [debugLogs, setDebugLogs] = useState<string[]>([])
+  const [showDebugPanel, setShowDebugPanel] = useState(false)
+  const addDebugLog = (msg: string) => {
+    const timestamp = new Date().toLocaleTimeString()
+    setDebugLogs(prev => [...prev, `[${timestamp}] ${msg}`])
+    console.log(`[Debug] ${msg}`)
+  }
 
   // Mapped Data States
   const [mappedEquipment, setMappedEquipment] = useState<{
@@ -486,9 +497,11 @@ export default function CharacterDetailPage() {
     try {
       setLoading(true)
       setError(null)
+      setDebugLogs([]) // 새 요청 시 로그 초기화
+      addDebugLog(`시작: serverName=${serverName}, charName=${charName}, race=${raceParam}`)
 
       if (isMock) {
-        console.log('Using MOCK data')
+        // console.log('Using MOCK data')
         await new Promise(r => setTimeout(r, 500)) // Fake delay
         const mockData: CharacterData = {
           id: 2002, // Zikel ID approx
@@ -510,13 +523,16 @@ export default function CharacterDetailPage() {
         return
       }
 
-      console.log('Fetching data for:', charName, serverName)
+      // console.log('Fetching data for:', charName, serverName)
 
       // Map server name to ID for accurate search
       const targetSearchServerId = SERVER_NAME_TO_ID[serverName]
+      addDebugLog(`서버 ID 매핑: ${serverName} -> ${targetSearchServerId}`)
 
       // Step 1: Search with Server ID if available, otherwise Global
+      addDebugLog(`검색 API 호출 중...`)
       const searchResults = await supabaseApi.searchCharacter(charName, targetSearchServerId, raceParam)
+      addDebugLog(`검색 결과: ${searchResults.length}개 찾음`)
 
       // Filter by server name or ID locally.
       const match = searchResults.find(r => {
@@ -529,24 +545,34 @@ export default function CharacterDetailPage() {
       })
 
       if (!match) {
+        addDebugLog(`ERROR: 매칭 실패 - 검색결과 서버: ${searchResults.map(r => r.server).join(', ')}`)
         throw new Error(`'${serverName}' 서버에서 '${charName}' 캐릭터를 찾을 수 없습니다. (ID: ${targetSearchServerId || 'unknown'})`)
       }
+      addDebugLog(`매칭 성공: characterId=${match.characterId}`)
 
       // Step 2: Get Detail from Local API
       const serverId = match.server_id || SERVER_NAME_TO_ID[serverName] || 1
-      const res = await fetch(`${getApiBaseUrl()}/api/character?id=${match.characterId}&server=${serverId}`)
+      const encodedCharacterId = encodeURIComponent(match.characterId)
+      const apiUrl = `${getApiBaseUrl()}/api/character?id=${encodedCharacterId}&server=${serverId}`
+      addDebugLog(`상세 API 호출: ${apiUrl}`)
+
+      const res = await fetch(apiUrl)
+      addDebugLog(`상세 API 응답: status=${res.status}`)
 
       if (!res.ok) {
-        throw new Error('Failed to fetch character data')
+        const errorText = await res.text().catch(() => '')
+        addDebugLog(`ERROR: API 실패 - ${errorText}`)
+        throw new Error(`캐릭터 상세 API 호출 실패 (status: ${res.status})${errorText ? ` - ${errorText}` : ''}`)
       }
 
       const detail = await res.json()
+      addDebugLog(`상세 데이터 수신 완료: ${detail.profile?.characterName || 'unknown'}`)
 
       // Transform logic
       const mappedStats = detail.stats || {}
       const mappedTitles = detail.titles || {}
-      console.log('Titles data:', detail.titles)
-      console.log('Mapped titles:', mappedTitles)
+      // console.log('Titles data:', detail.titles)
+      // console.log('Mapped titles:', mappedTitles)
       const mappedDaevanion = detail.daevanion || {}
       const mappedRankings = detail.rankings || {}
 
@@ -613,6 +639,36 @@ export default function CharacterDetailPage() {
       // Set API params for DevanionBoard - use detail.profile.characterId for correct character
       setApiCharacterId(detail.profile.characterId)
       setApiServerId(String(serverId))
+
+      // Supabase DB에서 item_level, noa_score 가져오기
+      try {
+        const dbRes = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/characters?character_id=eq.${encodeURIComponent(detail.profile.characterId)}&select=item_level,noa_score`,
+          {
+            headers: {
+              'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+        if (dbRes.ok) {
+          const dbData = await dbRes.json()
+          if (dbData && dbData.length > 0) {
+            const dbItemLevel = dbData[0].item_level
+            const dbNoaScore = dbData[0].noa_score
+            addDebugLog(`DB에서 item_level=${dbItemLevel}, noa_score=${dbNoaScore} 로드`)
+
+            // Update data with DB values
+            setData(prev => prev ? {
+              ...prev,
+              item_level: dbItemLevel || prev.item_level,
+              power: dbNoaScore || prev.power
+            } : prev)
+          }
+        }
+      } catch (dbErr) {
+        console.error('Failed to fetch item_level from DB:', dbErr)
+      }
 
       // --- SYNC JOB TO DB ---
       // If we have a valid Korean class name, sync it to the DB to fix any "pcId:X" issues in ranking
@@ -825,7 +881,7 @@ export default function CharacterDetailPage() {
         /* Desktop: 1200px fixed - 3 columns */
         @media (min-width: 1025px) {
           .char-detail-page {
-            width: 1200px;
+            width: 1280px;
             padding: 2rem;
           }
           .debug-panel {
@@ -854,9 +910,26 @@ export default function CharacterDetailPage() {
           }
           .grid-container {
             display: grid !important;
-            grid-template-columns: 260px 420px 1fr !important;
-            gap: 1rem !important;
+            grid-template-columns: 280px 440px 1fr !important;
+            gap: 2rem !important;
             align-items: start !important;
+            width: 100%;
+          }
+          .left-column {
+            width: 280px;
+            min-width: 280px;
+            max-width: 280px;
+          }
+          .center-column {
+            width: 440px;
+            min-width: 440px;
+            max-width: 440px;
+            overflow: visible;
+          }
+          .right-column {
+            min-width: 300px;
+            flex: 1;
+            overflow: visible;
           }
           .detail-section {
             grid-column: 1 / -1;
@@ -909,22 +982,135 @@ export default function CharacterDetailPage() {
         }
       `}</style>
 
-      {/* Debug Panel - Desktop Only */}
-      <div className="debug-panel">
-        <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '0.85rem', color: '#FACC15', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          🔧 디버그 패널
-        </div>
-        {Object.keys(debugInfo).length === 0 ? (
-          <div style={{ color: '#6B7280' }}>장비에 마우스를 올리면 정보가 표시됩니다</div>
-        ) : (
-          Object.entries(debugInfo).map(([key, value]) => (
-            <div key={key} style={{ marginBottom: '4px', borderBottom: '1px solid #27272A', paddingBottom: '4px' }}>
-              <span style={{ color: '#60A5FA' }}>{key}:</span>{' '}
-              <span style={{ color: '#E5E7EB' }}>{typeof value === 'object' ? JSON.stringify(value) : String(value)}</span>
+      {/* Debug Panel - 토글 가능 */}
+      {showDebugPanel && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          right: '20px',
+          width: '400px',
+          maxHeight: 'calc(100vh - 100px)',
+          overflowY: 'auto',
+          padding: '16px',
+          background: 'rgba(15, 17, 23, 0.98)',
+          border: '1px solid #374151',
+          borderRadius: '12px',
+          fontSize: '0.75rem',
+          color: '#9CA3AF',
+          zIndex: 9999,
+          boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#FACC15' }}>
+              🔧 디버그 패널
             </div>
-          ))
-        )}
-      </div>
+            <button
+              onClick={() => setShowDebugPanel(false)}
+              style={{ background: 'transparent', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '1.2rem' }}
+            >×</button>
+          </div>
+
+          {/* Character Info */}
+          <div style={{ marginBottom: '12px', padding: '8px', background: '#1F2937', borderRadius: '6px' }}>
+            <div style={{ color: '#60A5FA', fontWeight: 'bold', marginBottom: '4px' }}>📋 캐릭터 정보</div>
+            <div>characterId: <span style={{ color: '#10B981' }}>{apiCharacterId || 'N/A'}</span></div>
+            <div>serverId: <span style={{ color: '#10B981' }}>{apiServerId || 'N/A'}</span></div>
+            <div>name: <span style={{ color: '#10B981' }}>{data?.name || 'N/A'}</span></div>
+            <div>item_level: <span style={{ color: '#10B981' }}>{data?.item_level || 'N/A'}</span></div>
+          </div>
+
+          {/* Daevanion Info */}
+          <div style={{ marginBottom: '12px', padding: '8px', background: '#1F2937', borderRadius: '6px' }}>
+            <div style={{ color: '#F59E0B', fontWeight: 'bold', marginBottom: '4px' }}>⚔️ 데바니온 정보</div>
+            <div>boardList 존재: <span style={{ color: mappedDaevanion?.boardList ? '#10B981' : '#EF4444' }}>{mappedDaevanion?.boardList ? 'YES' : 'NO'}</span></div>
+            <div>boardList 길이: <span style={{ color: '#10B981' }}>{mappedDaevanion?.boardList?.length || 0}</span></div>
+            {mappedDaevanion?.boardList && mappedDaevanion.boardList.length > 0 && (
+              <div style={{ marginTop: '8px' }}>
+                <div style={{ color: '#9CA3AF', marginBottom: '4px' }}>boardList 내용:</div>
+                <pre style={{
+                  background: '#111318',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  overflow: 'auto',
+                  maxHeight: '150px',
+                  fontSize: '0.65rem',
+                  color: '#E5E7EB'
+                }}>
+                  {JSON.stringify(mappedDaevanion.boardList, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+
+          {/* Raw Daevanion */}
+          <div style={{ marginBottom: '12px', padding: '8px', background: '#1F2937', borderRadius: '6px' }}>
+            <div style={{ color: '#EC4899', fontWeight: 'bold', marginBottom: '4px' }}>📦 전체 Daevanion 데이터</div>
+            <pre style={{
+              background: '#111318',
+              padding: '8px',
+              borderRadius: '4px',
+              overflow: 'auto',
+              maxHeight: '200px',
+              fontSize: '0.65rem',
+              color: '#E5E7EB'
+            }}>
+              {JSON.stringify(mappedDaevanion, null, 2)}
+            </pre>
+          </div>
+
+          {/* Copy Button */}
+          <button
+            onClick={() => {
+              const debugData = {
+                characterId: apiCharacterId,
+                serverId: apiServerId,
+                name: data?.name,
+                item_level: data?.item_level,
+                daevanion: mappedDaevanion
+              }
+              navigator.clipboard.writeText(JSON.stringify(debugData, null, 2))
+              alert('디버그 정보가 클립보드에 복사되었습니다!')
+            }}
+            style={{
+              width: '100%',
+              padding: '8px',
+              background: '#2563EB',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            📋 디버그 정보 복사
+          </button>
+        </div>
+      )}
+
+      {/* Debug Toggle Button */}
+      <button
+        onClick={() => setShowDebugPanel(!showDebugPanel)}
+        style={{
+          position: 'fixed',
+          top: '80px',
+          right: '20px',
+          width: '40px',
+          height: '40px',
+          background: showDebugPanel ? '#EF4444' : '#1F2937',
+          border: '1px solid #374151',
+          borderRadius: '8px',
+          color: '#FACC15',
+          cursor: 'pointer',
+          zIndex: showDebugPanel ? 1 : 9998,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.2rem'
+        }}
+        title="디버그 패널 토글"
+      >
+        🔧
+      </button>
 
       {/* FAB Buttons Container */}
       <div className="fab-container">
@@ -969,6 +1155,9 @@ export default function CharacterDetailPage() {
               onArcanaClick={handleItemClick}
               stats={mappedStats}
               equipment={[...mappedEquipment.equipment, ...mappedEquipment.accessories]}
+              titles={mappedTitles}
+              daevanion={mappedDaevanion}
+              equippedTitleId={data.title_id}
             />
           </div>
 

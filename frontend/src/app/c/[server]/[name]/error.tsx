@@ -45,7 +45,7 @@ export default function CharacterError({ error, reset }: ErrorProps) {
 
                 <p style={{
                     color: 'var(--text-secondary, #9CA3AF)',
-                    marginBottom: '1.5rem',
+                    marginBottom: '1rem',
                     fontSize: '0.875rem'
                 }}>
                     {isNotFound
@@ -53,6 +53,21 @@ export default function CharacterError({ error, reset }: ErrorProps) {
                         : '캐릭터 정보를 불러오는 중 오류가 발생했습니다.'
                     }
                 </p>
+
+                {/* 디버그: 실제 에러 메시지 표시 */}
+                {error.message && (
+                    <p style={{
+                        color: '#EF4444',
+                        marginBottom: '1.5rem',
+                        fontSize: '0.75rem',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        padding: '0.5rem',
+                        borderRadius: '4px',
+                        wordBreak: 'break-all'
+                    }}>
+                        {error.message}
+                    </p>
+                )}
 
                 <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
                     <button

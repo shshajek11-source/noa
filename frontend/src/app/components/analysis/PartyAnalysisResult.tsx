@@ -1,7 +1,8 @@
-import React, { useRef } from 'react';
-import PartyCard from './PartyCard';
+import React, { useRef, useEffect } from 'react';
+import PartyCard, { DetailedSpec } from './PartyCard';
 import { Share2, BarChart3, TrendingUp, Sparkles, Upload, Loader2, ScanLine, AlertCircle, RotateCcw, Server, CheckCircle2 } from 'lucide-react';
 import { PendingServerSelection, PartyMember } from '@/hooks/usePartyScanner';
+import type { CharacterSpec } from './PartySpecCard';
 
 interface PartyAnalysisResultProps {
     data: {
@@ -16,14 +17,25 @@ interface PartyAnalysisResultProps {
     onManualUpload?: (file: File) => void;
     pendingSelections?: PendingServerSelection[];
     onSelectServer?: (slotIndex: number, selectedServer: string, characterData: PartyMember) => void;
+    detailedSpecs?: CharacterSpec[];
+    isLoadingSpecs?: boolean;
+    onFetchDetailedSpecs?: (members: PartyMember[]) => void;
 }
 
-export default function PartyAnalysisResult({ data, isScanning, onReset, onManualUpload, pendingSelections, onSelectServer }: PartyAnalysisResultProps) {
+export default function PartyAnalysisResult({ data, isScanning, onReset, onManualUpload, pendingSelections, onSelectServer, detailedSpecs, isLoadingSpecs, onFetchDetailedSpecs }: PartyAnalysisResultProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { totalCp, grade, members, recognizedCount = 0, foundCount = 0 } = data || { totalCp: 0, grade: '-', members: [], recognizedCount: 0, foundCount: 0 };
     const isEmpty = !data || (data.members.length === 0);
     const hasPartialMatch = recognizedCount > 0 && foundCount < recognizedCount;
     const hasPendingSelections = pendingSelections && pendingSelections.length > 0;
+    const noPendingSelections = !pendingSelections || pendingSelections.length === 0;
+
+    // 분석 완료 & 서버 선택 완료 시 자동으로 상세 스펙 조회
+    useEffect(() => {
+        if (data && members.length > 0 && noPendingSelections && onFetchDetailedSpecs && (!detailedSpecs || detailedSpecs.length === 0)) {
+            onFetchDetailedSpecs(members);
+        }
+    }, [data, members, noPendingSelections, onFetchDetailedSpecs, detailedSpecs]);
 
     const handleManualClick = () => {
         fileInputRef.current?.click();
@@ -405,9 +417,26 @@ export default function PartyAnalysisResult({ data, isScanning, onReset, onManua
 
                 <div style={gridStyle}>
                     {members.length > 0 ? (
-                        members.map((member, idx) => (
-                            <PartyCard key={idx} member={member} index={idx} />
-                        ))
+                        members.map((member, idx) => {
+                            // detailedSpecs에서 해당 멤버의 스펙 찾기
+                            const memberSpec = detailedSpecs?.find(s => s.name === member.name);
+                            const spec: DetailedSpec | undefined = memberSpec ? {
+                                hitonCP: memberSpec.hitonCP,
+                                itemLevel: memberSpec.itemLevel,
+                                totalBreakthrough: memberSpec.totalBreakthrough,
+                                stats: memberSpec.stats
+                            } : undefined;
+
+                            return (
+                                <PartyCard
+                                    key={idx}
+                                    member={member}
+                                    index={idx}
+                                    spec={spec}
+                                    isLoadingSpec={isLoadingSpecs && !spec}
+                                />
+                            );
+                        })
                     ) : (
                         // Empty Skeleton Slots (4명 파티)
                         Array.from({ length: 4 }).map((_, i) => (
@@ -425,6 +454,8 @@ export default function PartyAnalysisResult({ data, isScanning, onReset, onManua
                     )}
                 </div>
             </div>
+
+            {/* 스펙은 이제 각 PartyCard 내에 통합되어 표시됨 */}
 
             {/* Scanning Overlay (Toast/Indicator) */}
             {isScanning && (

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { RankingCharacter } from '@/types/character'
 import DSCard from '@/app/components/design-system/DSCard'
+import { SERVER_MAP } from '@/app/constants/servers'
 
 interface RankingTopItemProps {
     character: RankingCharacter
@@ -14,8 +15,10 @@ export default function RankingTopItem({ character, rank }: RankingTopItemProps)
     // Fallback profile image if none
     const profileImg = character.profile_image || '/placeholder-avatar.svg'
 
+    const serverName = SERVER_MAP[String(character.server_id)] || String(character.server_id)
+
     return (
-        <Link href={`/c/${encodeURIComponent(character.server_id)}/${encodeURIComponent(character.name)}`} className="block w-full">
+        <Link href={`/c/${encodeURIComponent(serverName)}/${encodeURIComponent(character.name)}`} className="block w-full">
             <DSCard
                 hoverEffect
                 noPadding

@@ -218,28 +218,36 @@ export default function EquipmentTooltip({ item }: EquipmentTooltipProps) {
                     </div>
                 )}
 
-                {/* 4. Manastones (마석) - from detail.manastones */}
-                {item.detail?.manastones && item.detail.manastones.length > 0 && (
-                    <div style={{ marginTop: '4px' }}>
-                        <div style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '4px' }}>마석</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            {item.detail.manastones.map((stone: any, idx: number) => (
-                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#60A5FA' }}>
-                                    {stone.icon && (
-                                        <img
-                                            src={stone.icon}
-                                            alt={stone.type}
-                                            style={{ width: '16px', height: '16px', flexShrink: 0 }}
-                                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                                        />
-                                    )}
-                                    <span style={{ flex: 1 }}>{stone.type}</span>
-                                    <span>{stone.value}</span>
-                                </div>
-                            ))}
+                {/* 4. Manastones (마석) - from detail.manastones or item.manastones */}
+                {(() => {
+                    const manastones = (item.detail?.manastones && item.detail.manastones.length > 0)
+                        ? item.detail.manastones
+                        : (item.manastones && item.manastones.length > 0)
+                            ? item.manastones
+                            : null
+                    if (!manastones) return null
+                    return (
+                        <div style={{ marginTop: '4px' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '4px' }}>마석</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                {manastones.map((stone: any, idx: number) => (
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#60A5FA' }}>
+                                        {stone.icon && (
+                                            <img
+                                                src={stone.icon}
+                                                alt={stone.type || stone.name}
+                                                style={{ width: '16px', height: '16px', flexShrink: 0 }}
+                                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                            />
+                                        )}
+                                        <span style={{ flex: 1 }}>{stone.type || stone.name}</span>
+                                        <span>+{stone.value}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )
+                })()}
 
                 {/* 5. God Stones (신석) */}
                 {item.detail?.godstones && item.detail.godstones.length > 0 && (

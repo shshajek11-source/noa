@@ -170,14 +170,14 @@ const TierBadge = memo(function TierBadge({ tierInfo, isPromoted }: { tierInfo: 
                 height={32}
                 style={{ objectFit: 'contain' }}
             />
-            {/* 티어명 + 숫자 */}
+            {/* 티어명 (예: D5, R3, Sa1) */}
             <span style={{
                 fontSize: '1rem',
                 fontWeight: 600,
                 color: tierInfo.color,
                 whiteSpace: 'nowrap'
             }}>
-                {tierInfo.tier} {tierInfo.subLevel}
+                {tierInfo.displayName}
             </span>
         </div>
     )

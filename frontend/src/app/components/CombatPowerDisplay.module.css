@@ -1,0 +1,227 @@
+/* Combat Power Display */
+.container {
+  background: linear-gradient(135deg, rgba(15, 17, 23, 0.95) 0%, rgba(25, 28, 38, 0.95) 100%);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.container:hover {
+  border-color: rgba(250, 204, 21, 0.5);
+  box-shadow: 0 4px 20px rgba(250, 204, 21, 0.15);
+}
+
+/* Main Score Section */
+.mainScore {
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mainScore:hover {
+  background: rgba(250, 204, 21, 0.05);
+}
+
+.scoreHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.scoreLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.version {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.scoreValue {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.grade {
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-shadow: 0 0 20px currentColor;
+  animation: gradePulse 2s ease-in-out infinite;
+}
+
+@keyframes gradePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.score {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #F3F4F6;
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: -0.02em;
+}
+
+.expandHint {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+/* Details Section */
+.details {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Coefficients Grid */
+.coefficientsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.coefficientItem {
+  background: rgba(26, 29, 38, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 0.5rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.coefficientItem:hover {
+  background: rgba(37, 41, 54, 0.9);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.coefficientItem.highlight {
+  border-color: rgba(250, 204, 21, 0.4);
+  background: rgba(250, 204, 21, 0.1);
+}
+
+.coefficientItem.low {
+  opacity: 0.6;
+}
+
+.coefficientHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.coefficientIcon {
+  font-size: 0.75rem;
+}
+
+.coefficientLabel {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coefficientValue {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #F3F4F6;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.coefficientItem.highlight .coefficientValue {
+  color: var(--primary);
+}
+
+/* Stats Details */
+.statsDetails {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.statsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.statsRow:last-child {
+  border-bottom: none;
+}
+
+.statsValue {
+  color: #86EFAC;
+  font-weight: 600;
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* Formula */
+.formula {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(250, 204, 21, 0.05);
+  border: 1px dashed rgba(250, 204, 21, 0.2);
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.formulaLabel {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.formulaText {
+  color: var(--text-secondary);
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .coefficientsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .score {
+    font-size: 1.5rem;
+  }
+
+  .grade {
+    font-size: 1.2rem;
+  }
+}

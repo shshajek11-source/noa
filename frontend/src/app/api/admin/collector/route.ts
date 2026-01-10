@@ -5,16 +5,17 @@ import {
     CollectorState,
     CollectorConfig,
     CollectorLog,
+    CollectorCheckpoint,
     INITIAL_COLLECTOR_STATE,
     DEFAULT_COLLECTOR_CONFIG
 } from '@/types/collector'
 import { SERVERS } from '@/app/constants/servers'
 
 // In-memory state (서버 재시작 시 초기화됨)
-// 프로덕션에서는 Redis나 DB에 저장 권장
 let collectorState: CollectorState = { ...INITIAL_COLLECTOR_STATE }
 let collectorConfig: CollectorConfig = { ...DEFAULT_COLLECTOR_CONFIG }
 let collectorLogs: CollectorLog[] = []
+let collectorCheckpoint: CollectorCheckpoint | null = null
 let isCollecting = false
 let shouldStop = false
 let shouldPause = false
@@ -24,6 +25,52 @@ const getSupabase = () => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     return createClient(url, key)
+}
+
+// 체크포인트 저장 (Supabase settings 테이블 사용)
+const saveCheckpoint = async (checkpoint: CollectorCheckpoint) => {
+    try {
+        const supabase = getSupabase()
+        await supabase.from('settings').upsert({
+            key: 'collector_checkpoint',
+            value: checkpoint,
+            updated_at: new Date().toISOString()
+        }, { onConflict: 'key' })
+        collectorCheckpoint = checkpoint
+    } catch (err) {
+        console.error('Checkpoint save error:', err)
+    }
+}
+
+// 체크포인트 로드
+const loadCheckpoint = async (): Promise<CollectorCheckpoint | null> => {
+    try {
+        const supabase = getSupabase()
+        const { data } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'collector_checkpoint')
+            .single()
+
+        if (data?.value) {
+            collectorCheckpoint = data.value as CollectorCheckpoint
+            return collectorCheckpoint
+        }
+    } catch (err) {
+        console.error('Checkpoint load error:', err)
+    }
+    return null
+}
+
+// 체크포인트 삭제
+const clearCheckpoint = async () => {
+    try {
+        const supabase = getSupabase()
+        await supabase.from('settings').delete().eq('key', 'collector_checkpoint')
+        collectorCheckpoint = null
+    } catch (err) {
+        console.error('Checkpoint clear error:', err)
+    }
 }
 
 // 로그 추가
@@ -133,24 +180,42 @@ const runCollection = async () => {
 
     const keywords = collectorConfig.keywords
     const totalTasks = servers.length * keywords.length
-    let completedTasks = 0
+
+    // 체크포인트 로드
+    const checkpoint = await loadCheckpoint()
+    let startServerIndex = 0
+    let startKeywordIndex = 0
+    let previousCollected = 0
+
+    if (checkpoint) {
+        startServerIndex = checkpoint.serverIndex
+        startKeywordIndex = checkpoint.keywordIndex
+        previousCollected = checkpoint.totalCollected
+        addLog('info', `체크포인트에서 재개: ${checkpoint.lastKeyword} (${checkpoint.lastServer}) - 이전 ${previousCollected}명`)
+    }
+
+    let completedTasks = startServerIndex * keywords.length + startKeywordIndex
 
     collectorState = {
         ...collectorState,
         status: 'running',
         startedAt: new Date().toISOString(),
-        totalCollected: 0,
+        totalCollected: previousCollected,
         totalErrors: 0,
-        progress: 0
+        progress: Math.round((completedTasks / totalTasks) * 100)
     }
 
     addLog('info', `수집 시작: ${servers.length}개 서버, ${keywords.length}개 키워드`)
 
     try {
-        for (const server of servers) {
+        for (let si = startServerIndex; si < servers.length; si++) {
+            const server = servers[si]
             if (shouldStop) break
 
-            for (const keyword of keywords) {
+            const kwStart = (si === startServerIndex) ? startKeywordIndex : 0
+
+            for (let ki = kwStart; ki < keywords.length; ki++) {
+                const keyword = keywords[ki]
                 if (shouldStop) break
 
                 // 일시정지 처리
@@ -168,7 +233,9 @@ const runCollection = async () => {
                 let page = 1
                 let hasMore = true
 
-                while (hasMore && !shouldStop && !shouldPause) {
+                const maxPages = collectorConfig.maxPages || 5  // 기본 5페이지
+
+                while (hasMore && !shouldStop && !shouldPause && page <= maxPages) {
                     try {
                         collectorState.currentPage = page
                         collectorState.lastUpdatedAt = new Date().toISOString()
@@ -179,9 +246,9 @@ const runCollection = async () => {
                             const saved = await saveCharacters(result.list, server.id)
                             collectorState.totalCollected += saved
 
-                            // 다음 페이지 확인
+                            // 다음 페이지 확인 (maxPages 제한 추가)
                             const pagination = result.pagination
-                            hasMore = page < pagination.endPage && result.list.length === collectorConfig.pageSize
+                            hasMore = page < pagination.endPage && result.list.length === collectorConfig.pageSize && page < maxPages
                             page++
                         } else {
                             hasMore = false
@@ -208,8 +275,24 @@ const runCollection = async () => {
                 const remaining = (elapsed / completedTasks) * (totalTasks - completedTasks)
                 collectorState.estimatedRemaining = formatDuration(remaining)
 
+                // 체크포인트 저장 (매 키워드 완료 시)
+                await saveCheckpoint({
+                    serverIndex: si,
+                    keywordIndex: ki + 1,  // 다음 키워드부터 시작하도록
+                    totalCollected: collectorState.totalCollected,
+                    lastKeyword: keyword,
+                    lastServer: server.name,
+                    savedAt: new Date().toISOString()
+                })
+
                 addLog('success', `완료: "${keyword}" (${server.name}) - ${collectorState.totalCollected}명 수집`)
             }
+        }
+
+        // 수집 완료 시 체크포인트 삭제
+        if (!shouldStop) {
+            await clearCheckpoint()
+            addLog('info', '체크포인트 초기화됨 (수집 완료)')
         }
 
         collectorState.status = shouldStop ? 'stopped' : 'idle'
@@ -251,12 +334,16 @@ export async function GET(request: NextRequest) {
         case 'status':
             return NextResponse.json({
                 state: collectorState,
-                isRunning: isCollecting
+                isRunning: isCollecting,
+                checkpoint: collectorCheckpoint
             })
         case 'config':
             return NextResponse.json(collectorConfig)
         case 'logs':
             return NextResponse.json(collectorLogs.slice(0, 50))
+        case 'checkpoint':
+            const cp = await loadCheckpoint()
+            return NextResponse.json({ checkpoint: cp })
         default:
             return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
     }
@@ -310,8 +397,9 @@ export async function POST(request: NextRequest) {
         case 'reset':
             collectorState = { ...INITIAL_COLLECTOR_STATE }
             collectorLogs = []
-            addLog('info', '상태 초기화됨')
-            return NextResponse.json({ success: true, message: '초기화되었습니다' })
+            await clearCheckpoint()  // 체크포인트도 삭제
+            addLog('info', '상태 및 체크포인트 초기화됨')
+            return NextResponse.json({ success: true, message: '초기화되었습니다 (처음부터 다시 시작)' })
 
         default:
             return NextResponse.json({ error: 'Invalid action' }, { status: 400 })

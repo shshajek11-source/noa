@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { supabaseApi, SERVER_NAME_TO_ID, SERVER_ID_TO_NAME } from '../lib/supabaseApi';
 import { MainCharacter, MAIN_CHARACTER_KEY } from './useMainCharacter';
+import { aggregateStats } from '../lib/statsAggregator';
+import { calculateCombatPowerFromStats } from '../lib/combatPower';
+import type { CharacterSpec, CharacterStats } from '../app/components/analysis/PartySpecCard';
 
 export interface PartyMember {
     id: string;
@@ -48,6 +51,7 @@ export const usePartyScanner = () => {
     const [croppedPreview, setCroppedPreview] = useState<string | null>(null); // 크롭된 이미지 미리보기
     const [pendingSelections, setPendingSelections] = useState<PendingServerSelection[]>([]); // 서버 선택 대기중
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null); // 분석 결과 저장
+    const [debugData, setDebugData] = useState<any[]>([]); // 디버그용 API 응답 데이터
 
     // 이미지 전처리: 그레이스케일 + 대비 강화
     const preprocessImage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -193,7 +197,7 @@ export const usePartyScanner = () => {
             '아스펠': '아스펠', '아스': '아스펠',
             '에레슈키갈': '에레슈키갈', '에레슈키': '에레슈키갈', '에레슈': '에레슈키갈', '에레': '에레슈키갈',
             '브리트라': '브리트라', '브리트': '브리트라', '브리': '브리트라',
-            '네몬': '네몬',
+            '네몬': '네몬', '네모': '네몬',
             '하달': '하달',
             '루드라': '루드라', '루드': '루드라',
             '울고른': '울고른', '울고': '울고른',
@@ -270,7 +274,7 @@ export const usePartyScanner = () => {
 
         // 2. OCR에서 서버명 패턴 찾기 (이름[서버] 형식만 - 서버명 없는건 무시)
         addLog(`[패턴 검색] "이름[서버]" 형식 찾는 중...`);
-        const serverMatches = fullText.matchAll(new RegExp(serverRegex, 'g'));
+        const serverMatches = Array.from(fullText.matchAll(new RegExp(serverRegex, 'g')));
         let serverMatchCount = 0;
 
         for (const match of serverMatches) {
@@ -354,13 +358,137 @@ export const usePartyScanner = () => {
         }
     };
 
+    // OCR 모음 혼동 보정 - 대체 이름 생성
+    const generateAlternativeNames = (name: string): string[] => {
+        const alternatives: string[] = [];
+
+        // 한글 유니코드 분해/조합을 위한 상수
+        const HANGUL_START = 0xAC00;
+        const HANGUL_END = 0xD7A3;
+        const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+        const JUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+        const JONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+        // OCR에서 자주 혼동되는 모음 쌍 (인덱스 기반)
+        // ㅕ(6) ↔ ㅓ(4), ㅑ(2) ↔ ㅏ(0), ㅠ(17) ↔ ㅜ(13), ㅛ(12) ↔ ㅗ(8)
+        const vowelSwaps: [number, number][] = [
+            [6, 4],   // ㅕ ↔ ㅓ
+            [2, 0],   // ㅑ ↔ ㅏ
+            [17, 13], // ㅠ ↔ ㅜ
+            [12, 8],  // ㅛ ↔ ㅗ
+        ];
+
+        // 각 모음 쌍에 대해 대체 이름 생성
+        for (const [v1, v2] of vowelSwaps) {
+            let altName = '';
+            let hasChange = false;
+
+            for (const char of name) {
+                const code = char.charCodeAt(0);
+
+                if (code >= HANGUL_START && code <= HANGUL_END) {
+                    const offset = code - HANGUL_START;
+                    const choIdx = Math.floor(offset / (21 * 28));
+                    const jungIdx = Math.floor((offset % (21 * 28)) / 28);
+                    const jongIdx = offset % 28;
+
+                    // 모음 교체
+                    let newJungIdx = jungIdx;
+                    if (jungIdx === v1) {
+                        newJungIdx = v2;
+                        hasChange = true;
+                    } else if (jungIdx === v2) {
+                        newJungIdx = v1;
+                        hasChange = true;
+                    }
+
+                    const newCode = HANGUL_START + (choIdx * 21 * 28) + (newJungIdx * 28) + jongIdx;
+                    altName += String.fromCharCode(newCode);
+                } else {
+                    altName += char;
+                }
+            }
+
+            if (hasChange && altName !== name && !alternatives.includes(altName)) {
+                alternatives.push(altName);
+            }
+        }
+
+        return alternatives;
+    };
+
+    // OCR 쌍자음 혼동 보정 - 단자음↔쌍자음 변환
+    // ㄷ(3) ↔ ㄸ(4), ㄱ(0) ↔ ㄲ(1), ㅂ(7) ↔ ㅃ(8), ㅅ(9) ↔ ㅆ(10), ㅈ(12) ↔ ㅉ(13)
+    const generateDoubleConsonantAlternatives = (name: string): string[] => {
+        console.log(`[generateDoubleConsonantAlternatives] 입력: "${name}"`);
+        const alternatives: string[] = [];
+
+        const HANGUL_START = 0xAC00;
+        const HANGUL_END = 0xD7A3;
+
+        // 초성 쌍자음 쌍 (인덱스 기반): [단자음, 쌍자음]
+        const consonantSwaps: [number, number][] = [
+            [3, 4],   // ㄷ(3) ↔ ㄸ(4)
+            [0, 1],   // ㄱ(0) ↔ ㄲ(1)
+            [7, 8],   // ㅂ(7) ↔ ㅃ(8)
+            [9, 10],  // ㅅ(9) ↔ ㅆ(10)
+            [12, 13], // ㅈ(12) ↔ ㅉ(13)
+        ];
+
+        // 각 자음 쌍에 대해 대체 이름 생성
+        for (const [c1, c2] of consonantSwaps) {
+            let altName = '';
+            let hasChange = false;
+
+            for (const char of name) {
+                const code = char.charCodeAt(0);
+
+                if (code >= HANGUL_START && code <= HANGUL_END) {
+                    const offset = code - HANGUL_START;
+                    const choIdx = Math.floor(offset / (21 * 28));
+                    const jungIdx = Math.floor((offset % (21 * 28)) / 28);
+                    const jongIdx = offset % 28;
+
+                    // 초성 교체 (단자음 → 쌍자음)
+                    let newChoIdx = choIdx;
+                    if (choIdx === c1) {
+                        newChoIdx = c2;
+                        hasChange = true;
+                    } else if (choIdx === c2) {
+                        newChoIdx = c1;
+                        hasChange = true;
+                    }
+
+                    const newCode = HANGUL_START + (newChoIdx * 21 * 28) + (jungIdx * 28) + jongIdx;
+                    altName += String.fromCharCode(newCode);
+                } else {
+                    altName += char;
+                }
+            }
+
+            if (hasChange && altName !== name && !alternatives.includes(altName)) {
+                console.log(`[generateDoubleConsonantAlternatives] 변환: "${name}" → "${altName}"`);
+                alternatives.push(altName);
+            }
+        }
+
+        console.log(`[generateDoubleConsonantAlternatives] 결과: ${alternatives.length}개 -`, alternatives);
+        return alternatives;
+    };
+
+    // 디버그 로그 추가 헬퍼
+    const addSearchLog = (msg: string) => {
+        console.log(msg);
+        setLogs(prev => [...prev, msg]);
+    };
+
     // DB/API에서 캐릭터 정보 조회
     const lookupCharacter = async (name: string, serverName: string): Promise<PartyMember | null> => {
         // 서버명 보정 후 ID 조회
         const correctedServer = correctServerName(serverName);
         const serverId = SERVER_NAME_TO_ID[correctedServer];
 
-        console.log(`[lookupCharacter] Looking up: ${name} on ${serverName} → ${correctedServer} (ID: ${serverId})`);
+        addSearchLog(`🔍 검색 시작: "${name}" [${correctedServer}]`);
 
         // 유효하지 않은 서버명이면 스킵
         if (!serverId) {
@@ -404,10 +532,14 @@ export const usePartyScanner = () => {
         try {
             // 1. 로컬 DB 먼저 검색 (빠름)
             const localResults = await supabaseApi.searchLocalCharacter(name, serverId);
-            console.log(`[lookupCharacter] Local search results for ${name}:`, localResults.length);
+            addSearchLog(`   └ 로컬DB: ${localResults.length}개 결과`);
+            if (localResults.length > 0) {
+                addSearchLog(`   └ 결과: ${localResults.map((r: any) => r.name).join(', ')}`);
+            }
             const localMatch = findExactMatch(localResults, name);
 
             if (localMatch) {
+                addSearchLog(`✅ 로컬DB에서 찾음: "${localMatch.match.name}"`);
                 console.log(`[lookupCharacter] Found in local DB:`, localMatch.match.name,
                     'noa_score:', localMatch.match.noa_score, 'item_level:', localMatch.match.item_level);
 
@@ -490,12 +622,16 @@ export const usePartyScanner = () => {
             }
 
             // 2. 로컬 DB에 없으면 라이브 API 검색
-            console.log(`[lookupCharacter] Not in local DB, trying live API for ${name}...`);
+            addSearchLog(`   └ 라이브API 검색 중...`);
             const liveResults = await supabaseApi.searchCharacter(name, serverId);
-            console.log(`[lookupCharacter] Live search results for ${name}:`, liveResults.length);
+            addSearchLog(`   └ 라이브API: ${liveResults.length}개 결과`);
+            if (liveResults.length > 0) {
+                addSearchLog(`   └ 결과: ${liveResults.map((r: any) => r.name).join(', ')}`);
+            }
             const liveMatch = findExactMatch(liveResults, name);
 
             if (liveMatch) {
+                addSearchLog(`✅ 라이브API에서 찾음: "${liveMatch.match.name}"`);
                 console.log(`[lookupCharacter] Found in live API:`, liveMatch.match.name,
                     'noa_score:', liveMatch.match.noa_score, 'item_level:', liveMatch.match.item_level);
 
@@ -577,10 +713,105 @@ export const usePartyScanner = () => {
                 }
             }
 
-            console.log(`[lookupCharacter] Character not found: ${name}`);
+            // 3. 못 찾으면 대체 이름(모음 교체 + 쌍자음 교체)으로 재검색
+            addSearchLog(`❌ "${name}" 못 찾음 → 대체 이름 검색 시작`);
+            const vowelAltNames = generateAlternativeNames(name);
+            const consonantAltNames = generateDoubleConsonantAlternatives(name);
+            const altNames = [...vowelAltNames, ...consonantAltNames];
+            addSearchLog(`🔄 대체 이름 ${altNames.length}개: ${altNames.join(', ')}`);
+
+            for (const altName of altNames) {
+                addSearchLog(`   🔍 대체 검색: "${altName}"`);
+
+                // 로컬 DB 검색
+                const altLocalResults = await supabaseApi.searchLocalCharacter(altName, serverId);
+                const altLocalMatch = findExactMatch(altLocalResults, altName);
+
+                if (altLocalMatch) {
+                    addSearchLog(`   ✅ 대체이름 로컬DB: "${altName}" (원본: "${name}")`);
+                    // noa_score 유무와 관계없이 찾은 결과 반환
+                    return {
+                        id: altLocalMatch.match.characterId,
+                        characterId: altLocalMatch.match.characterId,
+                        name: altLocalMatch.match.name,
+                        class: altLocalMatch.match.job || 'Unknown',
+                        cp: altLocalMatch.match.noa_score || 0,
+                        gearScore: altLocalMatch.match.item_level || 0,
+                        server: altLocalMatch.match.server,
+                        level: altLocalMatch.match.level,
+                        profileImage: altLocalMatch.match.imageUrl,
+                        isMvp: false,
+                        isFromDb: true
+                    };
+                }
+
+                // 라이브 API 검색
+                const altLiveResults = await supabaseApi.searchCharacter(altName, serverId);
+                const altLiveMatch = findExactMatch(altLiveResults, altName);
+
+                if (altLiveMatch) {
+                    addSearchLog(`   ✅ 대체이름 라이브API: "${altName}" (원본: "${name}")`);
+                    if (altLiveMatch.match.noa_score && altLiveMatch.match.noa_score > 0) {
+                        return {
+                            id: altLiveMatch.match.characterId,
+                            characterId: altLiveMatch.match.characterId,
+                            name: altLiveMatch.match.name,
+                            class: altLiveMatch.match.job || 'Unknown',
+                            cp: altLiveMatch.match.noa_score,
+                            gearScore: altLiveMatch.match.item_level || 0,
+                            server: altLiveMatch.match.server,
+                            level: altLiveMatch.match.level,
+                            profileImage: altLiveMatch.match.imageUrl,
+                            isMvp: false,
+                            isFromDb: true
+                        };
+                    }
+
+                    // noa_score 없으면 상세 조회
+                    try {
+                        const detail = await fetchCharacterWithNoaScore(altLiveMatch.match.characterId, serverId);
+                        if (detail && detail.profile) {
+                            return {
+                                id: detail.profile.characterId || altLiveMatch.match.characterId,
+                                characterId: detail.profile.characterId || altLiveMatch.match.characterId,
+                                name: detail.profile.characterName || altLiveMatch.match.name,
+                                class: detail.profile.className || altLiveMatch.match.job || 'Unknown',
+                                cp: detail.profile.noa_score || 0,
+                                gearScore: detail.item_level || 0,
+                                server: detail.profile.serverName || altLiveMatch.match.server,
+                                level: detail.profile.characterLevel || altLiveMatch.match.level,
+                                profileImage: detail.profile.profileImage || altLiveMatch.match.imageUrl,
+                                isMvp: false,
+                                isFromDb: true
+                            };
+                        }
+                    } catch (e) {
+                        console.error(`[lookupCharacter] Failed to get detail for alt name:`, e);
+                    }
+
+                    // 상세 조회 실패해도 찾은 결과 반환
+                    addSearchLog(`   ✅ 대체이름 반환: "${altLiveMatch.match.name}"`);
+                    return {
+                        id: altLiveMatch.match.characterId,
+                        characterId: altLiveMatch.match.characterId,
+                        name: altLiveMatch.match.name,
+                        class: altLiveMatch.match.job || 'Unknown',
+                        cp: altLiveMatch.match.noa_score || 0,
+                        gearScore: altLiveMatch.match.item_level || 0,
+                        server: altLiveMatch.match.server,
+                        level: altLiveMatch.match.level,
+                        profileImage: altLiveMatch.match.imageUrl,
+                        isMvp: false,
+                        isFromDb: true
+                    };
+                }
+            }
+
+            addSearchLog(`❌ "${name}" 대체 이름으로도 못 찾음`);
             return null;
         } catch (err) {
             console.error(`[usePartyScanner] Failed to lookup character: ${name}`, err);
+            addSearchLog(`❌ "${name}" 검색 오류: ${err}`);
             return null;
         }
     };
@@ -890,6 +1121,207 @@ export const usePartyScanner = () => {
         setLogs(prev => [...prev, `✅ ${characterData.name} → ${selectedServer} 선택됨`]);
     }, [analysisResult, pendingSelections]);
 
+    // 상세 스펙 상태
+    const [detailedSpecs, setDetailedSpecs] = useState<CharacterSpec[]>([]);
+    const [isLoadingSpecs, setIsLoadingSpecs] = useState(false);
+
+    // 캐릭터 상세 스펙 조회 함수
+    const fetchDetailedSpecs = useCallback(async (members: PartyMember[]) => {
+        if (!members || members.length === 0) return;
+
+        setIsLoadingSpecs(true);
+        setLogs(prev => [...prev, '상세 스펙 조회 중...']);
+
+        const specs: CharacterSpec[] = [];
+
+        for (const member of members) {
+            try {
+                // characterId와 서버 정보가 있어야 조회 가능
+                if (!member.characterId || !member.server) {
+                    // 기본 스펙으로 채움
+                    specs.push({
+                        name: member.name,
+                        server: member.server || '알 수 없음',
+                        className: member.class,
+                        level: member.level || 0,
+                        profileImage: member.profileImage,
+                        hitonCP: member.cp,
+                        itemLevel: member.gearScore || 0,
+                        totalBreakthrough: 0,
+                        stats: {
+                            attackPower: '-',
+                            attackSpeed: 0,
+                            weaponDamageAmp: 0,
+                            damageAmp: 0,
+                            criticalRate: 0,
+                            multiHitRate: 0,
+                        }
+                    });
+                    continue;
+                }
+
+                // 서버 ID 가져오기
+                const serverId = SERVER_NAME_TO_ID[member.server];
+                if (!serverId) {
+                    specs.push({
+                        name: member.name,
+                        server: member.server,
+                        className: member.class,
+                        level: member.level || 0,
+                        profileImage: member.profileImage,
+                        hitonCP: member.cp,
+                        itemLevel: member.gearScore || 0,
+                        totalBreakthrough: 0,
+                        stats: {
+                            attackPower: '-',
+                            attackSpeed: 0,
+                            weaponDamageAmp: 0,
+                            damageAmp: 0,
+                            criticalRate: 0,
+                            multiHitRate: 0,
+                        }
+                    });
+                    continue;
+                }
+
+                console.log(`[fetchDetailedSpecs] Fetching specs for ${member.name} (${member.characterId})`);
+
+                // 캐릭터 상세 API 호출 (API는 id와 server 파라미터를 기대)
+                const res = await fetch(`/api/character?id=${encodeURIComponent(member.characterId)}&server=${serverId}`);
+                if (!res.ok) {
+                    throw new Error(`API error: ${res.status}`);
+                }
+
+                const data = await res.json();
+                console.log(`[fetchDetailedSpecs] Got data for ${member.name}:`, data);
+
+                // statList에서 스탯 추출
+                const statList = data.stats?.statList || [];
+
+                // 통합 능력치 계산 (캐릭터 상세 페이지와 동일한 방식)
+                const equipment = data.equipment?.equipmentList || data.equipment || [];
+                const titles = data.titles || { titleList: [] };
+                const daevanion = data.daevanion || { boardList: [] };
+                const equippedTitleId = data.profile?.titleId;
+
+                // aggregateStats로 통합 능력치 계산
+                const aggregatedStats = aggregateStats(equipment, titles, daevanion, data.stats, equippedTitleId);
+
+                console.log(`[fetchDetailedSpecs] Aggregated stats for ${member.name}:`, aggregatedStats.map(s => `${s.name}: ${s.totalValue} / ${s.totalPercentage}%`));
+
+                // 디버그 데이터에 저장
+                setDebugData(prev => [...prev, {
+                    name: member.name,
+                    rawStats: statList.map((s: any) => ({ name: s.name, value: s.value })),
+                    aggregatedStats: aggregatedStats.map(s => ({
+                        name: s.name,
+                        totalValue: s.totalValue,
+                        totalPercentage: s.totalPercentage
+                    })),
+                    equipment: equipment,
+                    profile: data.profile
+                }]);
+
+                // 통합 스탯에서 값 찾기
+                const getAggregatedStat = (name: string): { value: number, percentage: number } => {
+                    const stat = aggregatedStats.find(s => s.name === name);
+                    return stat ? { value: stat.totalValue, percentage: stat.totalPercentage } : { value: 0, percentage: 0 };
+                };
+
+                // 돌파 총합 계산 (장비의 exceedLevel 합계)
+                const actualEquipList = Array.isArray(equipment) ? equipment : [];
+                const totalBreakthrough = actualEquipList.reduce((sum: number, item: any) => {
+                    return sum + (item.exceedLevel || item.breakthrough || 0);
+                }, 0);
+
+                // 아이템 레벨 (기본 statList에서 가져오기)
+                const itemLevelStat = statList.find((s: any) =>
+                    s.name === '아이템레벨' || s.name?.includes('아이템')
+                );
+                const itemLevel = itemLevelStat?.value || member.gearScore || 0;
+
+                // HITON 전투력 - 새로운 전투력 계산 시스템 사용
+                const combatPowerResult = calculateCombatPowerFromStats(aggregatedStats, data.stats);
+                const hitonCP = combatPowerResult.totalScore || data.profile?.noa_score || member.cp;
+
+                // 통합 스탯 추출
+                const attackPower = getAggregatedStat('공격력');
+                const attackSpeed = getAggregatedStat('전투 속도');
+                const weaponDmgAmp = getAggregatedStat('무기 피해 증폭');
+                const dmgAmp = getAggregatedStat('피해 증폭');
+                const crit = getAggregatedStat('치명타');
+                const multiHit = getAggregatedStat('다단 히트 적중');
+
+                // 스탯 값 로깅
+                console.log(`[fetchDetailedSpecs] Final stats for ${member.name}:`, {
+                    hitonCP,
+                    itemLevel,
+                    totalBreakthrough,
+                    attackPower,
+                    attackSpeed,
+                    weaponDmgAmp,
+                    dmgAmp,
+                    crit,
+                    multiHit
+                });
+
+                specs.push({
+                    name: member.name,
+                    server: member.server,
+                    className: data.profile?.className || member.class,
+                    level: data.profile?.characterLevel || member.level || 0,
+                    profileImage: data.profile?.profileImage || member.profileImage,
+                    hitonCP,
+                    itemLevel,
+                    totalBreakthrough,
+                    stats: {
+                        // 공격력: 고정값 표시
+                        attackPower: attackPower.value > 0 ? attackPower.value.toLocaleString() : '-',
+                        // 퍼센트 스탯들
+                        attackSpeed: attackSpeed.value + attackSpeed.percentage,
+                        weaponDamageAmp: weaponDmgAmp.value + weaponDmgAmp.percentage,
+                        damageAmp: dmgAmp.value + dmgAmp.percentage,
+                        criticalRate: crit.value + crit.percentage,
+                        multiHitRate: multiHit.value + multiHit.percentage,
+                    }
+                });
+
+                setLogs(prev => [...prev, `✅ ${member.name} 스펙 조회 완료 (돌파: ${totalBreakthrough})`]);
+
+            } catch (err) {
+                console.error(`[fetchDetailedSpecs] Failed to fetch specs for ${member.name}:`, err);
+                // 실패 시 기본 데이터 사용
+                specs.push({
+                    name: member.name,
+                    server: member.server || '알 수 없음',
+                    className: member.class,
+                    level: member.level || 0,
+                    profileImage: member.profileImage,
+                    hitonCP: member.cp,
+                    itemLevel: member.gearScore || 0,
+                    totalBreakthrough: 0,
+                    stats: {
+                        attackPower: '-',
+                        attackSpeed: 0,
+                        weaponDamageAmp: 0,
+                        damageAmp: 0,
+                        criticalRate: 0,
+                        multiHitRate: 0,
+                    }
+                });
+            }
+        }
+
+        setDetailedSpecs(specs);
+        setIsLoadingSpecs(false);
+        setLogs(prev => [...prev, `📊 상세 스펙 조회 완료: ${specs.length}명`]);
+    }, []);
+
+    // 새 스캔 시작시 디버그 데이터 초기화
+    const clearDebugData = useCallback(() => {
+        setDebugData([]);
+    }, []);
+
     return {
         isScanning,
         logs,
@@ -899,6 +1331,12 @@ export const usePartyScanner = () => {
         croppedPreview, // OCR 대상 이미지 미리보기
         pendingSelections, // 서버 선택 대기 목록
         analysisResult, // 현재 분석 결과
-        selectServer // 서버 선택 함수
+        selectServer, // 서버 선택 함수
+        // 상세 스펙 관련
+        detailedSpecs,
+        isLoadingSpecs,
+        fetchDetailedSpecs,
+        // 디버그
+        debugData,
     };
 };

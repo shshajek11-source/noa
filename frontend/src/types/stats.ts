@@ -11,12 +11,20 @@ export interface StatSource {
   description?: string           // 추가 설명
 }
 
+export interface PercentageSource {
+  sourceName: string             // '위력', '파괴[지켈]' 등
+  sourceValue: number            // 115, 20 등 (스탯 포인트)
+  statName: string               // '공격력 증가' 등
+  percentage: number             // 11.5, 4 등
+}
+
 export interface StatSources {
   equipment: StatSource[]        // 장비별 상세
   titles: StatSource[]           // 타이틀별 상세
   daevanion: StatSource[]        // 대바니온별 상세
   baseValue: number              // 기본값 (하위 호환용)
   baseStats?: StatSource[]       // 기본 스탯에서 파생된 2차 능력치
+  percentageSources?: PercentageSource[]  // % 증가 출처 상세
 }
 
 export interface StatDetail {

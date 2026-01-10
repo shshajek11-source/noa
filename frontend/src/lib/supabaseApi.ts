@@ -201,7 +201,8 @@ export const supabaseApi = {
                     }
 
                     return {
-                        characterId: decodeURIComponent(item.characterId),
+                        // characterId는 이미 API에서 URL-safe 문자열로 제공되므로 별도의 decode를 하지 않는다.
+                        characterId: item.characterId,
                         name: typeof item.name === 'string' ? stripTags(item.name) : item.name,
                         server: item.serverName,
                         server_id: item.serverId,

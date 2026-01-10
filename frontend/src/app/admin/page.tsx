@@ -6,6 +6,7 @@ import DSCard from '../components/design-system/DSCard'
 import DSButton from '../components/design-system/DSButton'
 import DSBadge from '../components/design-system/DSBadge'
 import AutoUpdatePanel from '../components/admin/AutoUpdatePanel'
+import CombatPowerRecalcPanel from '../components/admin/CombatPowerRecalcPanel'
 
 interface Stats {
     totalCharacters: number
@@ -298,11 +299,11 @@ export default function AdminDashboard() {
                 gridTemplateColumns: '1fr 1fr',
                 gap: '0.75rem'
             }}>
-                {/* Auto Update Panel */}
-                <AutoUpdatePanel />
-
-                {/* Right Column */}
+                {/* Left Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {/* Auto Update Panel */}
+                    <AutoUpdatePanel />
+
                     {/* Quick Actions */}
                     <DSCard title="빠른 액션" hoverEffect={false} style={{ padding: '1rem' }}>
                         <div style={{
@@ -316,6 +317,12 @@ export default function AdminDashboard() {
                             <QuickActionButton icon="📊" label="랭킹 보기" href="/ranking/noa" variant="ghost" />
                         </div>
                     </DSCard>
+                </div>
+
+                {/* Right Column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {/* Combat Power Recalculation Panel */}
+                    <CombatPowerRecalcPanel />
 
                     {/* System Status */}
                     <DSCard title="시스템 상태" hoverEffect={false} style={{ padding: '1rem' }}>

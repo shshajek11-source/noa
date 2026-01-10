@@ -82,6 +82,45 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
     return parts.length > 0 ? parts.join(' ') : '0'
   }
 
+  // 스탯을 고정값/퍼센트 분리된 리스트로 변환
+  const separateStats = (statsWithSources: typeof aggregatedStats) => {
+    const result: Array<{
+      name: string
+      displayName: string
+      value: number
+      isPercentage: boolean
+      color: string
+      sources: typeof aggregatedStats[0]['sources']
+    }> = []
+
+    statsWithSources.forEach(stat => {
+      // 고정값이 있으면 추가
+      if (stat.totalValue > 0) {
+        result.push({
+          name: stat.name,
+          displayName: stat.name,
+          value: stat.totalValue,
+          isPercentage: false,
+          color: stat.color,
+          sources: stat.sources
+        })
+      }
+      // 퍼센트가 있으면 별도 카드로 추가
+      if (stat.totalPercentage > 0) {
+        result.push({
+          name: `${stat.name}_pct`,
+          displayName: `${stat.name} %`,
+          value: stat.totalPercentage,
+          isPercentage: true,
+          color: '#F59E0B', // 퍼센트는 주황색
+          sources: stat.sources
+        })
+      }
+    })
+
+    return result
+  }
+
   // 전체 탭 렌더링
   const renderTotalTab = () => {
     const statsWithSources = aggregatedStats.filter(s =>
@@ -91,9 +130,12 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
       (s.sources.baseStats && s.sources.baseStats.length > 0)
     )
 
-    const totalPages = Math.ceil(statsWithSources.length / INITIAL_VISIBLE_COUNT)
+    // 고정값과 퍼센트 분리
+    const separatedStats = separateStats(statsWithSources)
+
+    const totalPages = Math.ceil(separatedStats.length / INITIAL_VISIBLE_COUNT)
     const startIdx = statsPage * INITIAL_VISIBLE_COUNT
-    const visibleStats = statsWithSources.slice(startIdx, startIdx + INITIAL_VISIBLE_COUNT)
+    const visibleStats = separatedStats.slice(startIdx, startIdx + INITIAL_VISIBLE_COUNT)
     const hasMultiplePages = totalPages > 1
 
     return (
@@ -101,10 +143,14 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
         <div className={styles.statsGrid2Col}>
           {visibleStats.map(stat => {
             const isExpanded = expandedStats.has(stat.name)
-            const equipTotal = stat.sources.equipment?.reduce((sum, s) => sum + s.value + (s.percentage || 0), 0) || 0
-            const titleTotal = stat.sources.titles?.reduce((sum, s) => sum + s.value + (s.percentage || 0), 0) || 0
-            const daevanionTotal = stat.sources.daevanion?.reduce((sum, s) => sum + s.value + (s.percentage || 0), 0) || 0
-            const baseTotal = stat.sources.baseStats?.reduce((sum, s) => sum + s.value + (s.percentage || 0), 0) || 0
+            const equipTotal = stat.sources.equipment?.reduce((sum, s) =>
+              sum + (stat.isPercentage ? (s.percentage || 0) : s.value), 0) || 0
+            const titleTotal = stat.sources.titles?.reduce((sum, s) =>
+              sum + (stat.isPercentage ? (s.percentage || 0) : s.value), 0) || 0
+            const daevanionTotal = stat.sources.daevanion?.reduce((sum, s) =>
+              sum + (stat.isPercentage ? (s.percentage || 0) : s.value), 0) || 0
+            const baseTotal = stat.sources.baseStats?.reduce((sum, s) =>
+              sum + (stat.isPercentage ? (s.percentage || 0) : s.value), 0) || 0
 
             return (
               <div key={stat.name} className={styles.statCardExpand}>
@@ -114,11 +160,14 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
                   style={{ cursor: 'pointer' }}
                 >
                   <div className={styles.statCardName}>
-                    <span className={styles.statColorDot} style={{ background: stat.color }} />
-                    {stat.name}
+                    <span
+                      className={styles.statColorDot}
+                      style={{ background: stat.color }}
+                    />
+                    {stat.displayName}
                   </div>
-                  <div className={styles.statCardValue}>
-                    {formatValue(stat.totalValue, stat.totalPercentage, stat.name)}
+                  <div className={styles.statCardValue} style={{ color: stat.isPercentage ? '#F59E0B' : '#E5E7EB' }}>
+                    {stat.isPercentage ? `+${stat.value.toFixed(1)}%` : stat.value.toLocaleString()}
                     <span className={styles.dropdownArrow}>{isExpanded ? '▲' : '▼'}</span>
                   </div>
                 </div>
@@ -127,25 +176,33 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
                     {equipTotal > 0 && (
                       <div className={styles.statSourceRow}>
                         <span className={styles.sourceLabel}>⚔️ 장비</span>
-                        <span className={styles.sourceValue}>+{equipTotal.toLocaleString()}</span>
+                        <span className={styles.sourceValue}>
+                          {stat.isPercentage ? `+${equipTotal.toFixed(1)}%` : `+${equipTotal.toLocaleString()}`}
+                        </span>
                       </div>
                     )}
                     {titleTotal > 0 && (
                       <div className={styles.statSourceRow}>
                         <span className={styles.sourceLabel}>🏅 타이틀</span>
-                        <span className={styles.sourceValue}>+{titleTotal.toLocaleString()}</span>
+                        <span className={styles.sourceValue}>
+                          {stat.isPercentage ? `+${titleTotal.toFixed(1)}%` : `+${titleTotal.toLocaleString()}`}
+                        </span>
                       </div>
                     )}
                     {daevanionTotal > 0 && (
                       <div className={styles.statSourceRow}>
                         <span className={styles.sourceLabel}>🔮 대바니온</span>
-                        <span className={styles.sourceValue}>+{daevanionTotal.toLocaleString()}</span>
+                        <span className={styles.sourceValue}>
+                          {stat.isPercentage ? `+${daevanionTotal.toFixed(1)}%` : `+${daevanionTotal.toLocaleString()}`}
+                        </span>
                       </div>
                     )}
                     {baseTotal > 0 && (
                       <div className={styles.statSourceRow}>
                         <span className={styles.sourceLabel}>⭐ 주요스탯</span>
-                        <span className={styles.sourceValue}>+{baseTotal.toLocaleString()}</span>
+                        <span className={styles.sourceValue}>
+                          {stat.isPercentage ? `+${baseTotal.toFixed(1)}%` : `+${baseTotal.toLocaleString()}`}
+                        </span>
                       </div>
                     )}
                   </div>

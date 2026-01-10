@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { RankingCharacter } from '@/types/character'
+import { SERVER_MAP } from '@/app/constants/servers'
 
 interface RankingListItemProps {
     character: RankingCharacter
@@ -9,8 +10,10 @@ interface RankingListItemProps {
 export default function RankingListItem({ character, rank }: RankingListItemProps) {
     const isElyos = character.race_name?.toLowerCase() === 'elyos'
 
+    const serverName = SERVER_MAP[String(character.server_id)] || String(character.server_id)
+
     return (
-        <Link href={`/c/${encodeURIComponent(character.server_id)}/${encodeURIComponent(character.name)}`} className="block w-full">
+        <Link href={`/c/${encodeURIComponent(serverName)}/${encodeURIComponent(character.name)}`} className="block w-full">
             <div style={{
                 display: 'flex',
                 alignItems: 'center',

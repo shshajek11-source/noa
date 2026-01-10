@@ -1,0 +1,569 @@
+.page {
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, rgba(245, 158, 11, 0.08), transparent 55%),
+    radial-gradient(circle at 80% 10%, rgba(217, 43, 75, 0.14), transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.1), transparent 60%),
+    #0c0c0d;
+  color: var(--text-main);
+  position: relative;
+  overflow: hidden;
+}
+
+.page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(120deg, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.pageInner {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 16px 80px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 32px;
+  border-radius: 18px;
+  background: rgba(15, 17, 22, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px);
+  position: relative;
+  overflow: hidden;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  width: 280px;
+  height: 80px;
+  background-image: linear-gradient(120deg, rgba(245, 158, 11, 0.2), transparent 60%);
+  opacity: 0.5;
+  filter: blur(2px);
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headerLabel {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.headerTotal {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.headerCurrency {
+  font-size: 0.95rem;
+  color: rgba(245, 158, 11, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.headerValue {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #f8d47a;
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.5), 0 0 40px rgba(16, 185, 129, 0.25);
+  font-variant-numeric: tabular-nums;
+}
+
+.headerHint {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.headerRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  min-width: 240px;
+}
+
+.weeklyCard {
+  position: relative;
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(12, 12, 13, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.weeklyLabel {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.weeklyValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f59e0b;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+.sparkline {
+  position: absolute;
+  bottom: 6px;
+  right: 12px;
+  width: 120px;
+  height: 32px;
+  background-image: linear-gradient(135deg, rgba(245, 158, 11, 0.4), transparent 70%);
+  opacity: 0.6;
+  border-radius: 999px;
+}
+
+.headerStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(15, 17, 22, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.sidebarTitle {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.sidebarList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebarItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(12, 12, 13, 0.7);
+  border: 1px solid transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebarItem:hover {
+  transform: scale(1.02);
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);
+}
+
+.sidebarItemActive {
+  border-color: rgba(245, 158, 11, 0.7);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 43, 75, 0.25));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.sidebarInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  text-align: left;
+}
+
+.sidebarName {
+  font-weight: 600;
+}
+
+.sidebarJob {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.sidebarIncome {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #34d399;
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.sidebarIncomeMuted {
+  font-size: 0.9rem;
+  color: rgba(148, 163, 184, 0.5);
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sectionHeader h2 {
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+
+.sectionHeader p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.sectionBadge,
+.sectionBadgeAlt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(245, 158, 11, 0.2);
+  color: #f8d47a;
+}
+
+.sectionBadgeAlt {
+  background: rgba(217, 43, 75, 0.2);
+  color: #f7b2c0;
+}
+
+.incomeCards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.incomeCard {
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(15, 17, 22, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.incomeCard:hover {
+  border-color: rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.15);
+}
+
+.incomeCardHeader {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.incomeSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.incomeIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.incomeTitle {
+  font-weight: 600;
+}
+
+.incomeTotal {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.incomeInput {
+  display: flex;
+  justify-content: center;
+}
+
+.smartInput {
+  position: relative;
+  width: 100%;
+  max-width: 220px;
+}
+
+.smartInputField {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(12, 12, 13, 0.7);
+  color: transparent;
+  caret-color: #f8fafc;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.smartInputField:focus {
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+
+.smartInputOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  pointer-events: none;
+}
+
+.smartInputValue {
+  color: #e5e7eb;
+}
+
+.smartInputPlaceholder {
+  color: rgba(148, 163, 184, 0.6);
+}
+
+.smartInputSuffix {
+  color: rgba(245, 158, 11, 0.7);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.expandButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(12, 12, 13, 0.6);
+  color: var(--text-secondary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.expandButtonActive {
+  transform: rotate(180deg);
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #f59e0b;
+}
+
+.incomeRecords {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.incomeRecordsOpen {
+  max-height: 240px;
+  opacity: 1;
+  margin-top: 12px;
+}
+
+.recordList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recordRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(12, 12, 13, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  animation: slideFade 0.35s ease;
+}
+
+.recordLabel {
+  font-weight: 600;
+}
+
+.recordAmount {
+  color: #34d399;
+  font-variant-numeric: tabular-nums;
+}
+
+.recordTime {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.recordDelete {
+  border: none;
+  background: transparent;
+  color: rgba(148, 163, 184, 0.6);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.salesSection {
+  padding: 4px 0 0;
+}
+
+.salesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 150px);
+  gap: 16px;
+  justify-content: flex-start;
+}
+
+.saleCard {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(15, 17, 22, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saleCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+
+.saleIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f8d47a;
+}
+
+.saleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.saleName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.salePrice {
+  font-size: 0.85rem;
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+.saleTime {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+@keyframes slideFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    order: 2;
+  }
+
+  .mainContent {
+    order: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headerRight {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .incomeCardHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .incomeInput {
+    justify-content: flex-start;
+  }
+
+  .salesGrid {
+    grid-template-columns: repeat(auto-fit, 140px);
+  }
+}
