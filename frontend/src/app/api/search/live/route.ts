@@ -21,85 +21,122 @@ export async function POST(request: NextRequest) {
 
         const supabase = createClient(supabaseUrl, supabaseKey)
 
-        // 1. 먼저 Supabase 캐시에서 검색 (빠름)
-        let query = supabase
+        // 1. Supabase DB에서 검색 (저장된 캐릭터는 항상 나옴)
+        let dbQuery = supabase
             .from('characters')
-            .select('character_id, name, server_id, class_name, race_name, level, combat_power, item_level, profile_image, scraped_at')
+            .select('character_id, name, server_id, class_name, race_name, level, combat_power, noa_score, item_level, profile_image, scraped_at')
             .ilike('name', `%${name}%`)
-            .limit(30)
+            .order('noa_score', { ascending: false, nullsFirst: false })
+            .limit(50)  // DB에서 더 많이 가져옴
 
         if (serverId) {
-            query = query.eq('server_id', serverId)
+            dbQuery = dbQuery.eq('server_id', serverId)
         }
         if (race) {
             const raceName = race === 1 || race === 'elyos' ? '천족' : race === 2 || race === 'asmodian' ? '마족' : null
             if (raceName) {
-                query = query.eq('race_name', raceName)
+                dbQuery = dbQuery.eq('race_name', raceName)
             }
         }
 
-        const { data: cachedResults, error: cacheError } = await query
+        const { data: dbResults, error: dbError } = await dbQuery
 
-        // 캐시에 결과가 있고, 최근 데이터인 경우 (24시간 이내) 캐시만 반환
-        const freshCacheThreshold = 24 * 60 * 60 * 1000 // 24시간
-        const hasFreshCache = cachedResults && cachedResults.length > 0 && cachedResults.some(r => {
-            const scrapedAt = r.scraped_at ? new Date(r.scraped_at).getTime() : 0
-            return Date.now() - scrapedAt < freshCacheThreshold
-        })
+        if (dbError) {
+            console.error('[Live Search] DB error:', dbError)
+        }
 
-        if (cacheOnly && cachedResults && cachedResults.length > 0) {
-            console.log('[Live Search] Cache hit:', cachedResults.length, 'items')
+        console.log('[Live Search] DB results:', dbResults?.length || 0, 'items')
+
+        // 캐시만 요청한 경우
+        if (cacheOnly && dbResults && dbResults.length > 0) {
             return NextResponse.json({
-                list: cachedResults.map(transformCachedToApiFormat),
-                pagination: { total: cachedResults.length, page: 1 },
-                source: 'cache'
+                list: dbResults.map(transformCachedToApiFormat),
+                pagination: { total: dbResults.length, page: 1 },
+                source: 'db'
             })
         }
 
-        // 2. 외부 API 호출 (신선한 데이터)
-        const url = new URL('https://aion2.plaync.com/ko-kr/api/search/aion2/search/v2/character')
-        url.searchParams.append('keyword', name)
-        url.searchParams.append('page', (page || 1).toString())
-        url.searchParams.append('size', '30')
-        if (serverId) url.searchParams.append('serverId', serverId.toString())
-        if (race) url.searchParams.append('race', race.toString())
+        // 2. 외부 API 호출 (새로운 캐릭터 발견용)
+        let apiResults: any[] = []
+        let apiTotal = 0
 
-        console.log('[Live Search] Fetching:', url.toString())
+        try {
+            const url = new URL('https://aion2.plaync.com/ko-kr/api/search/aion2/search/v2/character')
+            url.searchParams.append('keyword', name)
+            url.searchParams.append('page', (page || 1).toString())
+            url.searchParams.append('size', '30')
+            if (serverId) url.searchParams.append('serverId', serverId.toString())
+            if (race) url.searchParams.append('race', race.toString())
 
-        const response = await fetch(url.toString(), {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': 'https://aion2.plaync.com/',
-                'Accept': 'application/json'
+            console.log('[Live Search] Fetching API:', url.toString())
+
+            const response = await fetch(url.toString(), {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Referer': 'https://aion2.plaync.com/',
+                    'Accept': 'application/json'
+                }
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                apiResults = data.list || []
+                apiTotal = data.pagination?.total || 0
+                console.log('[Live Search] API results:', apiResults.length, 'items, total:', apiTotal)
+
+                // API 결과를 DB에 캐싱 (백그라운드)
+                if (apiResults.length > 0) {
+                    cacheSearchResults(supabase, apiResults).catch(err => {
+                        console.error('[Live Search] Cache save error:', err)
+                    })
+                }
+            } else {
+                console.error('[Live Search] API failed:', response.status)
+            }
+        } catch (apiErr) {
+            console.error('[Live Search] API error:', apiErr)
+            // API 실패해도 DB 결과는 반환
+        }
+
+        // 3. DB 결과와 API 결과 병합 (중복 제거)
+        const mergedMap = new Map<string, any>()
+
+        // DB 결과 먼저 추가 (우선순위 높음 - 더 상세한 데이터)
+        if (dbResults) {
+            dbResults.forEach(item => {
+                const key = item.character_id
+                mergedMap.set(key, transformCachedToApiFormat(item))
+            })
+        }
+
+        // API 결과 추가 (DB에 없는 것만)
+        apiResults.forEach(item => {
+            const key = item.characterId
+            if (!mergedMap.has(key)) {
+                mergedMap.set(key, item)
             }
         })
 
-        if (!response.ok) {
-            // 외부 API 실패 시 캐시 결과라도 반환
-            if (cachedResults && cachedResults.length > 0) {
-                console.log('[Live Search] API failed, returning cache:', cachedResults.length, 'items')
-                return NextResponse.json({
-                    list: cachedResults.map(transformCachedToApiFormat),
-                    pagination: { total: cachedResults.length, page: 1 },
-                    source: 'cache_fallback'
-                })
-            }
-            const errorText = await response.text()
-            console.error('[Live Search] AION API error:', response.status, errorText)
-            throw new Error(`AION API returned ${response.status}`)
-        }
-
-        const data = await response.json()
-        console.log('[Live Search] Results:', data.list?.length || 0, 'items, total:', data.pagination?.total)
-
-        // 3. 검색 결과를 Supabase에 캐싱 (백그라운드)
-        if (data.list && data.list.length > 0) {
-            cacheSearchResults(supabase, data.list).catch(err => {
-                console.error('[Live Search] Cache save error:', err)
+        // Map을 배열로 변환하고 noa_score/combatPower 기준 정렬
+        const mergedList = Array.from(mergedMap.values())
+            .sort((a, b) => {
+                const scoreA = a.noaScore || a.combatPower || 0
+                const scoreB = b.noaScore || b.combatPower || 0
+                return scoreB - scoreA
             })
-        }
+            .slice(0, 50)  // 최대 50개
 
-        return NextResponse.json({ ...data, source: 'api' })
+        const totalCount = Math.max(mergedList.length, apiTotal, dbResults?.length || 0)
+
+        console.log('[Live Search] Merged results:', mergedList.length, 'items (DB:', dbResults?.length || 0, '+ API:', apiResults.length, ')')
+
+        return NextResponse.json({
+            list: mergedList,
+            pagination: { total: totalCount, page: page || 1 },
+            source: 'merged',
+            dbCount: dbResults?.length || 0,
+            apiCount: apiResults.length
+        })
 
     } catch (error) {
         console.error('Proxy Search Error:', error)
@@ -128,7 +165,10 @@ function transformCachedToApiFormat(cached: any) {
         profileImageUrl: cached.profile_image,
         // 추가 정보
         combatPower: cached.combat_power,
-        itemLevel: cached.item_level
+        noaScore: cached.noa_score,  // HITON 전투력 추가
+        itemLevel: cached.item_level,
+        // DB에서 온 데이터 표시
+        fromDb: true
     }
 }
 
