@@ -53,12 +53,43 @@ export const usePartyScanner = () => {
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null); // 분석 결과 저장
     const [debugData, setDebugData] = useState<any[]>([]); // 디버그용 API 응답 데이터
 
-    // 이미지 전처리: 강한 이진화 (흑백 처리) - OCR 정확도 최적화
+    // 이미지 전처리: 샤프닝 + 이진화 - OCR 정확도 최적화
     const preprocessImage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+        // 1단계: 샤프닝 필터 적용 (Unsharp Mask 기법)
         const imageData = ctx.getImageData(0, 0, width, height);
         const data = imageData.data;
+        const originalData = new Uint8ClampedArray(data); // 원본 복사
 
-        // 1단계: 그레이스케일 변환 + 대비 강화
+        // 샤프닝 커널 (3x3) - 중앙 강조
+        const sharpenAmount = 1.5; // 샤프닝 강도 (1.0 ~ 2.0)
+
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                const idx = (y * width + x) * 4;
+
+                for (let c = 0; c < 3; c++) { // R, G, B 채널
+                    // 주변 픽셀 평균 (블러)
+                    const blur = (
+                        originalData[((y-1) * width + (x-1)) * 4 + c] +
+                        originalData[((y-1) * width + x) * 4 + c] +
+                        originalData[((y-1) * width + (x+1)) * 4 + c] +
+                        originalData[(y * width + (x-1)) * 4 + c] +
+                        originalData[(y * width + x) * 4 + c] +
+                        originalData[(y * width + (x+1)) * 4 + c] +
+                        originalData[((y+1) * width + (x-1)) * 4 + c] +
+                        originalData[((y+1) * width + x) * 4 + c] +
+                        originalData[((y+1) * width + (x+1)) * 4 + c]
+                    ) / 9;
+
+                    // Unsharp mask: 원본 + (원본 - 블러) * 강도
+                    const original = originalData[idx + c];
+                    const sharpened = original + (original - blur) * sharpenAmount;
+                    data[idx + c] = Math.max(0, Math.min(255, sharpened));
+                }
+            }
+        }
+
+        // 2단계: 그레이스케일 변환 + 대비 강화
         const contrastFactor = 2.5;
         const brightnessFactor = 40;
 
@@ -72,7 +103,7 @@ export const usePartyScanner = () => {
             // 대비 강화
             gray = Math.max(0, Math.min(255, ((gray - 128) * contrastFactor) + 128));
 
-            // 2단계: 강한 이진화 (임계값 기반)
+            // 3단계: 강한 이진화 (임계값 기반)
             // 밝은 부분(텍스트) → 흰색(255), 어두운 부분(배경) → 검은색(0)
             const threshold = 120;
             let final: number;
@@ -111,8 +142,8 @@ export const usePartyScanner = () => {
                 const startX = Math.round(img.width * 0.12);
                 const cropWidth = Math.round(img.width * 0.55);
 
-                // 1배 (강한 이진화로 확대 불필요, 속도 향상)
-                const scale = 1;
+                // 2배 확대 (OCR 정확도 향상)
+                const scale = 2;
                 canvas.width = cropWidth * scale;
                 canvas.height = cropHeight * scale;
 
