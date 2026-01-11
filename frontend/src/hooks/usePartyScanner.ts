@@ -18,6 +18,7 @@ export interface PartyMember {
     profileImage?: string;
     characterId?: string;
     isFromDb?: boolean; // DB에서 조회된 실제 데이터인지 표시
+    _ocrName?: string; // OCR로 인식된 원본 이름 (선택 매칭용)
 }
 
 export interface AnalysisResult {
@@ -36,6 +37,7 @@ export interface PendingServerSelection {
     abbreviation: string; // OCR로 인식된 서버 약어
     candidates: ServerCandidate[]; // 선택 가능한 서버별 캐릭터 정보
     type?: 'server' | 'name'; // 선택 타입 (서버 선택 or 이름 선택)
+    _ocrName?: string; // OCR로 인식된 원본 이름 (매칭용)
 }
 
 export interface ServerCandidate {
@@ -52,6 +54,17 @@ export interface LookupResult {
     alternatives: { name: string; character: PartyMember }[]; // 대체 이름으로 찾은 캐릭터들
 }
 
+// OCR 크롭 영역 설정 (다중 영역 지원)
+export interface CropRegion {
+    id: string;
+    name: string;
+    startX: number;
+    startY: number;
+    width: number;
+    height: number;
+    enabled: boolean;
+}
+
 export const usePartyScanner = () => {
     const [isScanning, setIsScanning] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
@@ -61,60 +74,49 @@ export const usePartyScanner = () => {
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null); // 분석 결과 저장
     const [debugData, setDebugData] = useState<any[]>([]); // 디버그용 API 응답 데이터
 
-    // 이미지 전처리: 강한 샤프닝 + 대비 강화 (이진화 제거)
+    // OCR 크롭 설정 - 다중 영역 지원 (1920x1080 기준 픽셀값)
+    const [cropRegions, setCropRegions] = useState<CropRegion[]>([
+        { id: 'region-1', name: '영역 1', startX: 120, startY: 950, width: 400, height: 80, enabled: true },
+        { id: 'region-2', name: '영역 2', startX: 520, startY: 950, width: 400, height: 80, enabled: true },
+        { id: 'region-3', name: '영역 3', startX: 920, startY: 950, width: 400, height: 80, enabled: true },
+        { id: 'region-4', name: '영역 4', startX: 1320, startY: 950, width: 400, height: 80, enabled: true },
+    ]);
+
+    // 단일 영역 모드용 (기존 호환성)
+    const [useSingleRegion, setUseSingleRegion] = useState(true);
+    const [singleCropSettings, setSingleCropSettings] = useState({
+        startX: 120,
+        startY: 950,
+        width: 1679,
+        height: 80
+    });
+
+    // 이미지 전처리: 약한 이진화 (텍스트 강조)
     const preprocessImage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-        // 1단계: 강한 샤프닝 필터 적용 (Unsharp Mask 기법)
         const imageData = ctx.getImageData(0, 0, width, height);
         const data = imageData.data;
-        const originalData = new Uint8ClampedArray(data); // 원본 복사
 
-        // 샤프닝 강도를 높임 (텍스트 경계 선명화)
-        const sharpenAmount = 2.0;
-
-        for (let y = 1; y < height - 1; y++) {
-            for (let x = 1; x < width - 1; x++) {
-                const idx = (y * width + x) * 4;
-
-                for (let c = 0; c < 3; c++) { // R, G, B 채널
-                    // 주변 픽셀 평균 (블러)
-                    const blur = (
-                        originalData[((y-1) * width + (x-1)) * 4 + c] +
-                        originalData[((y-1) * width + x) * 4 + c] +
-                        originalData[((y-1) * width + (x+1)) * 4 + c] +
-                        originalData[(y * width + (x-1)) * 4 + c] +
-                        originalData[(y * width + x) * 4 + c] +
-                        originalData[(y * width + (x+1)) * 4 + c] +
-                        originalData[((y+1) * width + (x-1)) * 4 + c] +
-                        originalData[((y+1) * width + x) * 4 + c] +
-                        originalData[((y+1) * width + (x+1)) * 4 + c]
-                    ) / 9;
-
-                    // Unsharp mask: 원본 + (원본 - 블러) * 강도
-                    const original = originalData[idx + c];
-                    const sharpened = original + (original - blur) * sharpenAmount;
-                    data[idx + c] = Math.max(0, Math.min(255, sharpened));
-                }
-            }
-        }
-
-        // 2단계: 대비 강화 (색상 유지, 이진화 제거)
-        const contrastFactor = 1.8;
-        const brightnessFactor = 20;
+        // 약한 이진화: 임계값 기준으로 밝은 부분은 더 밝게, 어두운 부분은 더 어둡게
+        const threshold = 100; // 낮은 임계값 (약한 이진화)
+        const softness = 0.5; // 0 = 완전 이진화, 1 = 원본 유지
 
         for (let i = 0; i < data.length; i += 4) {
+            // 밝기 계산 (그레이스케일)
+            const brightness = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+
+            // 약한 이진화 적용
+            const target = brightness > threshold ? 255 : 0;
+
             for (let c = 0; c < 3; c++) {
-                let value = data[i + c];
-                // 밝기 증가
-                value = Math.min(255, value + brightnessFactor);
-                // 대비 강화
-                value = Math.max(0, Math.min(255, ((value - 128) * contrastFactor) + 128));
-                data[i + c] = value;
+                // softness로 원본과 이진화 결과를 블렌딩
+                data[i + c] = Math.round(data[i + c] * softness + target * (1 - softness));
             }
         }
 
         ctx.putImageData(imageData, 0, 0);
     };
 
+    // 단일 영역 크롭 (기존 방식)
     const cropBottomPart = (base64Image: string): Promise<string> => {
         return new Promise((resolve) => {
             const img = new Image();
@@ -123,14 +125,18 @@ export const usePartyScanner = () => {
                 const ctx = canvas.getContext('2d');
                 if (!ctx) { resolve(base64Image); return; }
 
-                // 파티바 영역: 더 정밀하게 파티원 이름만 캡처
-                // 높이: 화면 하단 10% (이름+서버만)
-                const cropHeight = Math.max(100, Math.round(img.height * 0.10));
-                const startY = img.height - cropHeight - Math.round(img.height * 0.02); // 약간 위로
+                // 파티바 영역: 이름[서버]만 캡처 (1920x1080 기준 픽셀 고정)
+                // 1920x1080 해상도 기준 → 다른 해상도는 비율로 스케일
+                const baseWidth = 1920;
+                const baseHeight = 1080;
+                const scaleX = img.width / baseWidth;
+                const scaleY = img.height / baseHeight;
 
-                // 너비: 파티원 4명만 정확히 캡처 (왼쪽 16%부터 55%)
-                const startX = Math.round(img.width * 0.16);
-                const cropWidth = Math.round(img.width * 0.55);
+                // singleCropSettings 사용
+                const cropWidth = Math.round(singleCropSettings.width * scaleX);
+                const cropHeight = Math.round(singleCropSettings.height * scaleY);
+                const startX = Math.round(singleCropSettings.startX * scaleX);
+                const startY = Math.round(singleCropSettings.startY * scaleY);
 
                 // 3배 확대 (OCR 정확도 향상)
                 const scale = 3;
@@ -142,8 +148,120 @@ export const usePartyScanner = () => {
                 // 크롭된 영역을 확대해서 그리기
                 ctx.drawImage(img, startX, startY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
 
-                // 전처리 제거 - 원본 이미지로 OCR 테스트
-                // preprocessImage(ctx, canvas.width, canvas.height);
+                // 약한 이진화 전처리 적용
+                preprocessImage(ctx, canvas.width, canvas.height);
+
+                resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = () => resolve(base64Image);
+            img.src = base64Image;
+        });
+    };
+
+    // 다중 영역 크롭 (각 영역별로 크롭된 이미지 배열 반환)
+    const cropMultipleRegions = (base64Image: string): Promise<{ regionId: string; image: string }[]> => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const baseWidth = 1920;
+                const baseHeight = 1080;
+                const scaleX = img.width / baseWidth;
+                const scaleY = img.height / baseHeight;
+
+                const enabledRegions = cropRegions.filter(r => r.enabled);
+                const results: { regionId: string; image: string }[] = [];
+
+                for (const region of enabledRegions) {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) continue;
+
+                    const cropWidth = Math.round(region.width * scaleX);
+                    const cropHeight = Math.round(region.height * scaleY);
+                    const startX = Math.round(region.startX * scaleX);
+                    const startY = Math.round(region.startY * scaleY);
+
+                    // 3배 확대
+                    const scale = 3;
+                    canvas.width = cropWidth * scale;
+                    canvas.height = cropHeight * scale;
+
+                    console.log(`[cropMultipleRegions] ${region.name}: X=${startX}, Y=${startY}, W=${cropWidth}, H=${cropHeight}`);
+
+                    ctx.drawImage(img, startX, startY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+                    preprocessImage(ctx, canvas.width, canvas.height);
+
+                    results.push({
+                        regionId: region.id,
+                        image: canvas.toDataURL('image/png')
+                    });
+                }
+
+                resolve(results);
+            };
+            img.onerror = () => resolve([]);
+            img.src = base64Image;
+        });
+    };
+
+    // 크롭 미리보기용 - 모든 영역을 표시한 이미지 생성
+    const generatePreviewWithRegions = (base64Image: string): Promise<string> => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                if (!ctx) { resolve(base64Image); return; }
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                const baseWidth = 1920;
+                const baseHeight = 1080;
+                const scaleX = img.width / baseWidth;
+                const scaleY = img.height / baseHeight;
+
+                // 각 영역을 사각형으로 표시
+                const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
+
+                if (useSingleRegion) {
+                    // 단일 영역 모드
+                    const x = Math.round(singleCropSettings.startX * scaleX);
+                    const y = Math.round(singleCropSettings.startY * scaleY);
+                    const w = Math.round(singleCropSettings.width * scaleX);
+                    const h = Math.round(singleCropSettings.height * scaleY);
+
+                    ctx.strokeStyle = '#FACC15';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(x, y, w, h);
+                    ctx.fillStyle = 'rgba(250, 204, 21, 0.2)';
+                    ctx.fillRect(x, y, w, h);
+
+                    ctx.fillStyle = '#FACC15';
+                    ctx.font = 'bold 24px sans-serif';
+                    ctx.fillText('전체 영역', x + 10, y - 10);
+                } else {
+                    // 다중 영역 모드
+                    cropRegions.forEach((region, idx) => {
+                        if (!region.enabled) return;
+
+                        const x = Math.round(region.startX * scaleX);
+                        const y = Math.round(region.startY * scaleY);
+                        const w = Math.round(region.width * scaleX);
+                        const h = Math.round(region.height * scaleY);
+
+                        ctx.strokeStyle = colors[idx % colors.length];
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(x, y, w, h);
+                        ctx.fillStyle = colors[idx % colors.length].replace(')', ', 0.2)').replace('rgb', 'rgba');
+                        ctx.fillRect(x, y, w, h);
+
+                        ctx.fillStyle = colors[idx % colors.length];
+                        ctx.font = 'bold 20px sans-serif';
+                        ctx.fillText(region.name, x + 5, y - 5);
+                    });
+                }
 
                 resolve(canvas.toDataURL('image/png'));
             };
@@ -1140,53 +1258,18 @@ export const usePartyScanner = () => {
             if (res.type === 'single') {
                 const { primary, alternatives } = res.result;
 
-                // 원본과 대체 이름 모두 찾은 경우 → 이름 선택 필요
-                if (primary && alternatives.length > 0) {
-                    const nameCandidates: ServerCandidate[] = [
-                        {
-                            server: m.possibleServers[0],
-                            serverId: SERVER_NAME_TO_ID[m.possibleServers[0]],
-                            characterData: primary,
-                            found: true,
-                            alternativeName: primary.name // 원본 이름
-                        },
-                        ...alternatives.map(alt => ({
-                            server: m.possibleServers[0],
-                            serverId: SERVER_NAME_TO_ID[m.possibleServers[0]],
-                            characterData: alt.character,
-                            found: true,
-                            alternativeName: alt.name // 대체 이름
-                        }))
-                    ];
-
-                    pendingSelections.push({
-                        slotIndex: idx,
-                        name: m.name,
-                        abbreviation: m.rawServer,
-                        candidates: nameCandidates,
-                        type: 'name' // 이름 선택 타입
-                    });
-
-                    // 일단 원본 이름으로 표시 (선택 필요 표시)
-                    members.push({
-                        ...primary,
-                        id: `member-${idx}`,
-                        isMainCharacter: m.isMainCharacter,
-                        name: `${primary.name} (선택 필요)`
-                    });
-                }
-                // 원본만 찾은 경우
-                else if (primary) {
+                // 원본을 찾은 경우 → 바로 사용 (선택 UI 없음)
+                if (primary) {
                     primary.isMainCharacter = m.isMainCharacter;
-                    members.push({ ...primary, id: `member-${idx}` });
+                    members.push({ ...primary, id: `member-${idx}`, _ocrName: m.name });
                 }
-                // 대체 이름만 찾은 경우 (1개)
+                // 원본 못 찾고, 대체 이름 1개만 찾은 경우 → 바로 사용
                 else if (alternatives.length === 1) {
                     const alt = alternatives[0];
                     alt.character.isMainCharacter = m.isMainCharacter;
-                    members.push({ ...alt.character, id: `member-${idx}` });
+                    members.push({ ...alt.character, id: `member-${idx}`, _ocrName: m.name });
                 }
-                // 대체 이름이 여러 개인 경우 → 이름 선택 필요
+                // 원본 못 찾고, 대체 이름 여러 개 찾은 경우 → 이름 선택 필요
                 else if (alternatives.length > 1) {
                     const nameCandidates: ServerCandidate[] = alternatives.map(alt => ({
                         server: m.possibleServers[0],
@@ -1198,17 +1281,18 @@ export const usePartyScanner = () => {
 
                     pendingSelections.push({
                         slotIndex: idx,
-                        name: m.name,
+                        name: m.name, // OCR로 인식된 이름
                         abbreviation: m.rawServer,
                         candidates: nameCandidates,
-                        type: 'name'
+                        type: 'name',
+                        _ocrName: m.name // 매칭용
                     });
 
                     members.push({
                         ...alternatives[0].character,
                         id: `member-${idx}`,
                         isMainCharacter: m.isMainCharacter,
-                        name: `${alternatives[0].name} (선택 필요)`
+                        _ocrName: m.name // 매칭용
                     });
                 }
                 // 아무것도 못 찾은 경우
@@ -1222,7 +1306,8 @@ export const usePartyScanner = () => {
                         server: m.possibleServers[0],
                         isMvp: false,
                         isMainCharacter: m.isMainCharacter,
-                        isFromDb: false
+                        isFromDb: false,
+                        _ocrName: m.name
                     });
                 }
             } else {
@@ -1730,5 +1815,15 @@ export const usePartyScanner = () => {
         fetchDetailedSpecs,
         // 디버그
         debugData,
+        // OCR 크롭 설정 - 단일 영역 (기존 호환성)
+        cropSettings: singleCropSettings,
+        setCropSettings: setSingleCropSettings,
+        // OCR 크롭 설정 - 다중 영역
+        cropRegions,
+        setCropRegions,
+        useSingleRegion,
+        setUseSingleRegion,
+        // 미리보기 생성 함수
+        generatePreviewWithRegions,
     };
 };
