@@ -1002,7 +1002,8 @@ export const usePartyScanner = () => {
 
     const scanImage = useCallback(async (file: File): Promise<AnalysisResult> => {
         setIsScanning(true);
-        setLogs(['Image received. Initializing OCR...']);
+        const totalStartTime = Date.now();
+        setLogs([`⏱ 스캔 시작: ${new Date().toLocaleTimeString()}`]);
         console.log('[usePartyScanner] Starting scan...');
 
         return new Promise((resolve, reject) => {
@@ -1020,17 +1021,23 @@ export const usePartyScanner = () => {
                     const originalImage = e.target?.result as string;
                     let imageToScan = originalImage;
 
+                    // 이미지 크롭
+                    const cropStartTime = Date.now();
                     if (scanBottomOnly) {
-                        setLogs(prev => [...prev, 'Cropping party bar...']);
+                        setLogs(prev => [...prev, '이미지 크롭 중...']);
                         imageToScan = await cropBottomPart(originalImage);
-                        setCroppedPreview(imageToScan); // 미리보기 저장
+                        setCroppedPreview(imageToScan);
                         console.log('[usePartyScanner] Image cropped');
                     } else {
                         setCroppedPreview(originalImage);
                     }
+                    const cropTime = Date.now() - cropStartTime;
+                    setLogs(prev => [...prev, `⏱ 이미지 전처리: ${cropTime}ms`]);
 
-                    console.log('[usePartyScanner] Calling Clova OCR API...');
-                    setLogs(prev => [...prev, 'Clova OCR 호출 중...']);
+                    // OCR API 호출
+                    const ocrStartTime = Date.now();
+                    console.log('[usePartyScanner] Calling OCR API...');
+                    setLogs(prev => [...prev, 'OCR API 호출 중...']);
 
                     const ocrResponse = await fetch('/api/ocr', {
                         method: 'POST',
@@ -1045,17 +1052,18 @@ export const usePartyScanner = () => {
 
                     const ocrResult = await ocrResponse.json();
                     const text = ocrResult.text || '';
-                    console.log('[usePartyScanner] Clova OCR result:', text);
-                    setLogs(prev => [...prev, 'OCR 완료. 텍스트 분석 중...']);
+                    const ocrTime = Date.now() - ocrStartTime;
+                    console.log('[usePartyScanner] OCR result:', text);
+                    setLogs(prev => [...prev, `⏱ OCR API 응답: ${ocrTime}ms`]);
 
                     const addLog = (msg: string) => setLogs(prev => [...prev, msg]);
                     const parsedMembers = smartParse(text, addLog);
                     console.log('[usePartyScanner] Parsed members:', parsedMembers);
-                    addLog(`OCR 완료: ${parsedMembers.length}명 인식됨`);
+                    addLog(`파싱 완료: ${parsedMembers.length}명 인식됨`);
 
                     if (parsedMembers.length === 0) {
                         console.log('[usePartyScanner] No members found from OCR');
-                        setLogs(prev => [...prev, '인식된 파티원이 없습니다. (OCR 텍스트: ' + text.substring(0, 100) + '...)']);
+                        setLogs(prev => [...prev, '❌ 인식된 파티원 없음 (OCR: ' + text.substring(0, 100) + '...)']);
                         setIsScanning(false);
                         resolve({
                             totalCp: 0,
@@ -1068,9 +1076,12 @@ export const usePartyScanner = () => {
                     }
 
                     // DB/API에서 캐릭터 정보 조회
+                    const searchStartTime = Date.now();
                     console.log('[usePartyScanner] Looking up characters in DB...');
-                    setLogs(prev => [...prev, 'DB에서 캐릭터 정보 조회 중...']);
+                    setLogs(prev => [...prev, '캐릭터 검색 시작 (병렬)...']);
                     const result = await buildAnalysisResult(parsedMembers);
+                    const searchTime = Date.now() - searchStartTime;
+                    setLogs(prev => [...prev, `⏱ 캐릭터 검색: ${searchTime}ms`]);
 
                     console.log('[usePartyScanner] Analysis complete:', result);
                     setLogs(prev => [...prev, `조회 완료: ${result.foundCount}/${result.recognizedCount}명 찾음`]);
@@ -1082,6 +1093,10 @@ export const usePartyScanner = () => {
                     } else {
                         setPendingSelections([]);
                     }
+
+                    // 총 소요 시간
+                    const totalTime = Date.now() - totalStartTime;
+                    setLogs(prev => [...prev, `⏱ 총 소요 시간: ${totalTime}ms (${(totalTime/1000).toFixed(1)}초)`]);
 
                     setAnalysisResult(result);
                     setIsScanning(false);

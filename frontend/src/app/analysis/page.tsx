@@ -154,8 +154,8 @@ export default function AnalysisPage() {
                     position: 'fixed',
                     bottom: '70px',
                     right: '20px',
-                    width: '400px',
-                    maxHeight: '500px',
+                    width: '450px',
+                    maxHeight: '550px',
                     background: 'rgba(0, 0, 0, 0.95)',
                     border: '1px solid #374151',
                     borderRadius: '12px',
@@ -174,14 +174,35 @@ export default function AnalysisPage() {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                     }}>
-                        <span>검색 디버그 로그</span>
-                        <span style={{ fontSize: '11px', color: '#9CA3AF' }}>
-                            {logs.length}개 로그
-                        </span>
+                        <span>디버그 로그</span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '11px', color: '#9CA3AF' }}>
+                                {logs.length}개
+                            </span>
+                            <button
+                                onClick={() => {
+                                    const logText = logs.join('\n');
+                                    navigator.clipboard.writeText(logText);
+                                    alert('로그가 클립보드에 복사되었습니다!');
+                                }}
+                                style={{
+                                    padding: '4px 10px',
+                                    background: '#3B82F6',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                }}
+                            >
+                                복사
+                            </button>
+                        </div>
                     </div>
                     <div style={{
                         padding: '12px',
-                        maxHeight: '430px',
+                        maxHeight: '480px',
                         overflowY: 'auto',
                         fontSize: '11px',
                         fontFamily: 'monospace',
@@ -202,12 +223,14 @@ export default function AnalysisPage() {
                                                    log.includes('❌') ? 'rgba(239, 68, 68, 0.1)' :
                                                    log.includes('🔄') ? 'rgba(250, 204, 21, 0.1)' :
                                                    log.includes('🔍') ? 'rgba(59, 130, 246, 0.1)' :
+                                                   log.includes('⏱') ? 'rgba(168, 85, 247, 0.15)' :
                                                    'rgba(255, 255, 255, 0.03)',
                                         borderRadius: '4px',
                                         color: log.includes('✅') ? '#22C55E' :
                                                log.includes('❌') ? '#EF4444' :
                                                log.includes('🔄') ? '#FACC15' :
                                                log.includes('🔍') ? '#60A5FA' :
+                                               log.includes('⏱') ? '#A855F7' :
                                                '#D1D5DB',
                                         wordBreak: 'break-all',
                                     }}
