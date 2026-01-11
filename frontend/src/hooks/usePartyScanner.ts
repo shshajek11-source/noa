@@ -53,15 +53,15 @@ export const usePartyScanner = () => {
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null); // 분석 결과 저장
     const [debugData, setDebugData] = useState<any[]>([]); // 디버그용 API 응답 데이터
 
-    // 이미지 전처리: 샤프닝 + 이진화 - OCR 정확도 최적화
+    // 이미지 전처리: 강한 샤프닝 + 대비 강화 (이진화 제거)
     const preprocessImage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-        // 1단계: 샤프닝 필터 적용 (Unsharp Mask 기법)
+        // 1단계: 강한 샤프닝 필터 적용 (Unsharp Mask 기법)
         const imageData = ctx.getImageData(0, 0, width, height);
         const data = imageData.data;
         const originalData = new Uint8ClampedArray(data); // 원본 복사
 
-        // 샤프닝 커널 (3x3) - 중앙 강조
-        const sharpenAmount = 1.5; // 샤프닝 강도 (1.0 ~ 2.0)
+        // 샤프닝 강도를 높임 (텍스트 경계 선명화)
+        const sharpenAmount = 2.0;
 
         for (let y = 1; y < height - 1; y++) {
             for (let x = 1; x < width - 1; x++) {
@@ -89,37 +89,19 @@ export const usePartyScanner = () => {
             }
         }
 
-        // 2단계: 그레이스케일 변환 + 대비 강화
-        const contrastFactor = 2.5;
-        const brightnessFactor = 40;
+        // 2단계: 대비 강화 (색상 유지, 이진화 제거)
+        const contrastFactor = 1.8;
+        const brightnessFactor = 20;
 
         for (let i = 0; i < data.length; i += 4) {
-            // 그레이스케일 (가중 평균)
-            let gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-
-            // 밝기 증가
-            gray = Math.min(255, gray + brightnessFactor);
-
-            // 대비 강화
-            gray = Math.max(0, Math.min(255, ((gray - 128) * contrastFactor) + 128));
-
-            // 3단계: 강한 이진화 (임계값 기반)
-            // 밝은 부분(텍스트) → 흰색(255), 어두운 부분(배경) → 검은색(0)
-            const threshold = 120;
-            let final: number;
-
-            if (gray > threshold + 30) {
-                final = 255; // 흰색 (텍스트)
-            } else if (gray < threshold - 30) {
-                final = 0;   // 검은색 (배경)
-            } else {
-                // 경계 영역은 부드럽게
-                final = gray > threshold ? 220 : 30;
+            for (let c = 0; c < 3; c++) {
+                let value = data[i + c];
+                // 밝기 증가
+                value = Math.min(255, value + brightnessFactor);
+                // 대비 강화
+                value = Math.max(0, Math.min(255, ((value - 128) * contrastFactor) + 128));
+                data[i + c] = value;
             }
-
-            data[i] = final;     // R
-            data[i + 1] = final; // G
-            data[i + 2] = final; // B
         }
 
         ctx.putImageData(imageData, 0, 0);
