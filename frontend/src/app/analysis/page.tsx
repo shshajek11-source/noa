@@ -27,6 +27,7 @@ export default function AnalysisPage() {
     const [error, setError] = useState<string | null>(null);
     const [showDebug, setShowDebug] = useState(false);
     const [showCropSettings, setShowCropSettings] = useState(false);
+    const [originalImage, setOriginalImage] = useState<string | null>(null); // 원본 이미지 저장
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,23 +37,22 @@ export default function AnalysisPage() {
         const reader = new FileReader();
         reader.onload = async (e) => {
             const base64 = e.target?.result as string;
+            setOriginalImage(base64); // 원본 이미지 저장
             const preview = await generatePreviewWithRegions(base64);
             setPreviewImage(preview);
         };
         reader.readAsDataURL(file);
     }, [generatePreviewWithRegions]);
 
-    // 영역 설정 변경 시 미리보기 업데이트
+    // 영역 설정 변경 시 미리보기 실시간 업데이트
     useEffect(() => {
-        if (previewImage) {
+        if (originalImage) {
             // 설정이 변경되면 미리보기 재생성
-            const img = new Image();
-            img.onload = async () => {
-                // 원본 이미지를 다시 로드해서 미리보기 생성
-                // (실제로는 원본 이미지를 저장해두어야 함)
-            };
+            generatePreviewWithRegions(originalImage).then(preview => {
+                setPreviewImage(preview);
+            });
         }
-    }, [cropSettings, cropRegions, useSingleRegion]);
+    }, [originalImage, cropSettings, cropRegions, useSingleRegion, generatePreviewWithRegions]);
 
     // 영역 추가
     const addRegion = () => {
@@ -631,69 +631,99 @@ export default function AnalysisPage() {
                                 if (file) handlePreviewUpload(file);
                             }}
                         />
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            style={{
-                                width: '100%',
-                                padding: '10px',
-                                background: '#3B82F6',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontWeight: 600,
-                                fontSize: '12px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            이미지로 영역 미리보기
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                style={{
+                                    flex: 1,
+                                    padding: '10px',
+                                    background: '#3B82F6',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontWeight: 600,
+                                    fontSize: '12px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                {originalImage ? '이미지 변경' : '이미지 업로드'}
+                            </button>
+                            {originalImage && (
+                                <button
+                                    onClick={() => {
+                                        setOriginalImage(null);
+                                        setPreviewImage(null);
+                                    }}
+                                    style={{
+                                        padding: '10px',
+                                        background: '#EF4444',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        fontSize: '12px',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    닫기
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* 미리보기 이미지 모달 */}
-            {previewImage && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'rgba(0,0,0,0.9)',
-                        zIndex: 10000,
+            {/* 실시간 미리보기 패널 (설정 패널 옆에 표시) */}
+            {showCropSettings && previewImage && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '70px',
+                    left: '420px',
+                    width: 'calc(100vw - 460px)',
+                    maxWidth: '900px',
+                    maxHeight: 'calc(100vh - 150px)',
+                    background: 'rgba(0, 0, 0, 0.95)',
+                    border: '1px solid #FACC15',
+                    borderRadius: '12px',
+                    zIndex: 9997,
+                    overflow: 'hidden',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                }}>
+                    <div style={{
+                        padding: '10px 16px',
+                        background: '#1F2937',
+                        borderBottom: '1px solid #374151',
                         display: 'flex',
-                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                    }}>
+                        <span style={{ color: '#FACC15', fontWeight: 600, fontSize: '13px' }}>
+                            실시간 미리보기
+                        </span>
+                        <span style={{ color: '#9CA3AF', fontSize: '11px' }}>
+                            {useSingleRegion ? '단일 영역' : `다중 영역 (${cropRegions.filter(r => r.enabled).length}개)`}
+                        </span>
+                    </div>
+                    <div style={{
+                        flex: 1,
+                        padding: '12px',
+                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: '20px',
-                    }}
-                    onClick={() => setPreviewImage(null)}
-                >
-                    <div style={{
-                        color: '#FACC15',
-                        marginBottom: '16px',
-                        fontSize: '14px',
-                        fontWeight: 600,
+                        overflow: 'auto',
                     }}>
-                        영역 미리보기 (클릭하면 닫힘)
-                    </div>
-                    <img
-                        src={previewImage}
-                        alt="Preview"
-                        style={{
-                            maxWidth: '95%',
-                            maxHeight: '80vh',
-                            border: '2px solid #FACC15',
-                            borderRadius: '8px',
-                        }}
-                    />
-                    <div style={{
-                        marginTop: '16px',
-                        color: '#9CA3AF',
-                        fontSize: '12px',
-                    }}>
-                        {useSingleRegion ? '단일 영역 모드' : `다중 영역 모드 (${cropRegions.filter(r => r.enabled).length}개 활성화)`}
+                        <img
+                            src={previewImage}
+                            alt="Preview"
+                            style={{
+                                maxWidth: '100%',
+                                maxHeight: 'calc(100vh - 250px)',
+                                border: '2px solid #374151',
+                                borderRadius: '8px',
+                            }}
+                        />
                     </div>
                 </div>
             )}
