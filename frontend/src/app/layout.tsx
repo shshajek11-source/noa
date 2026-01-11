@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import HeroSection from './components/home/HeroSection'
 import SearchBar from './components/SearchBar'
-import AdminResetButton from './components/AdminResetButton'
 import MainCharacterBadge from './components/MainCharacterBadge'
 import { SyncProvider } from '../context/SyncContext'
 
@@ -80,7 +79,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <div className="container">
                         {children}
                     </div>
-                    <AdminResetButton />
                 </SyncProvider>
             </body>
         </html>

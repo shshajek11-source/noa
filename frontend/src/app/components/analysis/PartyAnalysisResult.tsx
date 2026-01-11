@@ -337,8 +337,9 @@ export default function PartyAnalysisResult({ data, isScanning, onReset, onManua
                                 stats: memberSpec.stats
                             } : undefined;
 
-                            // 해당 슬롯의 선택 정보 찾기
-                            const pending = pendingSelections?.find(p => p.slotIndex === idx);
+                            // 해당 멤버의 선택 정보 찾기 (_ocrName으로 매칭)
+                            const memberOcrName = member._ocrName;
+                            const pending = pendingSelections?.find(p => p._ocrName === memberOcrName || p.name === memberOcrName);
                             const selectionInfo = pending ? {
                                 type: pending.type || 'server' as const,
                                 ocrName: pending.name,
@@ -361,8 +362,8 @@ export default function PartyAnalysisResult({ data, isScanning, onReset, onManua
                                     isLoadingSpec={isLoadingSpecs && !spec}
                                     selectionInfo={selectionInfo}
                                     onSelect={(selectedServer, characterData) => {
-                                        if (onSelectServer) {
-                                            onSelectServer(idx, selectedServer, characterData);
+                                        if (onSelectServer && pending) {
+                                            onSelectServer(pending.slotIndex, selectedServer, characterData);
                                         }
                                     }}
                                 />
