@@ -1,6 +1,6 @@
 'use client'
 
-import { Gamepad2, Sword, Compass, Shield, Skull } from 'lucide-react'
+import { Gamepad2, Sword, Compass, Shield } from 'lucide-react'
 import { ContentType, DungeonTier, ContentRecord } from '@/types/ledger'
 import ContentIncomeRow from './ContentIncomeRow'
 import styles from '../ledger.module.css'
@@ -19,8 +19,7 @@ interface ContentIncomeSectionProps {
 const CONTENT_ICONS: Record<string, React.ReactNode> = {
   transcend: <Sword size={18} />,
   expedition: <Compass size={18} />,
-  sanctuary: <Shield size={18} />,
-  raid: <Skull size={18} />
+  sanctuary: <Shield size={18} />
 }
 
 export default function ContentIncomeSection({

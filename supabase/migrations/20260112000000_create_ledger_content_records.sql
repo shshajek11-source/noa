@@ -3,7 +3,7 @@
 -- ledger_content_records: 일일 컨텐츠 수입 기록
 CREATE TABLE IF NOT EXISTS ledger_content_records (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ledger_character_id UUID NOT NULL REFERENCES ledger_characters(id) ON DELETE CASCADE,
+    character_id UUID NOT NULL REFERENCES ledger_characters(id) ON DELETE CASCADE,
     record_date DATE NOT NULL DEFAULT CURRENT_DATE,
     content_type TEXT NOT NULL,
     dungeon_tier TEXT NOT NULL,
@@ -17,16 +17,16 @@ CREATE TABLE IF NOT EXISTS ledger_content_records (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
     -- 같은 캐릭터, 같은 날짜, 같은 컨텐츠는 하나만 존재
-    UNIQUE(ledger_character_id, record_date, content_type)
+    UNIQUE(character_id, record_date, content_type)
 );
 
 -- 인덱스 생성
 CREATE INDEX IF NOT EXISTS idx_ledger_content_records_character
-    ON ledger_content_records(ledger_character_id);
+    ON ledger_content_records(character_id);
 CREATE INDEX IF NOT EXISTS idx_ledger_content_records_date
     ON ledger_content_records(record_date);
 CREATE INDEX IF NOT EXISTS idx_ledger_content_records_character_date
-    ON ledger_content_records(ledger_character_id, record_date);
+    ON ledger_content_records(character_id, record_date);
 
 -- RLS 정책
 ALTER TABLE ledger_content_records ENABLE ROW LEVEL SECURITY;
@@ -52,7 +52,7 @@ CREATE POLICY "Allow public delete on ledger_content_records"
 -- ledger_items: 아이템 획득 기록 테이블
 CREATE TABLE IF NOT EXISTS ledger_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ledger_character_id UUID NOT NULL REFERENCES ledger_characters(id) ON DELETE CASCADE,
+    character_id UUID NOT NULL REFERENCES ledger_characters(id) ON DELETE CASCADE,
     item_id TEXT,
     item_name TEXT NOT NULL,
     item_category TEXT NOT NULL DEFAULT 'etc',
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS ledger_items (
 
 -- 인덱스 생성
 CREATE INDEX IF NOT EXISTS idx_ledger_items_character
-    ON ledger_items(ledger_character_id);
+    ON ledger_items(character_id);
 CREATE INDEX IF NOT EXISTS idx_ledger_items_date
     ON ledger_items(obtained_date);
 CREATE INDEX IF NOT EXISTS idx_ledger_items_category

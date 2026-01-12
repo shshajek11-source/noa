@@ -25,27 +25,25 @@ export async function POST(request: NextRequest) {
     // Check if user already has a ledger account
     const { data: existingUser } = await supabase
       .from('ledger_users')
-      .select('id')
+      .select('id, nickname')
       .eq('auth_user_id', user.id)
       .single()
 
     if (existingUser) {
       return NextResponse.json({
         user_id: existingUser.id,
+        nickname: existingUser.nickname,
         message: 'User already exists'
       })
     }
 
-    // Create new user with auth_user_id
+    // Create new user with auth_user_id (without nickname - will be set later)
     const { data: newUser, error: createError } = await supabase
       .from('ledger_users')
       .insert({
-        auth_user_id: user.id,
-        email: user.email,
-        display_name: user.user_metadata?.full_name || user.email,
-        avatar_url: user.user_metadata?.avatar_url
+        auth_user_id: user.id
       })
-      .select('id')
+      .select('id, nickname')
       .single()
 
     if (createError) {
@@ -55,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       user_id: newUser.id,
+      nickname: newUser.nickname,
       message: 'User created'
     })
 

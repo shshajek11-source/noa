@@ -59,6 +59,8 @@ export async function POST(request: Request) {
       item_category,
       item_grade,
       quantity,
+      unit_price,
+      total_price,
       source_content,
       item_id
     } = body
@@ -66,6 +68,10 @@ export async function POST(request: Request) {
     if (!characterId || !item_name || !item_category || !item_grade) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+
+    const finalQuantity = quantity || 1
+    const finalUnitPrice = unit_price || 0
+    const finalTotalPrice = total_price !== undefined ? total_price : finalQuantity * finalUnitPrice
 
     const { data, error } = await supabase
       .from('ledger_items')
@@ -75,7 +81,9 @@ export async function POST(request: Request) {
         item_name,
         item_category,
         item_grade,
-        quantity: quantity || 1,
+        quantity: finalQuantity,
+        unit_price: finalUnitPrice,
+        total_price: finalTotalPrice,
         obtained_date: new Date().toISOString().split('T')[0],
         source_content
       })
@@ -90,25 +98,45 @@ export async function POST(request: Request) {
   }
 }
 
-// PATCH: 아이템 판매 처리 (금액 입력 시 자동 판매완료)
+// PATCH: 아이템 업데이트 (quantity, unit_price, total_price, sold_price, sold_date 등)
 export async function PATCH(request: Request) {
   const device_id = request.headers.get('x-device-id')
   if (!device_id) return NextResponse.json({ error: 'Missing Device ID' }, { status: 401 })
 
   try {
     const body = await request.json()
-    const { id, sold_price } = body
+    const { id, ...updateFields } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing item id' }, { status: 400 })
     }
 
+    // 허용된 필드만 업데이트
+    const allowedFields = [
+      'quantity',
+      'unit_price',
+      'total_price',
+      'sold_price',
+      'sold_date',
+      'item_name',
+      'item_category',
+      'item_grade',
+      'source_content'
+    ]
+
+    const updates: any = {
+      updated_at: new Date().toISOString()
+    }
+
+    for (const field of allowedFields) {
+      if (field in updateFields) {
+        updates[field] = updateFields[field]
+      }
+    }
+
     const { data, error } = await supabase
       .from('ledger_items')
-      .update({
-        sold_price,
-        updated_at: new Date().toISOString()
-      })
+      .update(updates)
       .eq('id', id)
       .select()
       .single()

@@ -72,7 +72,7 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId }: UseLedge
     }
   }
 
-  const sellItem = async (id: string, soldPrice: number) => {
+  const updateItem = async (id: string, data: Partial<LedgerItem>) => {
     if (!isReady) return null
 
     try {
@@ -82,7 +82,37 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId }: UseLedge
           'Content-Type': 'application/json',
           ...getAuthHeader()
         },
-        body: JSON.stringify({ id, sold_price: soldPrice })
+        body: JSON.stringify({ id, ...data })
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to update item')
+      }
+
+      const updated = await res.json()
+      setItems(prev => prev.map(i => i.id === id ? updated : i))
+      return updated
+    } catch (e: any) {
+      setError(e.message)
+      return null
+    }
+  }
+
+  const sellItem = async (id: string, soldPrice?: number) => {
+    if (!isReady) return null
+
+    try {
+      const res = await fetch('/api/ledger/items', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeader()
+        },
+        body: JSON.stringify({
+          id,
+          sold_price: soldPrice,
+          sold_date: new Date().toISOString()
+        })
       })
 
       if (!res.ok) {
@@ -137,6 +167,7 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId }: UseLedge
     filter,
     setFilter,
     addItem,
+    updateItem,
     sellItem,
     deleteItem,
     totalSoldIncome,

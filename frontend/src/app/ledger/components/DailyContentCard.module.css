@@ -1,0 +1,218 @@
+.card {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('https://fizz-download.playnccdn.com/download/v2/buckets/guidebook/files/19a90ad15df-2b37c0aa-046f-4017-9cc2-e813edc2db32');
+  background-size: cover;
+  background-position: center;
+  filter: blur(10px);
+  opacity: 0.4;
+  z-index: 0;
+  border-radius: 12px;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--card-color), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+  z-index: 1;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--card-color);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+
+
+.contentName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--card-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px var(--card-color-glow);
+  margin-bottom: 2px;
+  position: relative;
+  z-index: 2;
+}
+
+.progressWrapper {
+  margin: 4px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+  position: relative;
+  z-index: 2;
+}
+
+.btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(20, 25, 40, 0.8);
+  color: #E5E7EB;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn:hover::before {
+  opacity: 1;
+}
+
+.btn:hover {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btnIncrement {
+  background: linear-gradient(135deg, var(--card-color), var(--card-color-dark));
+  border-color: var(--card-color);
+  color: #0B0D12;
+}
+
+.btnIncrement:hover {
+  box-shadow: 0 0 20px var(--card-color-glow);
+  border-color: var(--card-color-light);
+}
+
+.reward {
+  font-size: 11px;
+  color: #9CA3AF;
+  margin-top: 2px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.rewardValue {
+  color: #FACC15;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
+}
+
+/* Complete state */
+.complete {
+  border-color: var(--card-color);
+}
+
+.complete::before {
+  opacity: 1;
+}
+
+.complete .contentName {
+  color: #10b981;
+  text-shadow: 0 0 15px rgba(16, 185, 129, 0.8);
+}
+
+.completeBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+  z-index: 3;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Particle effect container */
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--card-color);
+  border-radius: 50%;
+  opacity: 0;
+  animation: particleFloat 1.2s ease-out forwards;
+  box-shadow: 0 0 8px var(--card-color);
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0);
+  }
+}

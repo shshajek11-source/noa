@@ -103,7 +103,32 @@
       "WebFetch(domain:aon2.info)",
       "WebFetch(domain:aion2tool.com)",
       "Bash(git reset:*)",
-      "Bash(git revert:*)"
+      "Bash(git revert:*)",
+      "Bash(start https://supabase.com/dashboard/project/mnbngmdjiszyowfvnzhk/auth/providers)",
+      "Bash(start https://console.cloud.google.com/apis/credentials)",
+      "Bash(start http://localhost:3001/ledger)",
+      "Bash(start https://supabase.com/dashboard/projects)",
+      "Bash(start https://supabase.com/dashboard/project/edwtbiujwjprydmahwhh)",
+      "Bash(start https://supabase.com/dashboard/project/mnbngmdjiszyowfvnzhk)",
+      "Bash(start http://localhost:3002/ledger)",
+      "Bash(Get-Process node -ErrorAction SilentlyContinue)",
+      "Bash(Stop-Process -Force)",
+      "Bash(robocopy:*)",
+      "Bash(rsync:*)",
+      "Bash(git clone:*)",
+      "Bash(supabase --version:*)",
+      "Bash(set SUPABASE_ACCESS_TOKEN=sbp_aef7814ac0a40341ea7a65cdb16719c34af51da6)",
+      "Bash(export SUPABASE_ACCESS_TOKEN=sbp_aef7814ac0a40341ea7a65cdb16719c34af51da6)",
+      "mcp__playwright__browser_close",
+      "Bash(./install.sh)",
+      "Bash(choco install:*)",
+      "Bash(where:*)",
+      "Bash(chmod:*)",
+      "Bash(~/bin/jq.exe:*)",
+      "Bash(~/.bashrc)",
+      "Bash(source ~/.bashrc)",
+      "Bash(ralph --help:*)",
+      "Bash(supabase db push:*)"
     ]
   }
 }

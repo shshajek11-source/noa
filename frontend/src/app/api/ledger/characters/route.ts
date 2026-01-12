@@ -50,11 +50,33 @@ async function getUserFromRequest(request: Request) {
 
     if (user && !error) {
       // auth_user_id로 ledger_users 조회
-      const { data: ledgerUser } = await supabase
+      let { data: ledgerUser } = await supabase
         .from('ledger_users')
         .select('id')
         .eq('auth_user_id', user.id)
         .single()
+
+      // ledger_users 레코드가 없으면 자동 생성
+      if (!ledgerUser) {
+        console.log('[API] Creating ledger_users for auth_user_id:', user.id)
+        const { data: newLedgerUser, error: createError } = await supabase
+          .from('ledger_users')
+          .insert({
+            auth_user_id: user.id,
+            created_at: new Date().toISOString(),
+            last_seen_at: new Date().toISOString()
+          })
+          .select('id')
+          .single()
+
+        if (createError) {
+          console.error('[API] Failed to create ledger_users:', createError)
+          return null
+        }
+
+        ledgerUser = newLedgerUser
+        console.log('[API] Created ledger_users:', ledgerUser)
+      }
 
       if (ledgerUser) return ledgerUser
     }
@@ -74,10 +96,58 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const supabase = getSupabase()
+
+  // 대표 캐릭터 자동 추가 로직 (Google 로그인 사용자만)
+  const authHeader = request.headers.get('Authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7)
+    const { data: { user: authUser } } = await supabase.auth.getUser(token)
+
+    if (authUser) {
+      // ledger_users에서 main_character_id 조회
+      const { data: ledgerUser } = await supabase
+        .from('ledger_users')
+        .select('main_character_id, main_character_name, main_character_server, main_character_class, main_character_level, main_character_race, main_character_item_level, main_character_image_url')
+        .eq('auth_user_id', authUser.id)
+        .single()
+
+      // 대표 캐릭터가 설정되어 있으면
+      if (ledgerUser?.main_character_id) {
+        // 가계부에 이미 있는지 확인
+        const { data: existing } = await supabase
+          .from('ledger_characters')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('character_id', ledgerUser.main_character_id)
+          .single()
+
+        // 없으면 자동 추가
+        if (!existing) {
+          console.log('[Ledger Characters] Auto-adding main character to ledger:', ledgerUser.main_character_name)
+          await supabase
+            .from('ledger_characters')
+            .insert({
+              user_id: user.id,
+              character_id: ledgerUser.main_character_id,
+              name: ledgerUser.main_character_name || 'Unknown',
+              class_name: ledgerUser.main_character_class || 'Unknown',
+              server_name: ledgerUser.main_character_server || 'Unknown',
+              race: ledgerUser.main_character_race,
+              item_level: ledgerUser.main_character_item_level,
+              profile_image: ledgerUser.main_character_image_url,
+              is_main: true,
+              display_order: 0
+            })
+        }
+      }
+    }
+  }
+
   const { data: characters, error } = await supabase
     .from('ledger_characters')
     .select('*')
     .eq('user_id', user.id)
+    .order('display_order', { ascending: true })
     .order('created_at', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

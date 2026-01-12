@@ -9,7 +9,7 @@
 }
 
 .header {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .title {
@@ -17,6 +17,8 @@
   font-weight: 700;
   color: #ffffff;
   margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
 }
 
 .subtitle {
@@ -25,15 +27,18 @@
   margin: 0;
 }
 
+/* 캐릭터 탭 영역 */
+
 /* 탭 스타일 */
 .tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 24px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  align-items: center;
+  margin-bottom: 0; /* 키나 수급 현황이 margin-top으로 간격 조정 */
 }
 
 .tab {
@@ -899,6 +904,14 @@
 
 /* 반응형 */
 @media (max-width: 768px) {
+  .header {
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
   .kinaGrid {
     grid-template-columns: 1fr;
   }

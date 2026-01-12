@@ -1,0 +1,209 @@
+.panel {
+  background: linear-gradient(135deg, rgba(26, 29, 36, 0.95) 0%, rgba(15, 17, 21, 0.95) 100%);
+  border: 2px solid rgba(250, 204, 21, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  height: fit-content;
+  max-height: calc(100vh - 400px);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FACC15;
+  font-family: 'Rajdhani', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.manageBtn {
+  padding: 6px 12px;
+  background: rgba(250, 204, 21, 0.1);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  border-radius: 6px;
+  color: #FACC15;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.manageBtn:hover {
+  background: rgba(250, 204, 21, 0.2);
+  border-color: #FACC15;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.grid::-webkit-scrollbar {
+  width: 4px;
+}
+
+.grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.grid::-webkit-scrollbar-thumb {
+  background: rgba(250, 204, 21, 0.3);
+  border-radius: 2px;
+}
+
+.grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(250, 204, 21, 0.5);
+}
+
+.favoriteCard {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.1) 0%, rgba(234, 179, 8, 0.1) 100%);
+  border: 2px solid rgba(250, 204, 21, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.favoriteCard:hover {
+  border-color: #FACC15;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(250, 204, 21, 0.3);
+}
+
+.favoriteCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(250, 204, 21, 0.2), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.favoriteCard:hover::before {
+  opacity: 1;
+}
+
+.favoriteIcon {
+  font-size: 32px;
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.5));
+}
+
+.favoriteName {
+  font-size: 12px;
+  font-weight: 600;
+  color: #E5E7EB;
+  line-height: 1.3;
+  word-break: keep-all;
+}
+
+.favoriteGrade {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.gradeCommon { background: rgba(156, 163, 175, 0.2); color: #9CA3AF; }
+.gradeRare { background: rgba(96, 165, 250, 0.2); color: #60A5FA; }
+.gradeHeroic { background: rgba(167, 139, 250, 0.2); color: #A78BFA; }
+.gradeLegendary { background: rgba(251, 191, 36, 0.2); color: #FBBF24; }
+.gradeUltimate { background: rgba(244, 114, 182, 0.2); color: #F472B6; }
+
+.removeBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.8);
+  border: none;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.favoriteCard:hover .removeBtn {
+  opacity: 1;
+}
+
+.removeBtn:hover {
+  background: #ef4444;
+  transform: scale(1.1);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6B7280;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+
+.emptyText {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hint {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(250, 204, 21, 0.05);
+  border: 1px solid rgba(250, 204, 21, 0.2);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #9CA3AF;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(5, 1fr);
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .panel {
+    max-height: none;
+  }
+}

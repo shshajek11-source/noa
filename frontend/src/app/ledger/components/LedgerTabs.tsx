@@ -45,8 +45,11 @@ export default function LedgerTabs({
         if (profileImg && profileImg.startsWith('/')) {
           profileImg = `https://profileimg.plaync.com${profileImg}`
         }
-        // 종족 표시 (race 또는 race_name 사용)
-        const raceDisplay = char.race || char.race_name || ''
+        // 종족 표시 (영어 → 한국어 변환)
+        const race = char.race || char.race_name || ''
+        const raceKorean = race.toLowerCase() === 'asmodian' ? '마족' :
+                          race.toLowerCase() === 'elyos' ? '천족' : race
+
         return (
         <button
           key={char.id}
@@ -75,8 +78,9 @@ export default function LedgerTabs({
             <span className={styles.tabName}>{char.name}</span>
             <span className={styles.tabMeta}>
               {char.server_name}
-              {raceDisplay && ` · ${raceDisplay}`}
-              {char.item_level ? ` · IL${char.item_level}` : ''}
+              {char.class_name && ` · ${char.class_name}`}
+              {raceKorean && ` · ${raceKorean}`}
+              {char.item_level && ` · IL${char.item_level}`}
             </span>
           </div>
           <span

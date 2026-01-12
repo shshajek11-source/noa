@@ -6,7 +6,6 @@ const CONTENT_TYPES: ContentType[] = [
   { id: 'transcend', name: '초월', display_order: 1, is_active: true },
   { id: 'expedition', name: '원정', display_order: 2, is_active: true },
   { id: 'sanctuary', name: '성역', display_order: 3, is_active: true },
-  { id: 'raid', name: '레이드', display_order: 4, is_active: true },
 ]
 
 // 정적 던전 단계 데이터 (추후 DB로 이전 가능)
@@ -21,9 +20,6 @@ const DUNGEON_TIERS: DungeonTier[] = [
   // 성역
   { id: 'sanctuary_normal', content_type: 'sanctuary', name: '일반', default_kina: 40000, display_order: 1 },
   { id: 'sanctuary_hard', content_type: 'sanctuary', name: '어려움', default_kina: 70000, display_order: 2 },
-  // 레이드
-  { id: 'raid_normal', content_type: 'raid', name: '일반', default_kina: 100000, display_order: 1 },
-  { id: 'raid_hard', content_type: 'raid', name: '하드', default_kina: 150000, display_order: 2 },
 ]
 
 export async function GET() {

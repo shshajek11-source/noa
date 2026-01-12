@@ -33,21 +33,26 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
 
   // 기록 로드
   const fetchRecords = useCallback(async () => {
-    if (!characterId || !date) return
+    if (!isReady || !characterId || !date) return
 
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/ledger/content-records?characterId=${characterId}&date=${date}`)
+      const res = await fetch(`/api/ledger/content-records?characterId=${characterId}&date=${date}`, {
+        headers: getAuthHeader()
+      })
       if (res.ok) {
         const data = await res.json()
         setRecords(data)
+      } else {
+        console.error('[Content Records] Fetch failed:', res.status, res.statusText)
       }
     } catch (e: any) {
+      console.error('[Content Records] Fetch error:', e)
       setError(e.message)
     } finally {
       setIsLoading(false)
     }
-  }, [characterId, date])
+  }, [isReady, characterId, date, getAuthHeader])
 
   useEffect(() => {
     fetchContentTypes()

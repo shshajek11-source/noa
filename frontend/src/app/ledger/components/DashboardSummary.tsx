@@ -118,6 +118,7 @@ export default function DashboardSummary({
                     <div className={styles.charCardName}>{char.name}</div>
                     <div className={styles.charCardClass}>
                       {char.class_name} · {char.server_name}
+                      {char.item_level && char.item_level > 0 && ` · IL ${char.item_level}`}
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 
 const DEVICE_ID_KEY = 'ledger_device_id'
@@ -61,7 +61,7 @@ export function useDeviceId() {
   }, [user, session, isAuthLoading])
 
   // Return access token for authenticated requests
-  const getAuthHeader = (): Record<string, string> => {
+  const getAuthHeader = useCallback((): Record<string, string> => {
     if (isAuthenticated && session) {
       return { 'Authorization': `Bearer ${session.access_token}` }
     }
@@ -69,7 +69,7 @@ export function useDeviceId() {
       return { 'x-device-id': deviceId }
     }
     return {}
-  }
+  }, [isAuthenticated, session, deviceId])
 
   return {
     deviceId,

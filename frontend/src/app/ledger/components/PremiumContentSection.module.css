@@ -1,0 +1,32 @@
+.section {
+  margin: 20px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9CA3AF;
+  font-size: 16px;
+}
+
+.error {
+  padding: 20px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  color: #ef4444;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
