@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,8 +9,6 @@ export async function GET(request: NextRequest) {
     if (!characterId) {
       return NextResponse.json({ error: 'Character ID is required' }, { status: 400 })
     }
-
-    const supabase = createClient()
 
     // 캐릭터 소유권 검증 (device_id 또는 Google 로그인)
     const deviceId = request.headers.get('X-Device-ID')
@@ -59,8 +57,6 @@ export async function POST(request: NextRequest) {
     if (!characterId || !item_id || !item_name || !item_grade || !item_category) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
-
-    const supabase = createClient()
 
     // 캐릭터 소유권 검증
     const deviceId = request.headers.get('X-Device-ID')
@@ -138,8 +134,6 @@ export async function DELETE(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: 'Favorite ID is required' }, { status: 400 })
     }
-
-    const supabase = createClient()
 
     // 즐겨찾기 조회 및 소유권 검증
     const deviceId = request.headers.get('X-Device-ID')

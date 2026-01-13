@@ -5,6 +5,18 @@ import { useAuth } from '@/context/AuthContext'
 
 const DEVICE_ID_KEY = 'ledger_device_id'
 
+// Standalone function to get auth headers (for use outside of React components)
+export function getAuthHeader(): Record<string, string> {
+  if (typeof window === 'undefined') return {}
+
+  // Check for device ID
+  const deviceId = localStorage.getItem(DEVICE_ID_KEY)
+  if (deviceId) {
+    return { 'x-device-id': deviceId }
+  }
+  return {}
+}
+
 export function useDeviceId() {
   const { user, session, isLoading: isAuthLoading } = useAuth()
   const [deviceId, setDeviceId] = useState<string | null>(null)
