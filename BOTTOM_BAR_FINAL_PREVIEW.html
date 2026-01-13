@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>하단 수입 바 최종 설계도</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #161618;
+      color: #E5E7EB;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #9CA3AF;
+      margin-bottom: 40px;
+    }
+
+    /* 설명 섹션 */
+    .description {
+      background: #1b1b1e;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(250, 204, 21, 0.2);
+    }
+
+    .description h2 {
+      font-size: 20px;
+      color: #FACC15;
+      margin-bottom: 16px;
+    }
+
+    .description ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .description li {
+      padding: 8px 0;
+      color: #D1D5DB;
+      line-height: 1.6;
+    }
+
+    .description li::before {
+      content: "✓ ";
+      color: #FACC15;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    /* 데모 버튼 */
+    .demoControls {
+      background: #1b1b1e;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 120px;
+      border: 1px solid rgba(250, 204, 21, 0.2);
+    }
+
+    .demoControls h2 {
+      font-size: 20px;
+      color: #FACC15;
+      margin-bottom: 16px;
+    }
+
+    .buttonGroup {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .demoButton {
+      padding: 10px 20px;
+      background: #FACC15;
+      color: #0B0D12;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: opacity 0.2s;
+    }
+
+    .demoButton:hover {
+      opacity: 0.9;
+    }
+
+    .demoButton.secondary {
+      background: transparent;
+      color: #9CA3AF;
+      border: 1px solid rgba(156, 163, 175, 0.5);
+    }
+
+    /* 가짜 컨텐츠 */
+    .mockContent {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 120px;
+    }
+
+    .mockCard {
+      background: linear-gradient(135deg, rgba(26, 29, 36, 0.95) 0%, rgba(15, 17, 21, 0.95) 100%);
+      border: 1.5px solid rgba(250, 204, 21, 0.3);
+      border-radius: 11px;
+      height: 112px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .mockCardTitle {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FACC15;
+    }
+
+    .mockCardProgress {
+      font-size: 20px;
+      font-weight: 700;
+      color: #FACC15;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    .bonusCount {
+      font-size: 16px;
+      font-weight: 700;
+      color: #10B981;
+      margin-left: 4px;
+      text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+
+    /* 하단 수입 바 */
+    .bottomIncomeBar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+
+      width: 100%;
+      max-width: 1200px;
+      height: 70px;
+      padding: 0 16px;
+
+      background: #0B0D12;
+      border-top: 2px solid rgba(250, 204, 21, 0.2);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+
+      display: grid;
+      grid-template-columns: 30% 1px 30% 1px 40%;
+      align-items: center;
+      gap: 16px;
+
+      z-index: 100;
+    }
+
+    /* 캘린더 버튼 */
+    .calendarButton {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: rgba(250, 204, 21, 0.1);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      color: #FACC15;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .calendarButton:hover {
+      background: rgba(250, 204, 21, 0.2);
+      border-color: rgba(250, 204, 21, 0.5);
+    }
+
+    /* 캘린더 팝업 */
+    .calendarPopup {
+      position: absolute;
+      left: 16px;
+      bottom: calc(100% + 12px);
+
+      background: #1b1b1e;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      padding: 16px;
+      width: 280px;
+
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: all 0.2s ease-out;
+
+      z-index: 200;
+    }
+
+    .calendarPopup.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0);
+    }
+
+    .calendarPopup::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 24px;
+
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid #1b1b1e;
+    }
+
+    .calendarHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .currentMonth {
+      font-size: 14px;
+      font-weight: 600;
+      color: #FACC15;
+    }
+
+    .monthBtn {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #E5E7EB;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .monthBtn:hover {
+      border-color: #FACC15;
+      color: #FACC15;
+    }
+
+    .calendarWeekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
+      text-align: center;
+      font-size: 11px;
+      color: #9CA3AF;
+    }
+
+    .calendarDays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .dayBtn {
+      aspect-ratio: 1;
+      border-radius: 6px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #E5E7EB;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dayBtn:hover {
+      background: rgba(250, 204, 21, 0.1);
+      border-color: rgba(250, 204, 21, 0.3);
+    }
+
+    .dayBtn.selected {
+      background: rgba(250, 204, 21, 0.2);
+      border-color: #FACC15;
+      color: #FACC15;
+      font-weight: 700;
+    }
+
+    .dayBtn.today {
+      border-color: rgba(250, 204, 21, 0.5);
+    }
+
+    .dayBtn.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .todayBtn {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      background: rgba(250, 204, 21, 0.1);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      color: #FACC15;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .todayBtn:hover {
+      background: rgba(250, 204, 21, 0.2);
+    }
+
+    /* 수입 섹션 */
+    .incomeSection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sectionLabel {
+      font-size: 12px;
+      font-weight: 500;
+      color: #9CA3AF;
+      letter-spacing: 0.5px;
+    }
+
+    .sectionValue {
+      font-size: 24px;
+      font-weight: 700;
+      color: #FACC15;
+      font-family: 'Rajdhani', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 32px;
+    }
+
+    .divider {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(250, 204, 21, 0.3),
+        transparent
+      );
+    }
+
+    /* 스페셜 이용권 섹션 */
+    .specialTicketSection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    .specialTicketHeader {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .settingsButton {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background: rgba(250, 204, 21, 0.1);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      color: #FACC15;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .settingsButton:hover {
+      background: rgba(250, 204, 21, 0.2);
+      border-color: rgba(250, 204, 21, 0.5);
+      transform: rotate(90deg);
+    }
+
+    .specialTicketCount {
+      font-size: 28px;
+      font-weight: 700;
+      color: #FACC15;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    /* 툴팁 모달 */
+    .tooltipModal {
+      position: absolute;
+      bottom: calc(100% + 12px);
+      right: -40px;
+
+      background: #1b1b1e;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+
+      width: 280px;
+      max-height: 500px;
+      overflow: hidden;
+
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: all 0.2s ease-out;
+
+      z-index: 200;
+    }
+
+    .tooltipModal.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0);
+    }
+
+    .tooltipModal::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      right: 48px;
+
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid #1b1b1e;
+    }
+
+    .modalHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modalTitle {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .closeButton {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      background: transparent;
+      border: none;
+      color: #a5a8b4;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .closeButton:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .modalBody {
+      padding: 12px 16px;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+
+    .contentRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .contentRow:last-child {
+      border-bottom: none;
+    }
+
+    .contentName {
+      font-size: 13px;
+      font-weight: 500;
+      color: #E5E7EB;
+    }
+
+    .counterGroup {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .counterButton {
+      width: 26px;
+      height: 26px;
+      border-radius: 5px;
+      background: #212227;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #E5E7EB;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .counterButton:hover:not(:disabled) {
+      border-color: #FACC15;
+      color: #FACC15;
+    }
+
+    .counterButton:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .counterButton.increment {
+      background: rgba(250, 204, 21, 0.1);
+      border-color: rgba(250, 204, 21, 0.3);
+      color: #FACC15;
+    }
+
+    .counterButton.increment:hover:not(:disabled) {
+      background: rgba(250, 204, 21, 0.2);
+    }
+
+    .counterValue {
+      width: 64px; /* 48px → 64px */
+      height: 30px;
+      background: #161618;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      text-align: center;
+      font-size: 16px; /* 14px → 16px */
+      font-weight: 600;
+      color: #FACC15;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    .counterValue:focus {
+      outline: none;
+      border-color: #FACC15;
+    }
+
+    .totalSummary {
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+
+    .totalCount {
+      font-weight: 700;
+      color: #FACC15;
+      font-size: 16px;
+    }
+
+    .modalFooter {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .applyButton {
+      width: 100%;
+      height: 40px;
+      border-radius: 8px;
+      background: #FACC15;
+      border: none;
+      color: #0B0D12;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .applyButton:hover {
+      opacity: 0.9;
+    }
+
+    /* 반응형 */
+    @media (max-width: 768px) {
+      .mockContent {
+        grid-template-columns: 1fr;
+      }
+
+      .bottomIncomeBar {
+        height: auto;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        padding: 12px 16px 12px 56px;
+        gap: 12px;
+      }
+
+      .calendarButton {
+        left: 12px;
+      }
+
+      .divider {
+        display: none;
+      }
+
+      .sectionValue {
+        font-size: 20px;
+      }
+
+      .specialTicketCount {
+        font-size: 24px;
+      }
+
+      .tooltipModal {
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+      }
+
+      .tooltipModal.active {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .tooltipModal::after {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .calendarPopup {
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+      }
+
+      .calendarPopup.active {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .calendarPopup::after {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 하단 수입 바 최종 설계</h1>
+    <p class="subtitle">캘린더 + 카운트업 애니메이션 + 툴팁 모달</p>
+
+    <!-- 설명 섹션 -->
+    <div class="description">
+      <h2>📋 최종 디자인 특징</h2>
+      <ul>
+        <li><strong>캘린더 버튼:</strong> 왼쪽 📅 버튼으로 날짜별 가계부 조회</li>
+        <li><strong>카운트업 애니메이션:</strong> 수입 숫자가 슈르륵 올라감 (1초)</li>
+        <li><strong>툴팁 모달:</strong> 설정 버튼 위에서 팝업 (중앙 모달 X)</li>
+        <li><strong>넓은 입력 필드:</strong> 64px (기존 48px)</li>
+        <li><strong>깔끔한 숫자:</strong> "0개 적용됨" → "0"</li>
+      </ul>
+    </div>
+
+    <!-- 데모 컨트롤 -->
+    <div class="demoControls">
+      <h2>🎮 인터랙티브 데모</h2>
+      <p style="color: #D1D5DB; margin-bottom: 16px;">하단 바의 기능들을 테스트해보세요!</p>
+      <div class="buttonGroup">
+        <button class="demoButton" onclick="incrementIncome()">💰 수입 증가 (카운트업 확인)</button>
+        <button class="demoButton" onclick="openTooltip()">⚙️ 스페셜 이용권 설정</button>
+        <button class="demoButton" onclick="openCalendar()">📅 캘린더 열기</button>
+        <button class="demoButton secondary" onclick="resetAll()">🔄 전체 초기화</button>
+      </div>
+    </div>
+
+    <!-- 가짜 컨텐츠 -->
+    <div class="mockContent">
+      <div class="mockCard">
+        <div class="mockCardTitle">초월</div>
+        <div class="mockCardProgress">
+          잔여 횟수: 3/5<span class="bonusCount" id="bonus-초월"></span>
+        </div>
+      </div>
+      <div class="mockCard">
+        <div class="mockCardTitle">원정</div>
+        <div class="mockCardProgress">
+          잔여 횟수: 2/3<span class="bonusCount" id="bonus-원정"></span>
+        </div>
+      </div>
+      <div class="mockCard">
+        <div class="mockCardTitle">일일던전</div>
+        <div class="mockCardProgress">
+          잔여 횟수: 1/3<span class="bonusCount" id="bonus-일일던전"></span>
+        </div>
+      </div>
+      <div class="mockCard">
+        <div class="mockCardTitle">각성전</div>
+        <div class="mockCardProgress">
+          잔여 횟수: 0/5<span class="bonusCount" id="bonus-각성전"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 하단 수입 바 -->
+  <div class="bottomIncomeBar">
+    <!-- 캘린더 버튼 -->
+    <button class="calendarButton" onclick="toggleCalendar()" title="날짜 선택">📅</button>
+
+    <!-- 캘린더 팝업 -->
+    <div class="calendarPopup" id="calendarPopup">
+      <div class="calendarHeader">
+        <button class="monthBtn" onclick="prevMonth()">‹</button>
+        <div class="currentMonth" id="currentMonth">2024년 1월</div>
+        <button class="monthBtn" onclick="nextMonth()">›</button>
+      </div>
+
+      <div class="calendarWeekdays">
+        <div>일</div>
+        <div>월</div>
+        <div>화</div>
+        <div>수</div>
+        <div>목</div>
+        <div>금</div>
+        <div>토</div>
+      </div>
+
+      <div class="calendarDays" id="calendarDays"></div>
+
+      <button class="todayBtn" onclick="goToToday()">오늘로 이동</button>
+    </div>
+
+    <!-- 일일 수입 (30%) -->
+    <div class="incomeSection">
+      <div class="sectionLabel">일일 수입</div>
+      <div class="sectionValue">
+        <span id="dailyIncome">0</span><span style="font-size: 14px; color: #D1D5DB; margin-left: 4px; opacity: 0.8;">키나</span>
+      </div>
+    </div>
+
+    <!-- 구분선 -->
+    <div class="divider"></div>
+
+    <!-- 주간 수입 (30%) -->
+    <div class="incomeSection">
+      <div class="sectionLabel">주간 수입</div>
+      <div class="sectionValue">
+        <span id="weeklyIncome">0</span><span style="font-size: 14px; color: #D1D5DB; margin-left: 4px; opacity: 0.8;">키나</span>
+      </div>
+    </div>
+
+    <!-- 구분선 -->
+    <div class="divider"></div>
+
+    <!-- 스페셜 이용권 적용 (40%) -->
+    <div class="specialTicketSection">
+      <div class="specialTicketHeader">
+        <div class="sectionLabel">스페셜 이용권</div>
+        <button class="settingsButton" onclick="toggleTooltip()" title="스페셜 이용권 설정">⚙</button>
+      </div>
+      <div class="specialTicketCount" id="totalTicketsDisplay">0</div>
+
+      <!-- 툴팁 모달 -->
+      <div class="tooltipModal" id="tooltipModal">
+        <div class="modalHeader">
+          <div class="modalTitle">스페셜 이용권 적용</div>
+          <button class="closeButton" onclick="closeTooltip()">✕</button>
+        </div>
+
+        <div class="modalBody">
+          <!-- 초월 -->
+          <div class="contentRow">
+            <div class="contentName">초월</div>
+            <div class="counterGroup">
+              <button class="counterButton" onclick="decrementTicket('초월')">−</button>
+              <input type="number" class="counterValue" id="ticket-초월" value="0" min="0" max="99" onchange="updateTotal()">
+              <button class="counterButton increment" onclick="incrementTicket('초월')">+</button>
+            </div>
+          </div>
+
+          <!-- 원정 -->
+          <div class="contentRow">
+            <div class="contentName">원정</div>
+            <div class="counterGroup">
+              <button class="counterButton" onclick="decrementTicket('원정')">−</button>
+              <input type="number" class="counterValue" id="ticket-원정" value="0" min="0" max="99" onchange="updateTotal()">
+              <button class="counterButton increment" onclick="incrementTicket('원정')">+</button>
+            </div>
+          </div>
+
+          <!-- 일일던전 -->
+          <div class="contentRow">
+            <div class="contentName">일일던전</div>
+            <div class="counterGroup">
+              <button class="counterButton" onclick="decrementTicket('일일던전')">−</button>
+              <input type="number" class="counterValue" id="ticket-일일던전" value="0" min="0" max="99" onchange="updateTotal()">
+              <button class="counterButton increment" onclick="incrementTicket('일일던전')">+</button>
+            </div>
+          </div>
+
+          <!-- 각성전 -->
+          <div class="contentRow">
+            <div class="contentName">각성전</div>
+            <div class="counterGroup">
+              <button class="counterButton" onclick="decrementTicket('각성전')">−</button>
+              <input type="number" class="counterValue" id="ticket-각성전" value="0" min="0" max="99" onchange="updateTotal()">
+              <button class="counterButton increment" onclick="incrementTicket('각성전')">+</button>
+            </div>
+          </div>
+
+          <!-- 토벌전 -->
+          <div class="contentRow">
+            <div class="contentName">토벌전</div>
+            <div class="counterGroup">
+              <button class="counterButton" onclick="decrementTicket('토벌전')">−</button>
+              <input type="number" class="counterValue" id="ticket-토벌전" value="0" min="0" max="99" onchange="updateTotal()">
+              <button class="counterButton increment" onclick="incrementTicket('토벌전')">+</button>
+            </div>
+          </div>
+
+          <!-- 악몽 -->
+          <div class="contentRow">
+            <div class="contentName">악몽</div>
+            <div class="counterGroup">
+              <button class="counterButton" onclick="decrementTicket('악몽')">−</button>
+              <input type="number" class="counterValue" id="ticket-악몽" value="0" min="0" max="99" onchange="updateTotal()">
+              <button class="counterButton increment" onclick="incrementTicket('악몽')">+</button>
+            </div>
+          </div>
+
+          <!-- 차원침공 -->
+          <div class="contentRow">
+            <div class="contentName">차원침공</div>
+            <div class="counterGroup">
+              <button class="counterButton" onclick="decrementTicket('차원침공')">−</button>
+              <input type="number" class="counterValue" id="ticket-차원침공" value="0" min="0" max="99" onchange="updateTotal()">
+              <button class="counterButton increment" onclick="incrementTicket('차원침공')">+</button>
+            </div>
+          </div>
+
+          <!-- 성역 -->
+          <div class="contentRow">
+            <div class="contentName">성역</div>
+            <div class="counterGroup">
+              <button class="counterButton" onclick="decrementTicket('성역')">−</button>
+              <input type="number" class="counterValue" id="ticket-성역" value="0" min="0" max="99" onchange="updateTotal()">
+              <button class="counterButton increment" onclick="incrementTicket('성역')">+</button>
+            </div>
+          </div>
+
+          <div class="totalSummary">
+            총: <span class="totalCount" id="modalTotalCount">0</span>개
+          </div>
+        </div>
+
+        <div class="modalFooter">
+          <button class="applyButton" onclick="applyTickets()">적용</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const contentTypes = ['초월', '원정', '일일던전', '각성전', '토벌전', '악몽', '차원침공', '성역'];
+    let currentTickets = {};
+    let dailyIncomeValue = 1234567;
+    let weeklyIncomeValue = 5678901;
+
+    let currentDate = new Date();
+    let selectedDate = new Date();
+
+    // 카운트업 애니메이션
+    function animateValue(element, start, end, duration) {
+      let startTime = null;
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+
+        // easeOutCubic
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const value = Math.floor(start + (end - start) * easeOut);
+
+        element.textContent = value.toLocaleString();
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          element.textContent = end.toLocaleString();
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    // 수입 증가
+    function incrementIncome() {
+      const oldDaily = dailyIncomeValue;
+      const oldWeekly = weeklyIncomeValue;
+
+      dailyIncomeValue += 100000;
+      weeklyIncomeValue += 100000;
+
+      animateValue(document.getElementById('dailyIncome'), oldDaily, dailyIncomeValue, 1000);
+      setTimeout(() => {
+        animateValue(document.getElementById('weeklyIncome'), oldWeekly, weeklyIncomeValue, 1000);
+      }, 150);
+    }
+
+    // 툴팁 토글
+    function toggleTooltip() {
+      const tooltip = document.getElementById('tooltipModal');
+      const calendar = document.getElementById('calendarPopup');
+      calendar.classList.remove('active');
+      tooltip.classList.toggle('active');
+      updateTotal();
+    }
+
+    function openTooltip() {
+      document.getElementById('tooltipModal').classList.add('active');
+      document.getElementById('calendarPopup').classList.remove('active');
+      updateTotal();
+    }
+
+    function closeTooltip() {
+      document.getElementById('tooltipModal').classList.remove('active');
+    }
+
+    // 캘린더 토글
+    function toggleCalendar() {
+      const calendar = document.getElementById('calendarPopup');
+      const tooltip = document.getElementById('tooltipModal');
+      tooltip.classList.remove('active');
+      calendar.classList.toggle('active');
+
+      if (calendar.classList.contains('active')) {
+        renderCalendar();
+      }
+    }
+
+    function openCalendar() {
+      document.getElementById('calendarPopup').classList.add('active');
+      document.getElementById('tooltipModal').classList.remove('active');
+      renderCalendar();
+    }
+
+    function closeCalendar() {
+      document.getElementById('calendarPopup').classList.remove('active');
+    }
+
+    // 캘린더 렌더링
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      document.getElementById('currentMonth').textContent = `${year}년 ${month + 1}월`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+
+      const daysContainer = document.getElementById('calendarDays');
+      daysContainer.innerHTML = '';
+
+      // 빈 칸
+      for (let i = 0; i < firstDay; i++) {
+        const emptyBtn = document.createElement('button');
+        emptyBtn.className = 'dayBtn disabled';
+        emptyBtn.disabled = true;
+        daysContainer.appendChild(emptyBtn);
+      }
+
+      // 날짜 버튼
+      const today = new Date();
+      for (let day = 1; day <= lastDate; day++) {
+        const dayBtn = document.createElement('button');
+        dayBtn.className = 'dayBtn';
+        dayBtn.textContent = day;
+
+        // 오늘 표시
+        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+          dayBtn.classList.add('today');
+        }
+
+        // 선택된 날짜 표시
+        if (year === selectedDate.getFullYear() && month === selectedDate.getMonth() && day === selectedDate.getDate()) {
+          dayBtn.classList.add('selected');
+        }
+
+        dayBtn.onclick = () => selectDate(year, month, day);
+        daysContainer.appendChild(dayBtn);
+      }
+    }
+
+    // 날짜 선택
+    function selectDate(year, month, day) {
+      selectedDate = new Date(year, month, day);
+      closeCalendar();
+
+      console.log(`선택된 날짜: ${year}-${month + 1}-${day}`);
+
+      // 날짜가 변경되면 수입 다시 로드 (데모용 랜덤 값)
+      const newDaily = Math.floor(Math.random() * 2000000) + 500000;
+      const newWeekly = Math.floor(Math.random() * 8000000) + 3000000;
+
+      animateValue(document.getElementById('dailyIncome'), 0, newDaily, 1000);
+      setTimeout(() => {
+        animateValue(document.getElementById('weeklyIncome'), 0, newWeekly, 1000);
+      }, 150);
+
+      dailyIncomeValue = newDaily;
+      weeklyIncomeValue = newWeekly;
+    }
+
+    // 이전 달
+    function prevMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    }
+
+    // 다음 달
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    }
+
+    // 오늘로 이동
+    function goToToday() {
+      const today = new Date();
+      selectDate(today.getFullYear(), today.getMonth(), today.getDate());
+      currentDate = new Date();
+    }
+
+    // 스페셜 이용권 기능
+    function incrementTicket(contentType) {
+      const input = document.getElementById(`ticket-${contentType}`);
+      let value = parseInt(input.value) || 0;
+      if (value < 99) {
+        input.value = value + 1;
+        updateTotal();
+      }
+    }
+
+    function decrementTicket(contentType) {
+      const input = document.getElementById(`ticket-${contentType}`);
+      let value = parseInt(input.value) || 0;
+      if (value > 0) {
+        input.value = value - 1;
+        updateTotal();
+      }
+    }
+
+    function updateTotal() {
+      let total = 0;
+      contentTypes.forEach(type => {
+        const input = document.getElementById(`ticket-${type}`);
+        const value = parseInt(input.value) || 0;
+
+        if (value < 0) input.value = 0;
+        if (value > 99) input.value = 99;
+
+        total += parseInt(input.value) || 0;
+      });
+
+      document.getElementById('modalTotalCount').textContent = total;
+    }
+
+    function applyTickets() {
+      contentTypes.forEach(type => {
+        const input = document.getElementById(`ticket-${type}`);
+        currentTickets[type] = parseInt(input.value) || 0;
+      });
+
+      const total = Object.values(currentTickets).reduce((sum, val) => sum + val, 0);
+
+      // 숫자만 표시
+      document.getElementById('totalTicketsDisplay').textContent = total;
+
+      updateContentCards();
+      closeTooltip();
+
+      console.log('스페셜 이용권 적용:', currentTickets);
+    }
+
+    function updateContentCards() {
+      contentTypes.forEach(type => {
+        const bonusElement = document.getElementById(`bonus-${type}`);
+        if (bonusElement) {
+          const bonus = currentTickets[type] || 0;
+          if (bonus > 0) {
+            bonusElement.textContent = ` (+${bonus})`;
+            bonusElement.style.display = 'inline';
+          } else {
+            bonusElement.textContent = '';
+            bonusElement.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    function resetAll() {
+      // 스페셜 이용권 초기화
+      contentTypes.forEach(type => {
+        const input = document.getElementById(`ticket-${type}`);
+        if (input) input.value = 0;
+        currentTickets[type] = 0;
+      });
+
+      document.getElementById('totalTicketsDisplay').textContent = '0';
+      updateContentCards();
+      updateTotal();
+
+      // 수입 초기화
+      dailyIncomeValue = 1234567;
+      weeklyIncomeValue = 5678901;
+
+      animateValue(document.getElementById('dailyIncome'), 0, dailyIncomeValue, 1000);
+      setTimeout(() => {
+        animateValue(document.getElementById('weeklyIncome'), 0, weeklyIncomeValue, 1000);
+      }, 150);
+
+      // 날짜 초기화
+      currentDate = new Date();
+      selectedDate = new Date();
+    }
+
+    // 페이지 로드 시
+    window.addEventListener('load', () => {
+      resetAll();
+    });
+
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeTooltip();
+        closeCalendar();
+      }
+    });
+
+    // 외부 클릭 시 닫기
+    document.addEventListener('click', (e) => {
+      const tooltip = document.getElementById('tooltipModal');
+      const calendar = document.getElementById('calendarPopup');
+      const settingsBtn = document.querySelector('.settingsButton');
+      const calendarBtn = document.querySelector('.calendarButton');
+
+      if (!tooltip.contains(e.target) && e.target !== settingsBtn) {
+        closeTooltip();
+      }
+
+      if (!calendar.contains(e.target) && e.target !== calendarBtn) {
+        closeCalendar();
+      }
+    });
+  </script>
+</body>
+</html>

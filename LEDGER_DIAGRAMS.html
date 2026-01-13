@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가계부 페이지 구조도</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0B0D12 0%, #1a1d24 100%);
+            color: #E5E7EB;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #FACC15;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9CA3AF;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav button {
+            background: linear-gradient(135deg, #27282e 0%, #1f2026 100%);
+            color: #E5E7EB;
+            border: 1px solid rgba(250, 204, 21, 0.2);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav button:hover {
+            background: linear-gradient(135deg, #FACC15 0%, #F59E0B 100%);
+            color: #0B0D12;
+            border-color: #FACC15;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(250, 204, 21, 0.3);
+        }
+
+        .nav button.active {
+            background: linear-gradient(135deg, #FACC15 0%, #F59E0B 100%);
+            color: #0B0D12;
+            border-color: #FACC15;
+            box-shadow: 0 3px 10px rgba(250, 204, 21, 0.4);
+        }
+
+        .diagram-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(250, 204, 21, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .diagram-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .diagram-section h2 {
+            color: #FACC15;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            border-bottom: 2px solid rgba(250, 204, 21, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .diagram-section p {
+            color: #9CA3AF;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        .mermaid {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .legend {
+            background: rgba(96, 165, 250, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #60A5FA;
+        }
+
+        .legend h3 {
+            color: #60A5FA;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+
+        .legend ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .legend li {
+            padding: 8px 0;
+            color: #D1D5DB;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend li::before {
+            content: "▸";
+            color: #60A5FA;
+            font-weight: bold;
+        }
+
+        .color-box {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            text-align: center;
+            color: #6B7280;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(250, 204, 21, 0.1);
+            font-size: 0.9rem;
+        }
+
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #FACC15;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #F59E0B;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗂️ 가계부 페이지 구조도</h1>
+        <p class="subtitle">AION 2 가계부 시스템의 시각적 구조 분석</p>
+
+        <div class="nav">
+            <button onclick="showDiagram('overview')" class="active">전체 구조</button>
+            <button onclick="showDiagram('components')">컴포넌트 계층</button>
+            <button onclick="showDiagram('dataflow')">데이터 흐름</button>
+            <button onclick="showDiagram('userflow')">사용자 플로우</button>
+            <button onclick="showDiagram('api')">API 엔드포인트</button>
+            <button onclick="showDiagram('database')">데이터베이스</button>
+        </div>
+
+        <!-- 전체 페이지 구조 -->
+        <div id="overview" class="diagram-section active">
+            <h2>📋 전체 페이지 구조</h2>
+            <p>가계부 페이지의 전체적인 레이아웃과 주요 섹션을 보여줍니다.</p>
+            <div class="mermaid">
+graph TD
+    A[가계부 페이지 /ledger] --> B[메인 탭]
+    B --> C[총합 대시보드]
+    B --> D[캐릭터 탭들]
+    B --> E[캐릭터 추가 버튼]
+
+    C --> F[DashboardSummary]
+    C --> G[CompactKinaOverview]
+    C --> H[WeeklyChart]
+
+    D --> I[서브탭]
+    I --> J[컨텐츠 수입]
+    I --> K[아이템]
+    I --> L[주간 통계]
+
+    J --> M[PremiumContentSection]
+    J --> N[DailyContentSection]
+    J --> O[ContentIncomeSection]
+
+    K --> P[ItemManagementTab]
+    K --> Q[FavoriteItemsPanel]
+
+    L --> R[WeeklyChart]
+
+    style A fill:#FACC15,stroke:#333,stroke-width:3px,color:#000
+    style B fill:#60A5FA,stroke:#333,stroke-width:2px
+    style I fill:#A78BFA,stroke:#333,stroke-width:2px
+            </div>
+            <div class="legend">
+                <h3>🎨 색상 범례</h3>
+                <ul>
+                    <li><span class="color-box" style="background:#FACC15"></span> 메인 페이지 (Yellow)</li>
+                    <li><span class="color-box" style="background:#60A5FA"></span> 메인 탭 레벨 (Blue)</li>
+                    <li><span class="color-box" style="background:#A78BFA"></span> 서브탭 레벨 (Purple)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 컴포넌트 계층 구조 -->
+        <div id="components" class="diagram-section">
+            <h2>🧩 컴포넌트 계층 구조</h2>
+            <p>React 컴포넌트의 부모-자식 관계와 렌더링 구조를 나타냅니다.</p>
+            <div class="mermaid">
+graph LR
+    A[LedgerPage] --> B[LedgerTabs]
+    A --> C[LedgerSubTabs]
+    A --> D[FloatingDateButton]
+    A --> E[Modals]
+
+    B --> B1[총합 탭]
+    B --> B2[캐릭터 탭]
+    B --> B3[추가 버튼]
+
+    C --> C1[컨텐츠 수입]
+    C --> C2[아이템]
+    C --> C3[주간 통계]
+
+    C1 --> D1[PremiumContentSection]
+    D1 --> D1A[PremiumContentCard]
+
+    C1 --> D2[DailyContentSection]
+    D2 --> D2A[DailyContentCard]
+
+    C1 --> D3[ContentIncomeSection]
+    D3 --> D3A[ContentIncomeRow]
+
+    C2 --> E1[ItemManagementTab]
+    E1 --> E1A[EnhancedItemCard]
+    C2 --> E2[FavoriteItemsPanel]
+
+    C3 --> F1[WeeklyChart]
+
+    E --> G1[AddCharacterModal]
+    E --> G2[AddItemModal]
+    E --> G3[DateSelectorModal]
+    E --> G4[NicknameModal]
+    E --> G5[MainCharacterModal]
+
+    style A fill:#FACC15,stroke:#333,stroke-width:3px,color:#000
+    style C1 fill:#A78BFA,stroke:#333,stroke-width:2px
+    style C2 fill:#A78BFA,stroke:#333,stroke-width:2px
+    style C3 fill:#A78BFA,stroke:#333,stroke-width:2px
+            </div>
+            <div class="legend">
+                <h3>📦 주요 컴포넌트</h3>
+                <ul>
+                    <li><strong>LedgerPage</strong> - 최상위 페이지 컴포넌트</li>
+                    <li><strong>LedgerTabs</strong> - 캐릭터 탭 네비게이션</li>
+                    <li><strong>LedgerSubTabs</strong> - 서브탭 네비게이션</li>
+                    <li><strong>Modals</strong> - 5개의 모달 컴포넌트</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 데이터 흐름 -->
+        <div id="dataflow" class="diagram-section">
+            <h2>🔄 데이터 흐름</h2>
+            <p>API 엔드포인트 → 커스텀 훅 → UI 컴포넌트로 이어지는 데이터 흐름을 보여줍니다.</p>
+            <div class="mermaid">
+graph TB
+    A[API Endpoints] --> B[Custom Hooks]
+    B --> C[Page Components]
+
+    A1[/api/ledger/characters] --> B1[useLedgerCharacters]
+    A2[/api/ledger/content-records] --> B2[useContentRecords]
+    A3[/api/ledger/items] --> B3[useLedgerItems]
+    A4[/api/ledger/stats/weekly] --> B4[useWeeklyStats]
+    A5[/api/ledger/favorite-items] --> B5[useFavoriteItems]
+
+    B1 --> C1[LedgerTabs]
+    B2 --> C2[ContentIncomeSection]
+    B2 --> C3[DailyContentSection]
+    B2 --> C4[PremiumContentSection]
+    B3 --> C5[ItemManagementTab]
+    B4 --> C6[WeeklyChart]
+    B5 --> C7[FavoriteItemsPanel]
+
+    style A fill:#60A5FA,stroke:#333,stroke-width:2px
+    style B fill:#A78BFA,stroke:#333,stroke-width:2px
+    style C fill:#FBBF24,stroke:#333,stroke-width:2px
+            </div>
+            <div class="legend">
+                <h3>🔗 데이터 레이어</h3>
+                <ul>
+                    <li><span class="color-box" style="background:#60A5FA"></span> API Layer - Next.js Route Handlers</li>
+                    <li><span class="color-box" style="background:#A78BFA"></span> Hook Layer - React Custom Hooks</li>
+                    <li><span class="color-box" style="background:#FBBF24"></span> UI Layer - React Components</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 사용자 플로우 -->
+        <div id="userflow" class="diagram-section">
+            <h2>👤 사용자 플로우</h2>
+            <p>사용자가 가계부 페이지를 사용하는 전형적인 흐름입니다.</p>
+            <div class="mermaid">
+graph TD
+    Start[사용자 방문] --> Auth{로그인 상태?}
+
+    Auth -->|익명| Device[device_id 자동 생성]
+    Auth -->|Google| Nick{닉네임 있음?}
+
+    Nick -->|없음| NickModal[닉네임 설정 모달]
+    Nick -->|있음| Main
+    NickModal --> Main
+    Device --> Main
+
+    Main[메인 페이지] --> Tab{탭 선택}
+
+    Tab -->|총합| Dashboard[DashboardSummary]
+    Tab -->|캐릭터| SubTab{서브탭 선택}
+    Tab -->|추가| AddChar[캐릭터 추가 모달]
+
+    SubTab -->|컨텐츠| Content[컨텐츠 수입 입력]
+    SubTab -->|아이템| Item[아이템 관리]
+    SubTab -->|통계| Stats[주간 통계]
+
+    Content --> Premium[프리미엄 컨텐츠]
+    Content --> Daily[일일 컨텐츠]
+    Content --> Income[컨텐츠 수입 행]
+
+    Item --> ItemList[아이템 목록]
+    Item --> Favorite[즐겨찾기]
+    ItemList --> Sell[판매 처리]
+    ItemList --> Delete[삭제]
+
+    AddChar --> CharForm[캐릭터 정보 입력]
+    CharForm --> Save[저장]
+
+    style Start fill:#FACC15,stroke:#333,stroke-width:3px,color:#000
+    style Main fill:#60A5FA,stroke:#333,stroke-width:2px
+    style SubTab fill:#A78BFA,stroke:#333,stroke-width:2px
+            </div>
+            <div class="legend">
+                <h3>🎯 주요 경로</h3>
+                <ul>
+                    <li><strong>익명 사용자</strong> - device_id로 자동 인증</li>
+                    <li><strong>Google 사용자</strong> - 닉네임 설정 후 사용</li>
+                    <li><strong>컨텐츠 입력</strong> - 프리미엄/일일 컨텐츠 분리</li>
+                    <li><strong>아이템 관리</strong> - 획득/판매/즐겨찾기</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- API 엔드포인트 -->
+        <div id="api" class="diagram-section">
+            <h2>🌐 API 엔드포인트 구조</h2>
+            <p>가계부 시스템의 모든 API 엔드포인트와 HTTP 메서드를 보여줍니다.</p>
+            <div class="mermaid">
+graph LR
+    API[/api/ledger/] --> A[characters]
+    API --> B[content-records]
+    API --> C[content-types]
+    API --> D[daily-content]
+    API --> E[premium-content]
+    API --> F[items]
+    API --> G[favorite-items]
+    API --> H[stats]
+    API --> I[auth]
+
+    A --> A1[GET 목록]
+    A --> A2[POST 추가]
+    A --> A3[DELETE 삭제]
+
+    B --> B1[GET 조회]
+    B --> B2[POST 생성/수정]
+
+    C --> C1[GET 타입 목록]
+
+    D --> D1[GET 일일 컨텐츠]
+
+    E --> E1[GET 조회]
+    E --> E2[POST 생성]
+    E --> E3[PATCH 수정]
+    E --> E4[DELETE 삭제]
+
+    F --> F1[GET 목록]
+    F --> F2[POST 추가]
+    F --> F3[PATCH 판매]
+    F --> F4[DELETE 삭제]
+
+    G --> G1[GET 조회]
+    G --> G2[POST 추가]
+    G --> G3[DELETE 제거]
+
+    H --> H1[GET 통계]
+    H --> H2[GET 주간통계]
+
+    I --> I1[POST init]
+    I --> I2[POST auth-init]
+    I --> I3[PATCH nickname]
+
+    style API fill:#FACC15,stroke:#333,stroke-width:3px,color:#000
+    style A fill:#60A5FA,stroke:#333,stroke-width:2px
+    style F fill:#60A5FA,stroke:#333,stroke-width:2px
+    style H fill:#60A5FA,stroke:#333,stroke-width:2px
+            </div>
+            <div class="legend">
+                <h3>📡 API 카테고리</h3>
+                <ul>
+                    <li><strong>characters</strong> - 캐릭터 CRUD</li>
+                    <li><strong>content-records</strong> - 컨텐츠 기록</li>
+                    <li><strong>items</strong> - 아이템 관리</li>
+                    <li><strong>favorite-items</strong> - 즐겨찾기</li>
+                    <li><strong>stats</strong> - 통계 조회</li>
+                    <li><strong>auth</strong> - 인증 초기화</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 데이터베이스 구조 -->
+        <div id="database" class="diagram-section">
+            <h2>🗄️ 데이터베이스 ERD</h2>
+            <p>Supabase PostgreSQL의 테이블 관계도입니다.</p>
+            <div class="mermaid">
+erDiagram
+    LedgerCharacter ||--o{ ContentRecord : has
+    LedgerCharacter ||--o{ LedgerItem : has
+    LedgerCharacter {
+        string id PK
+        string user_id FK
+        string name
+        string server_name
+        string class_name
+        string race_name
+        number item_level
+        boolean is_main
+        number todayIncome
+        number weeklyIncome
+    }
+
+    ContentRecord ||--|| ContentType : references
+    ContentRecord ||--|| DungeonTier : references
+    ContentRecord {
+        string id PK
+        string ledger_character_id FK
+        string record_date
+        string content_type FK
+        string dungeon_tier FK
+        number max_count
+        number completion_count
+        boolean is_double
+        number base_kina
+        number total_kina
+    }
+
+    ContentType ||--o{ DungeonTier : has
+    ContentType {
+        string id PK
+        string name
+        string icon_url
+        number display_order
+        boolean is_active
+    }
+
+    DungeonTier {
+        string id PK
+        string content_type FK
+        string name
+        number default_kina
+        number display_order
+    }
+
+    LedgerItem ||--o| FavoriteItem : can_be
+    LedgerItem {
+        string id PK
+        string ledger_character_id FK
+        string item_name
+        string item_category
+        string item_grade
+        number quantity
+        number unit_price
+        number total_price
+        string obtained_date
+        number sold_price
+        string sold_date
+        boolean is_favorite
+    }
+
+    FavoriteItem {
+        string id PK
+        string user_id FK
+        string item_name
+        string item_grade
+    }
+            </div>
+            <div class="legend">
+                <h3>📊 주요 테이블</h3>
+                <ul>
+                    <li><strong>LedgerCharacter</strong> - 가계부 캐릭터 (유저별)</li>
+                    <li><strong>ContentRecord</strong> - 컨텐츠 완료 기록 (날짜별)</li>
+                    <li><strong>LedgerItem</strong> - 아이템 획득/판매 기록</li>
+                    <li><strong>ContentType</strong> - 컨텐츠 타입 마스터 데이터</li>
+                    <li><strong>DungeonTier</strong> - 던전 단계 마스터 데이터</li>
+                    <li><strong>FavoriteItem</strong> - 유저별 즐겨찾기 아이템</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>🎮 AION 2 가계부 시스템 | 문서 생성일: 2026-01-14</p>
+            <p style="margin-top: 10px; color: #4B5563;">이 다이어그램은 Claude Code를 통해 자동 생성되었습니다.</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#FACC15',
+                primaryTextColor: '#000',
+                primaryBorderColor: '#333',
+                lineColor: '#666',
+                secondaryColor: '#60A5FA',
+                tertiaryColor: '#A78BFA',
+                fontSize: '16px',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto'
+            }
+        });
+
+        function showDiagram(diagramId) {
+            // 모든 섹션 숨기기
+            const sections = document.querySelectorAll('.diagram-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // 모든 버튼 비활성화
+            const buttons = document.querySelectorAll('.nav button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // 선택된 섹션 표시
+            const targetSection = document.getElementById(diagramId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            // 선택된 버튼 활성화
+            const activeButton = event ? event.target : document.querySelector('.nav button');
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+
+            // 페이지 상단으로 부드럽게 스크롤
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

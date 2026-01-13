@@ -5,7 +5,6 @@ import { ContentType, DungeonTier } from '@/types/ledger'
 const CONTENT_TYPES: ContentType[] = [
   { id: 'transcend', name: '초월', display_order: 1, is_active: true },
   { id: 'expedition', name: '원정', display_order: 2, is_active: true },
-  { id: 'sanctuary', name: '성역', display_order: 3, is_active: true },
 ]
 
 // 정적 던전 단계 데이터 (추후 DB로 이전 가능)
@@ -17,9 +16,6 @@ const DUNGEON_TIERS: DungeonTier[] = [
   // 원정
   { id: 'expedition_normal', content_type: 'expedition', name: '일반', default_kina: 60000, display_order: 1 },
   { id: 'expedition_hard', content_type: 'expedition', name: '어려움', default_kina: 90000, display_order: 2 },
-  // 성역
-  { id: 'sanctuary_normal', content_type: 'sanctuary', name: '일반', default_kina: 40000, display_order: 1 },
-  { id: 'sanctuary_hard', content_type: 'sanctuary', name: '어려움', default_kina: 70000, display_order: 2 },
 ]
 
 export async function GET() {

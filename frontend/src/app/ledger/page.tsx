@@ -15,8 +15,7 @@ import LedgerSubTabs, { SubTabType } from './components/LedgerSubTabs'
 import DashboardSummary from './components/DashboardSummary'
 import CompactKinaOverview from './components/CompactKinaOverview'
 import FloatingDateButton from './components/FloatingDateButton'
-import PremiumContentSection from './components/PremiumContentSection'
-import ContentIncomeSection from './components/ContentIncomeSection'
+import DungeonContentSection from './components/DungeonContentSection'
 import DailyContentSection from './components/DailyContentSection'
 import ItemSection from './components/ItemSection'
 import ItemManagementTab from './components/ItemManagementTab'
@@ -355,23 +354,10 @@ export default function LedgerPage() {
           {/* 컨텐츠 탭 */}
           {activeSubTab === 'content' && (
             <>
-              {/* 컨텐츠별 수입 */}
-              {/* 슈고페스타 & 어비스회랑 */}
-              <PremiumContentSection characterId={selectedCharacterId} selectedDate={selectedDate} />
+              {/* 초월 & 원정 */}
+              <DungeonContentSection characterId={selectedCharacterId} />
 
-              {/* 일반 컨텐츠 */}
-              <ContentIncomeSection
-                contentTypes={contentTypes}
-                dungeonTiers={dungeonTiers}
-                records={records}
-                onIncrementCompletion={incrementCompletion}
-                onDecrementCompletion={decrementCompletion}
-                onToggleDouble={toggleDouble}
-                onChangeTier={changeDungeonTier}
-                onChangeMaxCount={changeMaxCount}
-              />
-
-              {/* 일일 컨텐츠 */}
+              {/* 주간 컨텐츠 */}
               <DailyContentSection characterId={selectedCharacterId} selectedDate={selectedDate} />
 
               {/* 주간 수입 그래프 */}

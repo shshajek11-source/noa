@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>하단 수입 바 설계도 (룰렛 애니메이션) - 가계부</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #161618;
+      color: #E5E7EB;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #9CA3AF;
+      margin-bottom: 40px;
+    }
+
+    /* 설명 섹션 */
+    .description {
+      background: #1b1b1e;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(250, 204, 21, 0.2);
+    }
+
+    .description h2 {
+      font-size: 20px;
+      color: #FACC15;
+      margin-bottom: 16px;
+    }
+
+    .description ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .description li {
+      padding: 8px 0;
+      color: #D1D5DB;
+      line-height: 1.6;
+    }
+
+    .description li::before {
+      content: "✓ ";
+      color: #FACC15;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    /* 가짜 컨텐츠 카드 (참고용) */
+    .mockContent {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 120px;
+    }
+
+    .mockCard {
+      background: linear-gradient(135deg, rgba(26, 29, 36, 0.95) 0%, rgba(15, 17, 21, 0.95) 100%);
+      border: 1.5px solid rgba(250, 204, 21, 0.3);
+      border-radius: 11px;
+      height: 112px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9CA3AF;
+      font-size: 14px;
+    }
+
+    /* 하단 수입 바 - 메인 디자인 */
+    .bottomIncomeBar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+
+      width: 100%;
+      max-width: 1200px;
+      height: 70px;
+      padding: 0 16px;
+
+      background: #0B0D12;
+      border-top: 2px solid rgba(250, 204, 21, 0.2);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+
+      z-index: 100;
+    }
+
+    /* 그리드 레이아웃 */
+    .incomeGrid {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      height: 100%;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* 구분선 */
+    .divider {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(250, 204, 21, 0.4),
+        transparent
+      );
+    }
+
+    /* 수입 아이템 */
+    .incomeItem {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 레이블 */
+    .incomeLabel {
+      font-size: 12px;
+      font-weight: 500;
+      color: #9CA3AF;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* 금액 */
+    .incomeValue {
+      font-size: 24px;
+      font-weight: 700;
+      color: #FACC15;
+      font-family: 'Rajdhani', sans-serif;
+      position: relative;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* 룰렛 숫자 애니메이션 */
+    .numberRoulette {
+      display: inline-block;
+      animation: rollUp 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+
+    @keyframes rollUp {
+      0% {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      50% {
+        opacity: 0.5;
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* 단위 */
+    .incomeUnit {
+      font-size: 14px;
+      color: #D1D5DB;
+      margin-left: 4px;
+      opacity: 0.8;
+    }
+
+    /* 반응형 */
+    @media (max-width: 768px) {
+      .mockContent {
+        grid-template-columns: 1fr;
+      }
+
+      .bottomIncomeBar {
+        height: 80px;
+        padding: 0 12px;
+      }
+
+      .incomeValue {
+        font-size: 20px;
+      }
+
+      .incomeLabel {
+        font-size: 11px;
+      }
+
+      .incomeUnit {
+        font-size: 12px;
+      }
+    }
+
+    /* 버전 비교 섹션 */
+    .versionCompare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 120px;
+    }
+
+    .version {
+      background: #1b1b1e;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .version h3 {
+      font-size: 16px;
+      color: #FACC15;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .miniBar {
+      position: relative;
+      height: 60px;
+      background: linear-gradient(135deg, #0B0D12 0%, #161618 100%);
+      border-radius: 12px;
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(250, 204, 21, 0.1);
+    }
+
+    .miniBar.simple {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .miniBar.clean {
+      border-top: 2px solid rgba(250, 204, 21, 0.2);
+    }
+
+    .miniBar .incomeValue {
+      font-size: 18px;
+    }
+
+    .miniBar .incomeGrid {
+      gap: 12px;
+      padding: 0 16px;
+    }
+
+    @media (max-width: 768px) {
+      .versionCompare {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 하단 수입 바 설계도</h1>
+    <p class="subtitle">가계부 페이지 하단 고정 네비게이션 - 룰렛 숫자 애니메이션</p>
+
+    <!-- 설명 섹션 -->
+    <div class="description">
+      <h2>📋 디자인 특징</h2>
+      <ul>
+        <li><strong>위치:</strong> 페이지 하단 고정 (fixed)</li>
+        <li><strong>너비:</strong> 가계부 카드와 동일 (max-width: 1200px)</li>
+        <li><strong>높이:</strong> 70px (수입 금액이 적당히 보이는 크기)</li>
+        <li><strong>배경:</strong> 검정색 (#0B0D12)</li>
+        <li><strong>텍스트:</strong> 노란색 (#FACC15)</li>
+        <li><strong>룰렛 효과:</strong> 숫자가 오를 때 아래에서 위로 올라오는 애니메이션</li>
+        <li><strong>구분:</strong> 일일수입 | 이번주 수입 (2분할)</li>
+        <li><strong>스타일:</strong> 심플하고 깔끔한 디자인</li>
+      </ul>
+    </div>
+
+    <!-- 데모 컨트롤 -->
+    <div class="description" style="margin-bottom: 20px;">
+      <h2>🎮 인터랙티브 데모</h2>
+      <p style="color: #D1D5DB; margin-bottom: 16px;">아래 버튼을 클릭해서 기능을 테스트해보세요:</p>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <button onclick="incrementIncome()" style="padding: 10px 20px; background: #FACC15; color: #0B0D12; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">
+          💰 수입 증가 (+100,000 키나)
+        </button>
+        <button onclick="resetIncome()" style="padding: 10px 20px; background: transparent; color: #9CA3AF; border: 1px solid rgba(156, 163, 175, 0.5); border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 14px;">
+          🔄 초기화
+        </button>
+      </div>
+    </div>
+
+    <!-- 가짜 컨텐츠 (스크롤 확인용) -->
+    <div class="mockContent">
+      <div class="mockCard">가계부 카드 1</div>
+      <div class="mockCard">가계부 카드 2</div>
+      <div class="mockCard">가계부 카드 3</div>
+      <div class="mockCard">가계부 카드 4</div>
+    </div>
+  </div>
+
+  <!-- 하단 수입 바 (실제 구현) -->
+  <div class="bottomIncomeBar">
+    <div class="incomeGrid">
+      <!-- 일일 수입 -->
+      <div class="incomeItem">
+        <div class="incomeLabel">일일 수입</div>
+        <div class="incomeValue" id="dailyIncome">
+          <span class="numberRoulette">1,234,567</span><span class="incomeUnit">키나</span>
+        </div>
+      </div>
+
+      <!-- 구분선 -->
+      <div class="divider"></div>
+
+      <!-- 이번주 수입 -->
+      <div class="incomeItem">
+        <div class="incomeLabel">이번주 수입</div>
+        <div class="incomeValue" id="weeklyIncome">
+          <span class="numberRoulette">5,678,901</span><span class="incomeUnit">키나</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 현재 수입 값
+    let dailyIncomeValue = 1234567;
+    let weeklyIncomeValue = 5678901;
+
+    // 룰렛 숫자 애니메이션
+    function updateIncomeWithAnimation(elementId, newValue) {
+      const element = document.getElementById(elementId);
+      const numberSpan = element.querySelector('.numberRoulette');
+
+      // 새 숫자로 변경하면서 애니메이션 트리거
+      numberSpan.style.animation = 'none';
+
+      // 강제 reflow
+      void numberSpan.offsetWidth;
+
+      // 숫자 업데이트
+      numberSpan.textContent = newValue.toLocaleString();
+
+      // 애니메이션 재시작
+      numberSpan.style.animation = 'rollUp 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)';
+    }
+
+    // 수입 증가 (데모)
+    function incrementIncome() {
+      dailyIncomeValue += 100000;
+      weeklyIncomeValue += 100000;
+
+      updateIncomeWithAnimation('dailyIncome', dailyIncomeValue);
+
+      // 주간 수입은 약간의 딜레이를 주어 더 자연스럽게
+      setTimeout(() => {
+        updateIncomeWithAnimation('weeklyIncome', weeklyIncomeValue);
+      }, 150);
+    }
+
+    // 초기화
+    function resetIncome() {
+      dailyIncomeValue = 1234567;
+      weeklyIncomeValue = 5678901;
+
+      updateIncomeWithAnimation('dailyIncome', dailyIncomeValue);
+      setTimeout(() => {
+        updateIncomeWithAnimation('weeklyIncome', weeklyIncomeValue);
+      }, 150);
+    }
+
+    // 페이지 로드 시 초기 애니메이션
+    window.addEventListener('load', () => {
+      // 초기 로딩 애니메이션은 선택적으로 사용
+      setTimeout(() => {
+        const numberSpans = document.querySelectorAll('.numberRoulette');
+        numberSpans.forEach(span => {
+          span.style.animation = 'rollUp 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)';
+        });
+      }, 100);
+    });
+  </script>
+</body>
+</html>

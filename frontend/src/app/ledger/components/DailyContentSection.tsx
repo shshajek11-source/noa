@@ -15,7 +15,7 @@ export default function DailyContentSection({ characterId, selectedDate }: Daily
   if (loading) {
     return (
       <section className={styles.section}>
-        <div className={styles.loading}>일일 컨텐츠 정보를 불러오는 중...</div>
+        <div className={styles.loading}>주간 컨텐츠 정보를 불러오는 중...</div>
       </section>
     )
   }

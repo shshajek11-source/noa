@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { DailyContent } from '../components/DailyContentCard'
 import { getAuthHeader } from './useDeviceId'
 
+// Temporary image URL (same as Shugo Festa)
+const TEMP_IMAGE_URL = 'https://fizz-download.playnccdn.com/download/v2/buckets/guidebook/files/19a69c5377f-d2502cef-9d59-4336-8a55-9de857b08544'
+
 // Default daily content definitions
 const DEFAULT_DAILY_CONTENTS: Omit<DailyContent, 'completionCount'>[] = [
   {
@@ -15,7 +18,8 @@ const DEFAULT_DAILY_CONTENTS: Omit<DailyContent, 'completionCount'>[] = [
     color: '#facc15',
     colorLight: '#fde047',
     colorDark: '#eab308',
-    colorGlow: 'rgba(250, 204, 21, 0.5)'
+    colorGlow: 'rgba(250, 204, 21, 0.5)',
+    imageUrl: TEMP_IMAGE_URL
   },
   {
     id: 'awakening_battle',
@@ -26,7 +30,8 @@ const DEFAULT_DAILY_CONTENTS: Omit<DailyContent, 'completionCount'>[] = [
     color: '#3b82f6',
     colorLight: '#60a5fa',
     colorDark: '#2563eb',
-    colorGlow: 'rgba(59, 130, 246, 0.5)'
+    colorGlow: 'rgba(59, 130, 246, 0.5)',
+    imageUrl: TEMP_IMAGE_URL
   },
   {
     id: 'subjugation',
@@ -37,7 +42,8 @@ const DEFAULT_DAILY_CONTENTS: Omit<DailyContent, 'completionCount'>[] = [
     color: '#10b981',
     colorLight: '#34d399',
     colorDark: '#059669',
-    colorGlow: 'rgba(16, 185, 129, 0.5)'
+    colorGlow: 'rgba(16, 185, 129, 0.5)',
+    imageUrl: TEMP_IMAGE_URL
   },
   {
     id: 'nightmare',
@@ -48,7 +54,8 @@ const DEFAULT_DAILY_CONTENTS: Omit<DailyContent, 'completionCount'>[] = [
     color: '#9333ea',
     colorLight: '#a855f7',
     colorDark: '#7e22ce',
-    colorGlow: 'rgba(147, 51, 234, 0.5)'
+    colorGlow: 'rgba(147, 51, 234, 0.5)',
+    imageUrl: TEMP_IMAGE_URL
   },
   {
     id: 'dimension_invasion',
@@ -59,7 +66,8 @@ const DEFAULT_DAILY_CONTENTS: Omit<DailyContent, 'completionCount'>[] = [
     color: '#ef4444',
     colorLight: '#f87171',
     colorDark: '#dc2626',
-    colorGlow: 'rgba(239, 68, 68, 0.5)'
+    colorGlow: 'rgba(239, 68, 68, 0.5)',
+    imageUrl: TEMP_IMAGE_URL
   },
   {
     id: 'sanctuary',
@@ -70,7 +78,8 @@ const DEFAULT_DAILY_CONTENTS: Omit<DailyContent, 'completionCount'>[] = [
     color: '#f59e0b',
     colorLight: '#fbbf24',
     colorDark: '#d97706',
-    colorGlow: 'rgba(245, 158, 11, 0.5)'
+    colorGlow: 'rgba(245, 158, 11, 0.5)',
+    imageUrl: TEMP_IMAGE_URL
   }
 ]
 

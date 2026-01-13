@@ -77,3 +77,4 @@ nul
 frontend/nul
 tmpclaude-*
 frontend/tmpclaude-*
+.claude/settings.local.json

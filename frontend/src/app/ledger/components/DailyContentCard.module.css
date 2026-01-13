@@ -1,91 +1,167 @@
 .card {
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid transparent;
-  border-radius: 12px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  position: relative;
+  background: linear-gradient(135deg, rgba(26, 29, 36, 0.95) 0%, rgba(15, 17, 21, 0.95) 100%);
+  border: 1.5px solid transparent;
+  border-radius: 11px;
   overflow: hidden;
+  position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-}
-
-.card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url('https://fizz-download.playnccdn.com/download/v2/buckets/guidebook/files/19a90ad15df-2b37c0aa-046f-4017-9cc2-e813edc2db32');
-  background-size: cover;
-  background-position: center;
-  filter: blur(10px);
-  opacity: 0.4;
-  z-index: 0;
-  border-radius: 12px;
 }
 
 .card::before {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 12px;
-  padding: 2px;
+  border-radius: 11px;
+  padding: 1.5px;
   background: linear-gradient(135deg, var(--card-color), transparent);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: 0.6;
+  opacity: 0.4;
   transition: opacity 0.3s;
-  z-index: 1;
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   border-color: var(--card-color);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
 }
 
 .card:hover::before {
   opacity: 1;
 }
 
+.imageContainer {
+  position: relative;
+  width: 100%;
+  height: 112px;
+  overflow: hidden;
+  background: transparent;
+}
 
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
 
-.contentName {
-  font-size: 14px;
+.card:hover .image {
+  transform: scale(1.05);
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(26, 29, 36, 0.8), rgba(15, 17, 21, 0.8));
+  font-size: 48px;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.9) 100%);
+  z-index: 1;
+}
+
+.buttonGroupTop {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 3;
+}
+
+.titleArea {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 3;
+}
+
+.title {
+  font-size: 24px;
   font-weight: 700;
   color: var(--card-color);
+  font-family: 'Rajdhani', sans-serif;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-shadow: 0 0 10px var(--card-color-glow);
-  margin-bottom: 2px;
-  position: relative;
-  z-index: 2;
+  letter-spacing: 0.6px;
+  text-shadow: 0 0 20px var(--card-color-glow), 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
-.progressWrapper {
-  margin: 4px 0;
-  position: relative;
-  z-index: 2;
-}
-
-.buttonGroup {
+.timerInfo {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  z-index: 3;
+}
+
+.timerLabel {
+  font-size: 10px;
+  color: #9CA3AF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  line-height: 1.2;
+}
+
+.timerText {
+  font-size: 15px;
+  font-weight: 700;
+  color: #D1D5DB;
+  font-family: 'Rajdhani', sans-serif;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
   margin-top: 2px;
-  position: relative;
-  z-index: 2;
+}
+
+.progressInfo {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  z-index: 3;
+}
+
+.progressLabel {
+  font-size: 10px;
+  color: #9CA3AF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.progressText {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--card-color);
+  font-family: 'Rajdhani', sans-serif;
+  text-shadow: 0 0 12px var(--card-color-glow), 0 2px 4px rgba(0, 0, 0, 0.8);
+  line-height: 1;
 }
 
 .btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  background: rgba(20, 25, 40, 0.8);
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(26, 29, 36, 0.95);
+  backdrop-filter: blur(4px);
   color: #E5E7EB;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
@@ -118,6 +194,15 @@
   transform: scale(0.95);
 }
 
+.btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  transform: none;
+}
+
 .btnIncrement {
   background: linear-gradient(135deg, var(--card-color), var(--card-color-dark));
   border-color: var(--card-color);
@@ -125,54 +210,25 @@
 }
 
 .btnIncrement:hover {
-  box-shadow: 0 0 20px var(--card-color-glow);
+  box-shadow: 0 0 14px var(--card-color-glow);
   border-color: var(--card-color-light);
-}
-
-.reward {
-  font-size: 11px;
-  color: #9CA3AF;
-  margin-top: 2px;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-}
-
-.rewardValue {
-  color: #FACC15;
-  font-weight: 600;
-  text-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
-}
-
-/* Complete state */
-.complete {
-  border-color: var(--card-color);
-}
-
-.complete::before {
-  opacity: 1;
-}
-
-.complete .contentName {
-  color: #10b981;
-  text-shadow: 0 0 15px rgba(16, 185, 129, 0.8);
 }
 
 .completeBadge {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 20px;
-  height: 20px;
+  top: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: linear-gradient(135deg, #10b981, #059669);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 14px;
   animation: pulse 2s ease-in-out infinite;
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
-  z-index: 3;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 2px 4px rgba(0, 0, 0, 0.6);
+  z-index: 2;
 }
 
 @keyframes pulse {
@@ -192,18 +248,18 @@
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 11px;
 }
 
 .particle {
   position: absolute;
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   background: var(--card-color);
   border-radius: 50%;
   opacity: 0;
   animation: particleFloat 1.2s ease-out forwards;
-  box-shadow: 0 0 8px var(--card-color);
+  box-shadow: 0 0 6px var(--card-color);
 }
 
 @keyframes particleFloat {
@@ -213,6 +269,6 @@
   }
   100% {
     opacity: 0;
-    transform: translateY(-60px) scale(0);
+    transform: translateY(-42px) scale(0);
   }
 }

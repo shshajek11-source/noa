@@ -20,18 +20,9 @@ export default function HeroSection() {
             </div>
 
             <div className="hero-content">
-                <h1 className="hero-title">
-                    AION2 캐릭터 분석의 <span className="highlight">새로운 기준</span>
-                </h1>
-
-                <p className="hero-subtitle">
-                    실시간 랭킹, 상세 장비 분석, 그리고 완벽한 대바니온 세팅까지.<br />
-                    당신의 캐릭터를 가장 정확하게 분석하세요.
-                </p>
-
                 <div
                     style={{
-                        margin: '0 auto 2rem',
+                        margin: '0 auto 1rem',
                         maxWidth: '800px',
                         position: 'relative',
                         zIndex: 20
