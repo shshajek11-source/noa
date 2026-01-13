@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원형 진행률 미리보기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0B0D12;
+            color: #E5E7EB;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 40px;
+            color: #FACC15;
+            text-align: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+
+        .card {
+            background: #1a1d24;
+            border: 1px solid #2d3139;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(250, 204, 21, 0.1);
+            border-color: #FACC15;
+        }
+
+        .content-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .circular-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .circular-progress {
+            transform: rotate(-90deg);
+        }
+
+        .progress-bg {
+            fill: none;
+            stroke: #374151;
+            stroke-width: 10;
+        }
+
+        .progress-bar {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.6s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-weight: 700;
+            color: #FACC15;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #374151;
+            background: #1a1d24;
+            color: #E5E7EB;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .btn-increment {
+            background: #FACC15;
+            border-color: #FACC15;
+            color: #0B0D12;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+        }
+
+        .btn-increment:hover {
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .reward {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-top: 4px;
+        }
+
+        .reward-value {
+            color: #FACC15;
+            font-weight: 600;
+        }
+
+        /* 컨텐츠별 색상 */
+        .nightmare .progress-bar { stroke: #9333ea; }
+        .nightmare .content-name { color: #9333ea; }
+        .nightmare .progress-text { color: #9333ea; }
+
+        .shugo .progress-bar { stroke: #f59e0b; }
+        .shugo .content-name { color: #f59e0b; }
+        .shugo .progress-text { color: #f59e0b; }
+
+        .dimension .progress-bar { stroke: #ef4444; }
+        .dimension .content-name { color: #ef4444; }
+        .dimension .progress-text { color: #ef4444; }
+
+        .awakening .progress-bar { stroke: #3b82f6; }
+        .awakening .content-name { color: #3b82f6; }
+        .awakening .progress-text { color: #3b82f6; }
+
+        .subjugation .progress-bar { stroke: #10b981; }
+        .subjugation .content-name { color: #10b981; }
+        .subjugation .progress-text { color: #10b981; }
+
+        .daily .progress-bar { stroke: #facc15; }
+        .daily .content-name { color: #facc15; }
+        .daily .progress-text { color: #facc15; }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 24px;
+            color: #E5E7EB;
+            border-bottom: 2px solid #2d3139;
+            padding-bottom: 12px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 일일 컨텐츠 원형 진행률 미리보기</h1>
+
+        <div class="section-title">실제 컴포넌트 모습 (다양한 진행률)</div>
+        <div class="grid">
+            <!-- 악몽 (2/3 = 67%) -->
+            <div class="card nightmare">
+                <div class="content-name">악몽</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="83.7"
+                        />
+                    </svg>
+                    <div class="progress-text">2/3</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn">−</button>
+                    <button class="btn btn-increment">+</button>
+                </div>
+                <div class="reward">
+                    보상: <span class="reward-value">50,000 키나</span>
+                </div>
+            </div>
+
+            <!-- 슈고페스타 (0/1 = 0%) -->
+            <div class="card shugo">
+                <div class="content-name">슈고페스타</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="251.2"
+                        />
+                    </svg>
+                    <div class="progress-text">0/1</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn">−</button>
+                    <button class="btn btn-increment">+</button>
+                </div>
+                <div class="reward">
+                    보상: <span class="reward-value">100,000 키나</span>
+                </div>
+            </div>
+
+            <!-- 차원침공 (3/5 = 60%) -->
+            <div class="card dimension">
+                <div class="content-name">차원침공</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="100.5"
+                        />
+                    </svg>
+                    <div class="progress-text">3/5</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn">−</button>
+                    <button class="btn btn-increment">+</button>
+                </div>
+                <div class="reward">
+                    보상: <span class="reward-value">30,000 키나</span>
+                </div>
+            </div>
+
+            <!-- 각성전 (1/3 = 33%) -->
+            <div class="card awakening">
+                <div class="content-name">각성전</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="167.5"
+                        />
+                    </svg>
+                    <div class="progress-text">1/3</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn">−</button>
+                    <button class="btn btn-increment">+</button>
+                </div>
+                <div class="reward">
+                    보상: <span class="reward-value">40,000 키나</span>
+                </div>
+            </div>
+
+            <!-- 토벌전 (1/1 = 100%) -->
+            <div class="card subjugation">
+                <div class="content-name">토벌전</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="0"
+                        />
+                    </svg>
+                    <div class="progress-text">1/1</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn">−</button>
+                    <button class="btn btn-increment">+</button>
+                </div>
+                <div class="reward">
+                    보상: <span class="reward-value">80,000 키나</span>
+                </div>
+            </div>
+
+            <!-- 일일던전 (4/6 = 67%) -->
+            <div class="card daily">
+                <div class="content-name">일일던전</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="83.7"
+                        />
+                    </svg>
+                    <div class="progress-text">4/6</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn">−</button>
+                    <button class="btn btn-increment">+</button>
+                </div>
+                <div class="reward">
+                    보상: <span class="reward-value">20,000 키나</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">진행률 단계별 비교</div>
+        <div class="grid">
+            <!-- 0% -->
+            <div class="card nightmare">
+                <div class="content-name">0% (0/3)</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="251.2"
+                        />
+                    </svg>
+                    <div class="progress-text">0/3</div>
+                </div>
+            </div>
+
+            <!-- 25% -->
+            <div class="card shugo">
+                <div class="content-name">25% (1/4)</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="188.4"
+                        />
+                    </svg>
+                    <div class="progress-text">1/4</div>
+                </div>
+            </div>
+
+            <!-- 50% -->
+            <div class="card dimension">
+                <div class="content-name">50% (3/6)</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="125.6"
+                        />
+                    </svg>
+                    <div class="progress-text">3/6</div>
+                </div>
+            </div>
+
+            <!-- 75% -->
+            <div class="card awakening">
+                <div class="content-name">75% (3/4)</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="62.8"
+                        />
+                    </svg>
+                    <div class="progress-text">3/4</div>
+                </div>
+            </div>
+
+            <!-- 90% -->
+            <div class="card subjugation">
+                <div class="content-name">90% (9/10)</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="25.1"
+                        />
+                    </svg>
+                    <div class="progress-text">9/10</div>
+                </div>
+            </div>
+
+            <!-- 100% -->
+            <div class="card daily">
+                <div class="content-name">100% (6/6)</div>
+                <div class="circular-wrapper">
+                    <svg class="circular-progress" viewBox="0 0 100 100">
+                        <circle class="progress-bg" cx="50" cy="50" r="40"/>
+                        <circle
+                            class="progress-bar"
+                            cx="50" cy="50" r="40"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="0"
+                        />
+                    </svg>
+                    <div class="progress-text">6/6</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 버튼 클릭 애니메이션 데모
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.card');
+                const progressBar = card.querySelector('.progress-bar');
+                const text = card.querySelector('.progress-text');
+
+                // 간단한 애니메이션 효과
+                this.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 100);
+            });
+        });
+
+        // 호버 glow 효과
+        document.querySelectorAll('.btn-increment').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 0 20px currentColor';
+            });
+            btn.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '';
+            });
+        });
+    </script>
+</body>
+</html>

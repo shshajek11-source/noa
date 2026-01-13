@@ -8,6 +8,7 @@ import { MainCharacter, MAIN_CHARACTER_KEY } from './SearchBar'
 interface MainCharacterModalProps {
     isOpen: boolean
     onClose: () => void
+    onSelect?: (character: MainCharacter) => void
 }
 
 const ELYOS_SERVERS = [
@@ -22,7 +23,7 @@ const ASMODIAN_SERVERS = [
     '콰이링', '바바룽', '파프니르', '인드나흐', '이스할겐'
 ]
 
-export default function MainCharacterModal({ isOpen, onClose }: MainCharacterModalProps) {
+export default function MainCharacterModal({ isOpen, onClose, onSelect }: MainCharacterModalProps) {
     const [race, setRace] = useState<'elyos' | 'asmodian'>('elyos')
     const [server, setServer] = useState('')
     const [name, setName] = useState('')
@@ -135,27 +136,57 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
     const handleSelect = async (char: CharacterSearchResult) => {
         let hitScore = char.noa_score
         let itemLevel = char.item_level
+        let className = char.job || char.className
+        let level = char.level
 
-        if (!hitScore && char.characterId) {
+        // 캐릭터 상세 정보 API 호출 (더 정확한 정보 가져오기)
+        if (char.characterId && char.server_id) {
             try {
                 const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/characters?character_id=eq.${encodeURIComponent(char.characterId)}&select=noa_score,item_level`,
-                    {
-                        headers: {
-                            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-                            'Content-Type': 'application/json'
-                        }
-                    }
+                    `/api/character?id=${encodeURIComponent(char.characterId)}&server=${char.server_id}`
                 )
                 if (res.ok) {
-                    const dbData = await res.json()
-                    if (dbData && dbData.length > 0) {
-                        hitScore = dbData[0].noa_score
-                        if (!itemLevel) itemLevel = dbData[0].item_level
+                    const detailData = await res.json()
+                    console.log('[Main Character Modal] Detail API response:', detailData)
+
+                    // profile에서 상세 정보 추출
+                    if (detailData.profile) {
+                        level = detailData.profile.level || level
+                        className = detailData.profile.className || className
+                    }
+
+                    // 아이템 레벨 계산 (장비 목록에서)
+                    if (detailData.equipment?.equipmentList) {
+                        const equipList = detailData.equipment.equipmentList
+                        console.log('[Main Character Modal] Equipment list:', equipList.map((item: any) => ({
+                            slotPos: item.slotPos,
+                            itemLevel: item.itemLevel,
+                            name: item.name
+                        })))
+
+                        // 메인 장비 슬롯들의 아이템 레벨 평균
+                        const mainSlots = equipList.filter((item: any) =>
+                            item.slotPos && [1, 2, 3, 5, 6, 7, 11, 12, 13, 14, 15, 16].includes(item.slotPos) && item.itemLevel
+                        )
+                        console.log('[Main Character Modal] Main slots with itemLevel:', mainSlots.length)
+
+                        if (mainSlots.length > 0) {
+                            const totalItemLevel = mainSlots.reduce((sum: number, item: any) =>
+                                sum + (item.itemLevel || 0), 0
+                            )
+                            itemLevel = Math.floor(totalItemLevel / mainSlots.length)
+                            console.log('[Main Character Modal] Calculated item level:', itemLevel)
+                        }
+                    }
+
+                    // noa_score (히톤 전투력)
+                    if (detailData.noa_score) {
+                        hitScore = detailData.noa_score
                     }
                 }
             } catch (e) {
-                console.error('Failed to fetch hit_score', e)
+                console.error('Failed to fetch character detail', e)
+                // 실패해도 검색 API 정보 사용
             }
         }
 
@@ -165,8 +196,8 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
             server: char.server,
             server_id: char.server_id,
             race: char.race,
-            className: char.job || char.className,
-            level: char.level,
+            className: className,
+            level: level,
             hit_score: hitScore,
             item_level: itemLevel,
             imageUrl: char.imageUrl || char.profileImage,
@@ -174,8 +205,14 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
         }
 
         try {
-            localStorage.setItem(MAIN_CHARACTER_KEY, JSON.stringify(mainChar))
-            window.dispatchEvent(new Event('mainCharacterChanged'))
+            if (onSelect) {
+                // 외부에서 제공한 onSelect 핸들러 사용 (MainCharacterBadge에서 인증 상태 처리)
+                await onSelect(mainChar)
+            } else {
+                // 기본 동작: localStorage에 저장 (하위 호환성)
+                localStorage.setItem(MAIN_CHARACTER_KEY, JSON.stringify(mainChar))
+                window.dispatchEvent(new Event('mainCharacterChanged'))
+            }
             onClose()
         } catch (e) {
             console.error('Failed to set main character', e)
@@ -432,6 +469,7 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
                                 </div>
                                 <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>
                                     {char.server} · {char.job || char.className}
+                                    {char.item_level && char.item_level > 0 && ` · IL ${char.item_level}`}
                                 </div>
                             </div>
                             {char.noa_score && char.noa_score > 0 && (

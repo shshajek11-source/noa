@@ -7,6 +7,7 @@ import HeroSection from './components/home/HeroSection'
 import SearchBar from './components/SearchBar'
 import MainCharacterBadge from './components/MainCharacterBadge'
 import LoginButton from '@/components/LoginButton'
+import DebugPanel from '@/components/DebugPanel'
 import { SyncProvider } from '../context/SyncContext'
 import { AuthProvider } from '../context/AuthContext'
 
@@ -18,6 +19,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     if (isAdminPage) {
         return (
             <html lang="ko">
+                <head>
+                    <link rel="preconnect" href="https://fonts.googleapis.com" />
+                    <link rel="preconnect" href="https://fonts.gstatic.com" />
+                    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
+                </head>
                 <body style={{ margin: 0, padding: 0 }}>
                     {children}
                 </body>
@@ -30,6 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="ko">
             <head>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" />
+                <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
             </head>
             <body>
                 <AuthProvider>
@@ -85,6 +94,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <div className="container">
                         {children}
                     </div>
+
+                    {/* Debug Panel */}
+                    <DebugPanel />
                 </SyncProvider>
                 </AuthProvider>
             </body>

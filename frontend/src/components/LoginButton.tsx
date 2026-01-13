@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { LogIn, LogOut, User } from 'lucide-react'
+import { LogIn, LogOut, User, Star } from 'lucide-react'
+import MainCharacterModal from './MainCharacterModal'
 
 export default function LoginButton() {
-  const { user, isLoading, signInWithGoogle, signOut } = useAuth()
+  const { user, isLoading, nickname, mainCharacter, signInWithGoogle, signOut, setMainCharacter } = useAuth()
   const [showDropdown, setShowDropdown] = useState(false)
+  const [showMainCharacterModal, setShowMainCharacterModal] = useState(false)
 
   if (isLoading) {
     return (
@@ -17,6 +19,12 @@ export default function LoginButton() {
         background: '#1f2937'
       }} />
     )
+  }
+
+  const handleSetMainCharacter = async (character: { server: string; name: string; className: string; level: number }) => {
+    await setMainCharacter(character)
+    setShowMainCharacterModal(false)
+    setShowDropdown(false)
   }
 
   // Not logged in - show login button
@@ -131,12 +139,65 @@ export default function LoginButton() {
               marginBottom: '8px'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>
-                {user.user_metadata?.full_name || 'User'}
+                {nickname || user.user_metadata?.full_name || 'User'}
               </div>
-              <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
-                {user.email}
-              </div>
+              {nickname && (
+                <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                  {user.user_metadata?.full_name || user.email}
+                </div>
+              )}
+              {!nickname && (
+                <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
+                  {user.email}
+                </div>
+              )}
+              {mainCharacter && (
+                <div style={{
+                  fontSize: '11px',
+                  color: '#FACC15',
+                  marginTop: '6px',
+                  padding: '4px 8px',
+                  background: 'rgba(250, 204, 21, 0.1)',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <Star size={12} fill="#FACC15" />
+                  {mainCharacter.name} ({mainCharacter.server})
+                </div>
+              )}
             </div>
+            <button
+              onClick={() => {
+                setShowDropdown(false)
+                setShowMainCharacterModal(true)
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                width: '100%',
+                padding: '8px 12px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#FACC15',
+                fontSize: '13px',
+                borderRadius: '4px',
+                transition: 'background 0.2s',
+                marginBottom: '4px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(250, 204, 21, 0.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent'
+              }}
+            >
+              <Star size={14} />
+              {mainCharacter ? '대표 캐릭터 변경' : '대표 캐릭터 설정'}
+            </button>
             <button
               onClick={async () => {
                 await signOut()
@@ -169,6 +230,14 @@ export default function LoginButton() {
           </div>
         </>
       )}
+
+      {/* 대표 캐릭터 설정 모달 */}
+      <MainCharacterModal
+        isOpen={showMainCharacterModal}
+        onClose={() => setShowMainCharacterModal(false)}
+        onSubmit={handleSetMainCharacter}
+        currentCharacter={mainCharacter}
+      />
     </div>
   )
 }

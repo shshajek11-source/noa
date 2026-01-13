@@ -15,12 +15,9 @@ export async function GET(request: NextRequest) {
         const supabase = createClient(supabaseUrl, supabaseKey)
 
         // 1. Race Balance
-        // We select race_name and count. 
-        // Supabase/PostgREST doesn't support complex aggregation directly in simple query easily without RPC, 
-        // but we can fetch all race_names if data size is small, or use .select('race_name', { count: 'exact', head: true }) with filters?
-        // Better: two queries for counts.
-        const { count: elyosCount } = await supabase.from('characters').select('*', { count: 'exact', head: true }).eq('race_name', 'Elyos')
-        const { count: asmoCount } = await supabase.from('characters').select('*', { count: 'exact', head: true }).eq('race_name', 'Asmodian')
+        // DB에 한글('천족', '마족')과 영어('Elyos', 'Asmodian')가 섞여 있음
+        const { count: elyosCount } = await supabase.from('characters').select('*', { count: 'exact', head: true }).or('race_name.eq.천족,race_name.eq.Elyos')
+        const { count: asmoCount } = await supabase.from('characters').select('*', { count: 'exact', head: true }).or('race_name.eq.마족,race_name.eq.Asmodian')
 
         const total = (elyosCount || 0) + (asmoCount || 0)
         const elyosPercent = total ? Math.round(((elyosCount || 0) / total) * 100) : 50

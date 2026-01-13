@@ -5,23 +5,34 @@ import { useRouter } from 'next/navigation'
 import { Star, X, Plus } from 'lucide-react'
 import { MainCharacter, MAIN_CHARACTER_KEY } from './SearchBar'
 import MainCharacterModal from './MainCharacterModal'
+import { useAuth } from '@/context/AuthContext'
 
 export default function MainCharacterBadge() {
     const router = useRouter()
-    const [mainCharacter, setMainCharacter] = useState<MainCharacter | null>(null)
+    const { user, mainCharacter: authMainCharacter, setMainCharacter: authSetMainCharacter } = useAuth()
+    const [localMainCharacter, setLocalMainCharacter] = useState<MainCharacter | null>(null)
     const [isHovered, setIsHovered] = useState(false)
     const [isLoaded, setIsLoaded] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
 
-    // localStorage에서 대표 캐릭터 불러오기
+    // 인증 상태에 따라 적절한 캐릭터 데이터 선택
+    const mainCharacter = user ? authMainCharacter : localMainCharacter
+
+    // localStorage에서 대표 캐릭터 불러오기 (비로그인 사용자용)
     useEffect(() => {
+        if (user) {
+            // 로그인 사용자는 AuthContext에서 관리
+            setIsLoaded(true)
+            return
+        }
+
         const loadMainCharacter = () => {
             try {
                 const saved = localStorage.getItem(MAIN_CHARACTER_KEY)
                 if (saved) {
-                    setMainCharacter(JSON.parse(saved))
+                    setLocalMainCharacter(JSON.parse(saved))
                 } else {
-                    setMainCharacter(null)
+                    setLocalMainCharacter(null)
                 }
             } catch (e) {
                 console.error('Failed to load main character', e)
@@ -41,7 +52,7 @@ export default function MainCharacterBadge() {
             window.removeEventListener('storage', loadMainCharacter)
             window.removeEventListener('mainCharacterChanged', loadMainCharacter)
         }
-    }, [])
+    }, [user])
 
     // 대표 캐릭터 클릭 - 상세 페이지로 이동
     const handleClick = () => {
@@ -52,20 +63,62 @@ export default function MainCharacterBadge() {
     }
 
     // 대표 캐릭터 해제
-    const handleRemove = (e: React.MouseEvent) => {
+    const handleRemove = async (e: React.MouseEvent) => {
         e.stopPropagation()
         try {
-            localStorage.removeItem(MAIN_CHARACTER_KEY)
-            setMainCharacter(null)
-            window.dispatchEvent(new Event('mainCharacterChanged'))
+            if (user) {
+                // 로그인 사용자: 데이터베이스에서 삭제
+                await authSetMainCharacter(null)
+            } else {
+                // 비로그인 사용자: localStorage에서 삭제
+                localStorage.removeItem(MAIN_CHARACTER_KEY)
+                setLocalMainCharacter(null)
+                window.dispatchEvent(new Event('mainCharacterChanged'))
+            }
         } catch (e) {
             console.error('Failed to remove main character', e)
         }
     }
 
-    // 대표캐릭터 추가 버튼 클릭 - 모달 열기
+    // 대표캐릭터 추가 버튼 클릭 - 로그인 상태에 따라 처리
     const handleAddClick = () => {
+        if (!user) {
+            // 비로그인 사용자: 로그인 요구
+            alert('대표 캐릭터를 설정하려면 로그인이 필요합니다.')
+            return
+        }
         setIsModalOpen(true)
+    }
+
+    // 캐릭터 선택 핸들러
+    const handleCharacterSelect = async (character: MainCharacter) => {
+        try {
+            console.log('[MainCharacterBadge] Selecting character:', character)
+            if (user) {
+                // 로그인 사용자: 데이터베이스에 저장
+                await authSetMainCharacter({
+                    characterId: character.characterId,
+                    server: character.server,
+                    name: character.name,
+                    className: character.className || '',
+                    level: character.level || 0,
+                    race: character.race,
+                    item_level: character.item_level,
+                    hit_score: character.hit_score,
+                    imageUrl: character.imageUrl
+                })
+            } else {
+                // 비로그인 사용자: localStorage에 저장
+                localStorage.setItem(MAIN_CHARACTER_KEY, JSON.stringify(character))
+                setLocalMainCharacter(character)
+                window.dispatchEvent(new Event('mainCharacterChanged'))
+            }
+            setIsModalOpen(false)
+        } catch (e: any) {
+            console.error('Failed to set main character', e)
+            const errorMessage = e.message || '대표 캐릭터 설정에 실패했습니다.'
+            alert(errorMessage)
+        }
     }
 
     // 로딩 전에는 아무것도 표시하지 않음
@@ -109,6 +162,7 @@ export default function MainCharacterBadge() {
                 <MainCharacterModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
+                    onSelect={handleCharacterSelect}
                 />
             </div>
         )
@@ -189,15 +243,17 @@ export default function MainCharacterBadge() {
                     lineHeight: 1.2
                 }}>
                     {mainCharacter.server}
+                    {mainCharacter.race && ` · ${mainCharacter.race.toLowerCase() === 'elyos' ? '천족' : mainCharacter.race.toLowerCase() === 'asmodian' ? '마족' : mainCharacter.race}`}
                     {mainCharacter.className && ` · ${mainCharacter.className}`}
-                    {(mainCharacter.item_level || mainCharacter.hit_score) && ' · '}
-                    {mainCharacter.item_level ? `IL ${mainCharacter.item_level}` : ''}
-                    {mainCharacter.item_level && mainCharacter.hit_score ? ' · ' : ''}
-                    {mainCharacter.hit_score ? (
-                        <span style={{ color: 'var(--brand-red-main, #D92B4B)', fontWeight: 600 }}>
-                            {mainCharacter.hit_score.toLocaleString()}
-                        </span>
-                    ) : ''}
+                    {mainCharacter.item_level && mainCharacter.item_level > 0 && ` · IL ${mainCharacter.item_level}`}
+                    {mainCharacter.hit_score && mainCharacter.hit_score > 0 && (
+                        <>
+                            {' · '}
+                            <span style={{ color: 'var(--brand-red-main, #D92B4B)', fontWeight: 600 }}>
+                                {mainCharacter.hit_score.toLocaleString()}
+                            </span>
+                        </>
+                    )}
                 </span>
             </div>
 

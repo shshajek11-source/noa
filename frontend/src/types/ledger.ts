@@ -66,9 +66,13 @@ export interface LedgerItem {
   item_category: ItemCategory
   item_grade: ItemGrade
   quantity: number
+  unit_price?: number  // 개당 가격
+  total_price?: number  // 총 가격 (quantity * unit_price)
   obtained_date: string
   sold_price: number | null
+  sold_date?: string  // 판매 날짜
   source_content?: string
+  is_favorite?: boolean  // 즐겨찾기 여부 (조인된 필드)
   created_at: string
   updated_at?: string
 }
@@ -155,6 +159,8 @@ export interface CreateItemRequest {
   item_category: ItemCategory
   item_grade: ItemGrade
   quantity: number
+  unit_price?: number
+  total_price?: number
   source_content?: string
   item_id?: string
 }

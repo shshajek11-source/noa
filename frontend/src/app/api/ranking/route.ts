@@ -15,9 +15,17 @@ export async function GET(request: NextRequest) {
     // Filters
     const type = searchParams.get('type') || 'noa' // noa, cp, content
     const server = searchParams.get('server')
-    const race = searchParams.get('race')
+    const raceParam = searchParams.get('race')
     const className = searchParams.get('class')
     const search = searchParams.get('q')
+
+    // Race 파라미터를 한글로 변환 (ELYOS → 천족, ASMODIANS → 마족)
+    let race = raceParam
+    if (raceParam === 'ELYOS') {
+        race = '천족'
+    } else if (raceParam === 'ASMODIANS') {
+        race = '마족'
+    }
 
     // Pagination
     const page = parseInt(searchParams.get('page') || '1')
@@ -41,7 +49,11 @@ export async function GET(request: NextRequest) {
 
         // Apply Filters
         if (server) query = query.eq('server_id', parseInt(server))
-        if (race) query = query.eq('race_name', race)
+        // Race 필터 - DB에 한글과 영어가 섞여 있어서 OR 조건 사용
+        if (race) {
+            const raceEn = raceParam // 'ELYOS' or 'ASMODIANS'
+            query = query.or(`race_name.eq.${race},race_name.eq.${raceEn}`)
+        }
         if (className) query = query.eq('class_name', className)
         if (search) query = query.ilike('name', `%${search}%`)
 

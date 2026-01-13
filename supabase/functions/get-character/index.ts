@@ -198,12 +198,29 @@ serve(async (req) => {
             equipmentList: enrichedEquipmentList
         };
 
+        // 4-1. 아이템 레벨 계산 (장비 슬롯의 itemLevel 평균)
+        let calculatedItemLevel = 0
+        if (enrichedEquipmentList && enrichedEquipmentList.length > 0) {
+            // 주요 장비 슬롯: 무기, 방어구, 악세사리 (펫/날개 제외)
+            const mainSlots = enrichedEquipmentList.filter((item: any) =>
+                item.slotPos && [1, 2, 3, 5, 6, 7, 11, 12, 13, 14, 15, 16].includes(item.slotPos) && item.itemLevel
+            )
+
+            if (mainSlots.length > 0) {
+                const totalItemLevel = mainSlots.reduce((sum: number, item: any) =>
+                    sum + (item.itemLevel || 0), 0
+                )
+                calculatedItemLevel = Math.floor(totalItemLevel / mainSlots.length)
+                console.log(`[Item Level] Calculated from ${mainSlots.length} items: ${calculatedItemLevel}`)
+            }
+        }
+
         const dbCharacter: DbCharacter = {
             character_id: infoData.profile.characterId,
             server_id: infoData.profile.serverId,
             name: infoData.profile.characterName,
             level: infoData.profile.characterLevel,
-            item_level: infoData.profile.jobLevel || 0, // item_level이 없으면 jobLevel이나 0으로 대체 (API 응답 확인 필요)
+            item_level: calculatedItemLevel, // 장비 아이템 레벨 평균
             class_name: infoData.profile.className,
             race_name: normalizeRaceName(infoData.profile.raceId, infoData.profile.raceName),
             combat_power: 0, // 필요 시 계산 로직 추가
