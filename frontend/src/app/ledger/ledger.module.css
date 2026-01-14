@@ -4,6 +4,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px 16px;
+  padding-bottom: 120px; /* 하단 네비게이션 바 공간 확보 */
   min-height: 100vh;
   background: #161618;
 }

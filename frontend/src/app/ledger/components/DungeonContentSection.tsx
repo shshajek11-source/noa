@@ -45,24 +45,46 @@ interface ContentRecord {
 
 interface DungeonContentSectionProps {
   characterId: string | null
+  baseTickets?: {
+    transcend: number
+    expedition: number
+  }
+  bonusTickets?: {
+    transcend: number
+    expedition: number
+  }
+  onBaseTicketsChange?: (updates: Record<string, number>) => void
+  onBonusTicketsChange?: (updates: Record<string, number>) => void
 }
 
-export default function DungeonContentSection({ characterId }: DungeonContentSectionProps) {
+export default function DungeonContentSection({
+  characterId,
+  baseTickets = { transcend: 14, expedition: 21 },
+  bonusTickets = { transcend: 0, expedition: 0 },
+  onBaseTicketsChange,
+  onBonusTicketsChange
+}: DungeonContentSectionProps) {
   const [dungeonData, setDungeonData] = useState<DungeonData | null>(null)
 
-  // 초월 상태
-  const [transcendTickets, setTranscendTickets] = useState({ base: 14, bonus: 0 })
+  // 초월 상태 (props 우선, 없으면 기본값)
+  const [transcendTickets, setTranscendTickets] = useState({ base: baseTickets.transcend, bonus: 0 })
   const [transcendDouble, setTranscendDouble] = useState(false)
   const [transcendBoss, setTranscendBoss] = useState('')
   const [transcendTier, setTranscendTier] = useState(1)
   const [transcendRecords, setTranscendRecords] = useState<ContentRecord[]>([])
 
-  // 원정 상태
-  const [expeditionTickets, setExpeditionTickets] = useState({ base: 21, bonus: 0 })
+  // 원정 상태 (props 우선, 없으면 기본값)
+  const [expeditionTickets, setExpeditionTickets] = useState({ base: baseTickets.expedition, bonus: 0 })
   const [expeditionDouble, setExpeditionDouble] = useState(false)
   const [expeditionCategory, setExpeditionCategory] = useState('')
   const [expeditionBoss, setExpeditionBoss] = useState('')
   const [expeditionRecords, setExpeditionRecords] = useState<ContentRecord[]>([])
+
+  // baseTickets props가 변경되면 로컬 state 동기화
+  useEffect(() => {
+    setTranscendTickets(prev => ({ ...prev, base: baseTickets.transcend }))
+    setExpeditionTickets(prev => ({ ...prev, base: baseTickets.expedition }))
+  }, [baseTickets.transcend, baseTickets.expedition])
 
   // 던전 데이터 로드
   useEffect(() => {
@@ -182,7 +204,7 @@ export default function DungeonContentSection({ characterId }: DungeonContentSec
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>🎮 던전 컨텐츠</h2>
+        <h2 className={styles.sectionTitle}>초월/원정/성역</h2>
       </div>
 
       {/* 초월 카드 */}
@@ -191,8 +213,16 @@ export default function DungeonContentSection({ characterId }: DungeonContentSec
         title="초월"
         maxTickets={dungeonData.transcend.maxTickets}
         currentTickets={transcendTickets.base}
-        bonusTickets={transcendTickets.bonus}
-        onTicketsChange={(base, bonus) => setTranscendTickets({ base, bonus })}
+        bonusTickets={bonusTickets.transcend}
+        onTicketsChange={(base, bonus) => {
+          setTranscendTickets({ base, bonus })
+          if (onBaseTicketsChange) {
+            onBaseTicketsChange({ transcend: base })
+          }
+          if (onBonusTicketsChange) {
+            onBonusTicketsChange({ transcend: bonus })
+          }
+        }}
         bossOptions={dungeonData.transcend.bosses}
         tierOptions={dungeonData.transcend.tiers}
         isDoubleReward={transcendDouble}
@@ -212,8 +242,16 @@ export default function DungeonContentSection({ characterId }: DungeonContentSec
         title="원정"
         maxTickets={dungeonData.expedition.maxTickets}
         currentTickets={expeditionTickets.base}
-        bonusTickets={expeditionTickets.bonus}
-        onTicketsChange={(base, bonus) => setExpeditionTickets({ base, bonus })}
+        bonusTickets={bonusTickets.expedition}
+        onTicketsChange={(base, bonus) => {
+          setExpeditionTickets({ base, bonus })
+          if (onBaseTicketsChange) {
+            onBaseTicketsChange({ expedition: base })
+          }
+          if (onBonusTicketsChange) {
+            onBonusTicketsChange({ expedition: bonus })
+          }
+        }}
         bossOptions={currentExpeditionBosses}
         categoryOptions={dungeonData.expedition.categories}
         isDoubleReward={expeditionDouble}

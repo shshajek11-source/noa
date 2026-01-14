@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import styles from './DailyContentCard.module.css'
 
 export interface DailyContent {
@@ -9,6 +9,7 @@ export interface DailyContent {
   icon: string
   maxCount: number
   completionCount: number
+  bonusCount?: number
   baseReward: number
   color: string
   colorLight: string
@@ -25,9 +26,44 @@ interface DailyContentCardProps {
 
 export default function DailyContentCard({ content, onIncrement, onDecrement }: DailyContentCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
+  const [timeUntilCharge, setTimeUntilCharge] = useState('')
+
+  // 다음 충전까지 시간 계산 (항상 작동, 티켓 개수와 무관)
+  useEffect(() => {
+    const updateTimer = () => {
+      const now = new Date()
+      const currentHour = now.getHours()
+
+      // 다음 3시간 단위 계산 (0, 3, 6, 9, 12, 15, 18, 21)
+      const nextChargeHour = Math.ceil((currentHour + 1) / 3) * 3
+      const nextCharge = new Date(now)
+
+      if (nextChargeHour >= 24) {
+        nextCharge.setDate(nextCharge.getDate() + 1)
+        nextCharge.setHours(0, 0, 0, 0)
+      } else {
+        nextCharge.setHours(nextChargeHour, 0, 0, 0)
+      }
+
+      const diff = nextCharge.getTime() - now.getTime()
+      const hours = Math.floor(diff / 3600000)
+      const minutes = Math.floor((diff % 3600000) / 60000)
+      const seconds = Math.floor((diff % 60000) / 1000)
+
+      setTimeUntilCharge(
+        `${hours.toString().padStart(1, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      )
+    }
+
+    updateTimer()
+    const interval = setInterval(updateTimer, 1000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   const handleIncrement = () => {
-    if (content.completionCount < content.maxCount) {
+    const totalAvailable = content.maxCount + (content.bonusCount || 0)
+    if (content.completionCount < totalAvailable) {
       onIncrement(content.id)
       createParticles()
     }
@@ -69,7 +105,8 @@ export default function DailyContentCard({ content, onIncrement, onDecrement }: 
     }
   }
 
-  const isComplete = content.completionCount >= content.maxCount
+  const totalAvailable = content.maxCount + (content.bonusCount || 0)
+  const isComplete = content.completionCount >= totalAvailable
 
   return (
     <div
@@ -113,7 +150,7 @@ export default function DailyContentCard({ content, onIncrement, onDecrement }: 
           <button
             className={`${styles.btn} ${styles.btnIncrement}`}
             onClick={handleIncrement}
-            disabled={content.completionCount >= content.maxCount}
+            disabled={content.completionCount >= totalAvailable}
             aria-label={`${content.name} 횟수 증가`}
           >
             +
@@ -125,11 +162,11 @@ export default function DailyContentCard({ content, onIncrement, onDecrement }: 
           <div className={styles.title}>{content.name}</div>
         </div>
 
-        {/* Timer (Bottom Left) - Fixed for daily content */}
+        {/* Timer (Bottom Left) */}
         <div className={styles.timerInfo}>
           <div className={styles.timerLabel}>이용권 충전</div>
           <div className={styles.timerLabel}>남은시간</div>
-          <div className={styles.timerText}>-:--:--</div>
+          <div className={styles.timerText}>{timeUntilCharge}</div>
         </div>
 
         {/* Progress Info (Bottom Right) */}
@@ -137,6 +174,9 @@ export default function DailyContentCard({ content, onIncrement, onDecrement }: 
           <div className={styles.progressLabel}>잔여 횟수</div>
           <div className={styles.progressText}>
             {content.completionCount}/{content.maxCount}
+            {(content.bonusCount || 0) > 0 && (
+              <span className={styles.bonusText}>(+{content.bonusCount})</span>
+            )}
           </div>
         </div>
       </div>

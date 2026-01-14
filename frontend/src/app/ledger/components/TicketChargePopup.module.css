@@ -1,0 +1,270 @@
+/* 오버레이 배경 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 2000;
+  padding-bottom: 120px; /* 네비게이션 바 위에 표시 */
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 말풍선 팝업 */
+.popup {
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  background: #1b1b1e;
+  border: 1px solid #333333;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+  animation: slideUp 0.3s ease;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 말풍선 꼬리 */
+.tail {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 20px solid #1b1b1e;
+}
+
+.tail::before {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  left: -21px;
+  width: 0;
+  height: 0;
+  border-left: 21px solid transparent;
+  border-right: 21px solid transparent;
+  border-top: 21px solid #333333;
+}
+
+/* 헤더 */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid #333333;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #FACC15;
+  margin: 0;
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid #333333;
+  color: #9CA3AF;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: #2a2a2a;
+  border-color: #555555;
+  color: #ffffff;
+}
+
+/* 티켓 리스트 */
+.ticketList {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ticketRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: #212227;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.ticketRow:hover {
+  background: #27282e;
+  border-color: #444444;
+}
+
+.ticketName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #E5E7EB;
+}
+
+.ticketIcon {
+  font-size: 18px;
+}
+
+.ticketStatus {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.current {
+  color: #9CA3AF;
+}
+
+.bonus {
+  color: #FACC15;
+  font-weight: 600;
+}
+
+/* 충전 컨트롤 */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.decrementBtn,
+.incrementBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #161618;
+  border: 1px solid #333333;
+  color: #E5E7EB;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.decrementBtn:hover:not(:disabled),
+.incrementBtn:hover {
+  background: #1a1a1a;
+  border-color: #FACC15;
+  color: #FACC15;
+  transform: scale(1.05);
+}
+
+.decrementBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.chargeCount {
+  min-width: 30px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #FACC15;
+}
+
+/* 푸터 */
+.footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid #333333;
+}
+
+.confirmBtn,
+.cancelBtn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmBtn {
+  background: linear-gradient(135deg, #FACC15 0%, #F59E0B 100%);
+  border: none;
+  color: #000000;
+}
+
+.confirmBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+}
+
+.cancelBtn {
+  background: transparent;
+  border: 1px solid #333333;
+  color: #9CA3AF;
+}
+
+.cancelBtn:hover {
+  background: #2a2a2a;
+  border-color: #555555;
+  color: #ffffff;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .popup {
+    width: 95%;
+    max-height: 60vh;
+  }
+
+  .ticketRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .controls {
+    justify-content: flex-end;
+  }
+}

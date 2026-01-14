@@ -1,0 +1,189 @@
+.progressBar {
+  background: linear-gradient(135deg, rgba(26, 29, 36, 0.95) 0%, rgba(15, 17, 21, 0.95) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+
+.progressBar:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 완료된 카드 스타일 */
+.progressBar.completed {
+  opacity: 0.6;
+  transform: scale(0.98);
+  background: linear-gradient(135deg, rgba(15, 17, 21, 0.95) 0%, rgba(10, 12, 15, 0.95) 100%);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.progressBar.completed:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 상단: 제목 + 타이머 + 진행 횟수 + 버튼 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #E5E7EB;
+  font-family: 'Rajdhani', sans-serif;
+  line-height: 1.2;
+}
+
+.timer {
+  font-size: 11px;
+  color: #9CA3AF;
+  line-height: 1.2;
+}
+
+.completeBtn {
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: rgba(26, 29, 36, 0.95);
+  color: #fbbf24;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.completeBtn:hover:not(:disabled) {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  transform: scale(1.05);
+}
+
+.completeBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.count {
+  font-size: 13.5px;
+  color: #9CA3AF;
+  line-height: 1.2;
+}
+
+/* 하단: 세그먼트 바 */
+.barRow {
+  display: flex;
+  align-items: center;
+}
+
+.segmentsContainer {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+  height: 16px;
+  align-items: center;
+}
+
+.segment {
+  flex: 1;
+  height: 100%;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.segment.filled {
+  background: #fbbf24;
+  box-shadow:
+    0 0 10px rgba(251, 191, 36, 0.8),
+    0 0 20px rgba(251, 191, 36, 0.4),
+    inset 0 0 10px rgba(251, 191, 36, 0.3);
+  animation: glow 2s ease-in-out infinite;
+}
+
+.segment.empty {
+  background: rgba(26, 29, 36, 0.8);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+/* 완료된 카드의 세그먼트를 회색으로 */
+.progressBar.completed .segment.filled {
+  background: #6B7280;
+  box-shadow:
+    0 0 10px rgba(107, 114, 128, 0.4),
+    0 0 20px rgba(107, 114, 128, 0.2),
+    inset 0 0 10px rgba(107, 114, 128, 0.2);
+  animation: none;
+}
+
+.progressBar.completed .segment.empty {
+  background: rgba(26, 29, 36, 0.6);
+  border: 1px solid rgba(107, 114, 128, 0.15);
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(251, 191, 36, 0.8),
+      0 0 20px rgba(251, 191, 36, 0.4),
+      inset 0 0 10px rgba(251, 191, 36, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 15px rgba(251, 191, 36, 1),
+      0 0 30px rgba(251, 191, 36, 0.6),
+      inset 0 0 15px rgba(251, 191, 36, 0.5);
+  }
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+}
+
+.btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(26, 29, 36, 0.95);
+  color: #E5E7EB;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: #fbbf24;
+  transform: scale(1.05);
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

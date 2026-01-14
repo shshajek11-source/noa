@@ -66,22 +66,21 @@ export default function ContentCard({
   // 선택된 보스 정보
   const currentBoss = bossOptions.find(b => b.id === selectedBoss) || bossOptions[0]
 
-  // 다음 충전까지 시간 계산
+  // 다음 충전까지 시간 계산 (항상 작동, 티켓 개수와 무관)
   useEffect(() => {
-    // 최대치 도달 시 타이머 정지
-    if (currentTickets >= maxTickets) {
-      setTimeUntilCharge('-:--:--')
-      return
-    }
-
     const updateTimer = () => {
       const now = new Date()
-      const nextCharge = new Date(now)
-      nextCharge.setHours(now.getHours() + 3, 0, 0, 0)
+      const currentHour = now.getHours()
 
-      // 이미 3시간 지점을 지났으면 다음 3시간 지점으로
-      if (nextCharge <= now) {
-        nextCharge.setHours(nextCharge.getHours() + 3)
+      // 다음 3시간 단위 계산 (0, 3, 6, 9, 12, 15, 18, 21)
+      const nextChargeHour = Math.ceil((currentHour + 1) / 3) * 3
+      const nextCharge = new Date(now)
+
+      if (nextChargeHour >= 24) {
+        nextCharge.setDate(nextCharge.getDate() + 1)
+        nextCharge.setHours(0, 0, 0, 0)
+      } else {
+        nextCharge.setHours(nextChargeHour, 0, 0, 0)
       }
 
       const diff = nextCharge.getTime() - now.getTime()
@@ -98,7 +97,7 @@ export default function ContentCard({
     const interval = setInterval(updateTimer, 1000)
 
     return () => clearInterval(interval)
-  }, [currentTickets, maxTickets])
+  }, [])
 
   // 현재 키나 계산
   const getCurrentKina = () => {
@@ -133,16 +132,21 @@ export default function ContentCard({
     let newBonus = bonusTickets
     let newBase = currentTickets
 
-    // 보너스부터 차감
-    if (newBonus >= remaining) {
-      newBonus -= remaining
-    } else {
-      remaining -= newBonus
-      newBonus = 0
+    // 1순위: 기본 티켓 차감 (0이 될 때까지)
+    if (newBase >= remaining) {
       newBase -= remaining
+      remaining = 0
+    } else {
+      remaining -= newBase
+      newBase = 0
     }
 
-    onTicketsChange(Math.max(0, newBase), newBonus)
+    // 2순위: 보너스 티켓 차감 (기본이 0이 된 후에만)
+    if (remaining > 0) {
+      newBonus = Math.max(0, newBonus - remaining)
+    }
+
+    onTicketsChange(newBase, newBonus)
     setCompletionCount(1)
   }
 
@@ -196,7 +200,7 @@ export default function ContentCard({
 
             {/* 잔여 횟수 (우하단) */}
             <div className={styles.remainingCount}>
-              <span className={styles.countCurrent}>{currentTickets + bonusTickets}</span>
+              <span className={styles.countCurrent}>{currentTickets}</span>
               <span className={styles.countMax}>/{maxTickets}</span>
               {bonusTickets > 0 && (
                 <span className={styles.countBonus}>(+{bonusTickets})</span>

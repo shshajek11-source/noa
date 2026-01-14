@@ -1,0 +1,42 @@
+.section {
+  margin-bottom: 24px;
+}
+
+.header {
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #E5E7EB;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 65% 35%;
+  gap: 5px;
+  align-items: start;
+}
+
+/* 왼쪽: 진행도 바 3개 (세로) */
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 오른쪽: 슈고 & 어비스 (가로 2개) */
+.rightColumn {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.placeholder {
+  text-align: center;
+  padding: 40px;
+  color: #9CA3AF;
+  font-size: 14px;
+}

@@ -1,0 +1,282 @@
+/* 컨테이너 */
+.container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 1200px;
+  z-index: 1000;
+}
+
+/* 상단 토글 탭 */
+.toggleTab {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 30px;
+  background: #000000;
+  border: 1px solid #333333;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.toggleTab:hover {
+  background: #1a1a1a;
+  border-color: #555555;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.toggleTabArrow {
+  font-size: 18px;
+  color: #FACC15;
+  font-weight: bold;
+}
+
+/* 하단 네비게이션 바 - 펼친 상태 */
+.navBar {
+  width: 100%;
+  min-height: 80px;
+  background: #000000;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 100px 1fr 1fr 100px;
+  gap: 12px;
+  padding: 16px;
+  align-items: center;
+  box-sizing: border-box;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  animation: expandUp 0.3s ease;
+}
+
+@keyframes expandUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 캘린더 버튼 */
+.calendarBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: #E5E7EB;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: auto; /* 높이 자동 조정 */
+  min-height: 55px;
+}
+
+.calendarBtn:hover {
+  background: #1a1a1a;
+  border-color: #555555;
+  transform: scale(1.05);
+}
+
+.calendarBtn:active {
+  transform: scale(0.95);
+}
+
+.calendarBtn .icon {
+  font-size: 18px;
+}
+
+.calendarBtn .dateText {
+  font-size: 14px;
+  font-weight: 600;
+  color: #FACC15;
+}
+
+.calendarBtn .weekdayText {
+  font-size: 11px;
+  color: #9CA3AF;
+}
+
+/* 수입 표시 박스 */
+.incomeBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #0B0D12;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 8px;
+  height: auto;
+  min-height: 55px;
+}
+
+.incomeLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.incomeLabel .icon {
+  font-size: 14px;
+}
+
+.incomeAmount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FACC15;
+  transition: transform 0.1s ease;
+}
+
+/* 룰렛 애니메이션 */
+.incomeAmount.increasing {
+  animation: bounceUp 0.3s ease;
+}
+
+.incomeAmount.decreasing {
+  animation: bounceDown 0.3s ease;
+}
+
+@keyframes bounceUp {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.05);
+    color: #A7F432;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bounceDown {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(4px) scale(0.95);
+    color: #FF6B6B;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 충전 버튼 */
+.chargeBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #FACC15 0%, #F59E0B 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  color: #000000;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: auto;
+  min-height: 55px;
+}
+
+.chargeBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+}
+
+.chargeBtn:active {
+  transform: scale(0.95);
+}
+
+.chargeBtn .icon {
+  font-size: 20px;
+}
+
+.chargeBtn span:last-child {
+  font-size: 13px;
+}
+
+/* 반응형: 태블릿 */
+@media (max-width: 768px) {
+  .navBar {
+    grid-template-columns: 80px 1fr 1fr 80px;
+    gap: 12px;
+    padding: 10px 12px;
+    height: 65px;
+  }
+
+  .incomeLabel {
+    font-size: 11px;
+  }
+
+  .incomeAmount {
+    font-size: 14px;
+  }
+
+  .chargeBtn span:last-child {
+    font-size: 12px;
+  }
+}
+
+/* 반응형: 모바일 */
+@media (max-width: 480px) {
+  .navBar {
+    grid-template-columns: 70px 1fr 1fr 70px;
+    gap: 8px;
+    padding: 8px 10px;
+    height: 60px;
+  }
+
+  .calendarBtn .icon {
+    font-size: 16px;
+  }
+
+  .calendarBtn .dateText {
+    font-size: 12px;
+  }
+
+  .calendarBtn .weekdayText {
+    font-size: 10px;
+  }
+
+  .incomeLabel {
+    font-size: 10px;
+  }
+
+  .incomeLabel .icon {
+    font-size: 12px;
+  }
+
+  .incomeAmount {
+    font-size: 13px;
+  }
+
+  .chargeBtn .icon {
+    font-size: 18px;
+  }
+
+  .chargeBtn span:last-child {
+    font-size: 11px;
+  }
+}

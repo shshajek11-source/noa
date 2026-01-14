@@ -153,6 +153,14 @@
   line-height: 1;
 }
 
+.bonusText {
+  font-size: 16px;
+  color: #FACC15;
+  margin-left: 4px;
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+  font-weight: 600;
+}
+
 .btn {
   width: 26px;
   height: 26px;
