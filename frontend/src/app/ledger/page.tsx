@@ -27,6 +27,7 @@ import CalendarModal from './components/CalendarModal'
 import NicknameModal from '@/components/NicknameModal'
 import MainCharacterModal from '@/components/MainCharacterModal'
 import DebugPanel from './components/DebugPanel'
+import ConsoleDebugPanel from './components/ConsoleDebugPanel'
 import { useAuth } from '@/context/AuthContext'
 import { getGameDate, getWeekKey } from './utils/dateUtils'
 import styles from './ledger.module.css'
@@ -1039,21 +1040,20 @@ export default function LedgerPage() {
               items={items.map(item => ({
                 ...item,
                 item_id: item.item_id || '',
-                unit_price: 0,
-                total_price: 0,
+                unit_price: item.unit_price || 0,
+                total_price: item.total_price || 0,
                 is_sold: item.sold_price !== null,
                 is_favorite: isFavorite(item.item_id || '')
               }))}
               favorites={favorites}
-              onAddItem={() => setShowAddItemModal(true)}
+              onAddItem={async (itemData) => {
+                await addItem(itemData)
+              }}
               onUpdateItem={async (id, data) => {
                 await updateItem(id, data as any)
               }}
-              onSellItem={async (id) => {
-                const item = items.find(i => i.id === id)
-                if (item) {
-                  await sellItem(id, item.sold_price || 0)
-                }
+              onSellItem={async (id, soldPrice) => {
+                await sellItem(id, soldPrice)
               }}
               onDeleteItem={async (id) => { await deleteItem(id) }}
               onToggleFavorite={handleToggleFavorite}
@@ -1145,6 +1145,9 @@ export default function LedgerPage() {
         odEnergy={odEnergy}
         characterId={selectedCharacterId}
       />
+
+      {/* 콘솔 디버그 패널 */}
+      <ConsoleDebugPanel />
     </div>
   )
 }

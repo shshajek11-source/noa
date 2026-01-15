@@ -44,29 +44,44 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId }: UseLedge
   }, [fetchItems])
 
   const addItem = async (item: CreateItemRequest) => {
-    if (!isReady || !characterId) return null
+    console.log('[useLedgerItems] addItem called', { isReady, characterId, item })
+
+    if (!isReady || !characterId) {
+      console.log('[useLedgerItems] addItem skipped - not ready or no characterId')
+      return null
+    }
 
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...getAuthHeader()
+      }
+      const body = {
+        ...item,
+        characterId
+      }
+      console.log('[useLedgerItems] POST /api/ledger/items', { headers, body })
+
       const res = await fetch('/api/ledger/items', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeader()
-        },
-        body: JSON.stringify({
-          ...item,
-          characterId
-        })
+        headers,
+        body: JSON.stringify(body)
       })
 
+      console.log('[useLedgerItems] Response status:', res.status)
+
       if (!res.ok) {
-        throw new Error('Failed to add item')
+        const errorText = await res.text()
+        console.error('[useLedgerItems] Error response:', errorText)
+        throw new Error(`Failed to add item: ${errorText}`)
       }
 
       const newItem = await res.json()
+      console.log('[useLedgerItems] Item added successfully:', newItem)
       setItems(prev => [newItem, ...prev])
       return newItem
     } catch (e: any) {
+      console.error('[useLedgerItems] addItem error:', e)
       setError(e.message)
       return null
     }

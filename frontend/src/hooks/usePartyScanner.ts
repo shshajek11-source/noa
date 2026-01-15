@@ -85,14 +85,21 @@ export const usePartyScanner = () => {
 
     // OCR 크롭 설정 - 다중 영역 지원 (1920x1080 기준 픽셀값)
     const [cropRegions, setCropRegions] = useState<CropRegion[]>([
-        { id: 'region-1', name: '영역 1', startX: 120, startY: 950, width: 400, height: 80, enabled: true },
-        { id: 'region-2', name: '영역 2', startX: 520, startY: 950, width: 400, height: 80, enabled: true },
-        { id: 'region-3', name: '영역 3', startX: 920, startY: 950, width: 400, height: 80, enabled: true },
-        { id: 'region-4', name: '영역 4', startX: 1320, startY: 950, width: 400, height: 80, enabled: true },
+        { id: 'region-1', name: '영역 1', startX: 170, startY: 950, width: 350, height: 80, enabled: true },
+        { id: 'region-2', name: '영역 2', startX: 570, startY: 950, width: 350, height: 80, enabled: true },
+        { id: 'region-3', name: '영역 3', startX: 970, startY: 950, width: 350, height: 80, enabled: true },
+        { id: 'region-4', name: '영역 4', startX: 1370, startY: 950, width: 350, height: 80, enabled: true },
     ]);
 
-    // 단일 영역 모드용 (기존 호환성)
-    const [useSingleRegion, setUseSingleRegion] = useState(true);
+    // 제외 영역 (Masking) - 이 영역을 검은색으로 칠해서 OCR이 읽지 못하게 함
+    const [blockedRegions, setBlockedRegions] = useState<CropRegion[]>([
+        { id: 'mask-1', name: '마스크 1', startX: 604, startY: 950, width: 76, height: 69, enabled: true },
+        { id: 'mask-2', name: '마스크 2', startX: 864, startY: 952, width: 76, height: 69, enabled: true },
+        { id: 'mask-3', name: '마스크 3', startX: 1121, startY: 952, width: 76, height: 69, enabled: true },
+    ]);
+
+    // 단일 영역 모드용 (기존 호환성) - false로 변경하여 다중 영역 크롭 사용
+    const [useSingleRegion, setUseSingleRegion] = useState(false);
     const [singleCropSettings, setSingleCropSettings] = useState({
         startX: 413,
         startY: 973,
@@ -182,10 +189,10 @@ export const usePartyScanner = () => {
     // 기본 전처리 설정 (AION2 파티창 최적화)
     const defaultPreprocessOptions: PreprocessOptions = {
         grayscale: true,
-        threshold: 100,
+        threshold: 150,      // 더 얇고 날카롭게 (135 -> 150)
         invert: true,           // 어두운 배경 → 흰 배경
-        contrast: 1.4,          // 40% 대비 강화
-        denoise: true
+        contrast: 2.2,          // 선명도 강화 (1.8 -> 2.2)
+        denoise: false          // 노이즈 제거 Off (글자 뭉개짐 방지)
     };
 
     // 이미지 전처리 함수 (노이즈 제거 + 흑백 + 대비 강화 + 이진화 + 반전)
@@ -251,6 +258,41 @@ export const usePartyScanner = () => {
         ctx.putImageData(imageData, 0, 0);
     };
 
+    // 마스킹 적용 함수 (공통)
+    const applyMasking = (ctx: CanvasRenderingContext2D, imgScaleX: number, imgScaleY: number, cropX: number, cropY: number, scale: number) => {
+        blockedRegions.forEach(mask => {
+            if (!mask.enabled) return;
+
+            // 마스크 영역과 현재 크롭 영역의 교차점 계산 (전역 1920x1080 좌표계)
+            const regionRight = cropX + (ctx.canvas.width / (scale * imgScaleX)); // 역계산... 복잡하므로 단순화
+            // 더 단순하게: 마스크 영역을 현재 캔버스 좌표계로 변환해서 그리기
+
+            // 캔버스는 cropWidth * scale 크기
+            // 원본 이미지에서의 현재 크롭 시작점: cropX, cropY
+
+            // 마스크 영역 (원본 좌표)
+            const maskX = Math.round(mask.startX * imgScaleX);
+            const maskY = Math.round(mask.startY * imgScaleY);
+            const maskW = Math.round(mask.width * imgScaleX);
+            const maskH = Math.round(mask.height * imgScaleY);
+
+            // 현재 크롭 캔버스 상의 위치
+            // CanvasX = (MaskOriginalX - CropOriginalX) * scale
+            // CropOriginalX = cropX
+            const canvasX = (maskX - cropX) * scale;
+            const canvasY = (maskY - cropY) * scale;
+            const canvasW = maskW * scale;
+            const canvasH = maskH * scale;
+
+            // 검은색으로 칠하기 (전처리 전이므로 원본 이미지 위에 덮어씀)
+            // 전처리에서 'invert'가 true이면 검은색 -> 흰색이 됨
+            // 배경이 검은색인 게임 화면이라면 검은색으로 칠하는 게 자연스러움
+            // 전처리에서 반전되면 흰색 배경이 되므로 텍스트가 없는 것으로 인식됨
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(canvasX, canvasY, canvasW, canvasH);
+        });
+    };
+
     // 단일 영역 크롭 (기존 방식)
     const cropBottomPart = (base64Image: string): Promise<string> => {
         return new Promise((resolve) => {
@@ -273,8 +315,8 @@ export const usePartyScanner = () => {
                 const startX = Math.round(singleCropSettings.startX * scaleX);
                 const startY = Math.round(singleCropSettings.startY * scaleY);
 
-                // 3배 확대 (OCR 정확도 향상)
-                const scale = 3;
+                // 4배 확대 (OCR 정확도 극대화)
+                const scale = 4;
                 canvas.width = cropWidth * scale;
                 canvas.height = cropHeight * scale;
 
@@ -282,6 +324,9 @@ export const usePartyScanner = () => {
 
                 // 크롭된 영역을 확대해서 그리기
                 ctx.drawImage(img, startX, startY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+
+                // 마스킹 적용
+                applyMasking(ctx, scaleX, scaleY, startX, startY, scale);
 
                 // 전처리 적용 (노이즈 제거 + 흑백 + 대비 강화 + 이진화 + 반전)
                 preprocessImage(ctx, canvas.width, canvas.height);
@@ -294,8 +339,8 @@ export const usePartyScanner = () => {
         });
     };
 
-    // 다중 영역 크롭 (각 영역별로 크롭된 이미지 배열 반환)
-    const cropMultipleRegions = (base64Image: string): Promise<{ regionId: string; image: string }[]> => {
+    // 다중 영역 크롭 (세로로 합쳐서 하나의 이미지 반환)
+    const cropMultipleRegions = (base64Image: string): Promise<string> => {
         return new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
@@ -305,8 +350,9 @@ export const usePartyScanner = () => {
                 const scaleY = img.height / baseHeight;
 
                 const enabledRegions = cropRegions.filter(r => r.enabled);
-                const results: { regionId: string; image: string }[] = [];
+                const processedCanvases: HTMLCanvasElement[] = [];
 
+                // 1. 각 영역별로 캔버스 생성 및 전처리
                 for (const region of enabledRegions) {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
@@ -317,27 +363,58 @@ export const usePartyScanner = () => {
                     const startX = Math.round(region.startX * scaleX);
                     const startY = Math.round(region.startY * scaleY);
 
-                    // 3배 확대
-                    const scale = 3;
+                    // 4배 확대
+                    const scale = 4;
                     canvas.width = cropWidth * scale;
                     canvas.height = cropHeight * scale;
 
-                    console.log(`[cropMultipleRegions] ${region.name}: X=${startX}, Y=${startY}, W=${cropWidth}, H=${cropHeight}`);
-
+                    // 이미지 그리기
                     ctx.drawImage(img, startX, startY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
 
-                    // 전처리 적용 (노이즈 제거 + 흑백 + 대비 강화 + 이진화 + 반전)
+                    // 마스킹 적용 (각 조각별로 상대 좌표 계산되어 적용됨)
+                    applyMasking(ctx, scaleX, scaleY, startX, startY, scale);
+
+                    // 전처리 적용 (흰 배경 검은 글씨로 변환됨)
                     preprocessImage(ctx, canvas.width, canvas.height);
 
-                    results.push({
-                        regionId: region.id,
-                        image: canvas.toDataURL('image/png')
-                    });
+                    processedCanvases.push(canvas);
                 }
 
-                resolve(results);
+                if (processedCanvases.length === 0) {
+                    resolve(base64Image);
+                    return;
+                }
+
+                // 2. 세로로 합치기 (Stitching) - OCR이 줄바꿈을 더 잘 인식하도록
+                const padding = 30; // 조각 사이 충분한 여백 (픽셀)
+                const maxCanvasWidth = Math.max(...processedCanvases.map(c => c.width));
+                const totalHeight = processedCanvases.reduce((acc, c) => acc + c.height, 0) + (processedCanvases.length - 1) * padding;
+
+                const stitchedCanvas = document.createElement('canvas');
+                stitchedCanvas.width = maxCanvasWidth;
+                stitchedCanvas.height = totalHeight;
+                const sCtx = stitchedCanvas.getContext('2d');
+
+                if (!sCtx) {
+                    resolve(base64Image);
+                    return;
+                }
+
+                // 배경을 흰색으로 채우기 (전처리 결과가 흰 배경이므로)
+                sCtx.fillStyle = '#FFFFFF';
+                sCtx.fillRect(0, 0, stitchedCanvas.width, stitchedCanvas.height);
+
+                let currentY = 0;
+                processedCanvases.forEach(canvas => {
+                    sCtx.drawImage(canvas, 0, currentY);
+                    currentY += canvas.height + padding;
+                });
+
+                console.log(`[cropMultipleRegions] Stitched ${processedCanvases.length} regions vertically. Total size: ${stitchedCanvas.width}x${stitchedCanvas.height}`);
+
+                resolve(stitchedCanvas.toDataURL('image/png'));
             };
-            img.onerror = () => resolve([]);
+            img.onerror = () => resolve(base64Image);
             img.src = base64Image;
         });
     };
@@ -398,6 +475,35 @@ export const usePartyScanner = () => {
                         ctx.fillStyle = colors[idx % colors.length];
                         ctx.font = 'bold 20px sans-serif';
                         ctx.fillText(region.name, x + 5, y - 5);
+                    });
+
+                    // 마스킹 영역 표시 (붉은색 빗금 또는 엑스 표시)
+                    blockedRegions.forEach((mask) => {
+                        if (!mask.enabled) return;
+
+                        const x = Math.round(mask.startX * scaleX);
+                        const y = Math.round(mask.startY * scaleY);
+                        const w = Math.round(mask.width * scaleX);
+                        const h = Math.round(mask.height * scaleY);
+
+                        ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // 반투명 빨강
+                        ctx.fillRect(x, y, w, h);
+
+                        ctx.strokeStyle = '#FF0000';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x, y, w, h);
+
+                        // X 표시
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x + w, y + h);
+                        ctx.moveTo(x + w, y);
+                        ctx.lineTo(x, y + h);
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#FF0000';
+                        ctx.font = 'bold 16px sans-serif';
+                        ctx.fillText('MASK', x + 5, y + 20);
                     });
                 }
 
@@ -537,6 +643,7 @@ export const usePartyScanner = () => {
         const addMember = (name: string, rawServer: string, possibleServers: string[], isMain: boolean = false) => {
             const cleanName = name.replace(/[^a-zA-Z0-9가-힣]/g, '');
             if (cleanName.length < 1 || seenNames.has(cleanName)) return false; // 1글자 캐릭터도 허용
+
             matches.push({ name: cleanName, rawServer, possibleServers, isMainCharacter: isMain });
             seenNames.add(cleanName);
             console.log('[smartParse] Added member:', cleanName, possibleServers, isMain);
@@ -1595,7 +1702,11 @@ export const usePartyScanner = () => {
                     const cropStartTime = Date.now();
                     if (scanBottomOnly) {
                         setLogs(prev => [...prev, '이미지 크롭 중...']);
-                        imageToScan = await cropBottomPart(originalImage);
+                        if (useSingleRegion) {
+                            imageToScan = await cropBottomPart(originalImage);
+                        } else {
+                            imageToScan = await cropMultipleRegions(originalImage);
+                        }
                         setCroppedPreview(imageToScan);
                         console.log('[usePartyScanner] Image cropped');
                     } else {
@@ -1680,7 +1791,7 @@ export const usePartyScanner = () => {
 
                     // 총 소요 시간
                     const totalTime = Date.now() - totalStartTime;
-                    setLogs(prev => [...prev, `⏱ 총 소요 시간: ${totalTime}ms (${(totalTime/1000).toFixed(1)}초)`]);
+                    setLogs(prev => [...prev, `⏱ 총 소요 시간: ${totalTime}ms (${(totalTime / 1000).toFixed(1)}초)`]);
 
                     setAnalysisResult(result);
                     setIsScanning(false);

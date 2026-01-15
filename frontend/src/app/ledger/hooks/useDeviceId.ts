@@ -74,14 +74,17 @@ export function useDeviceId() {
 
   // Return access token for authenticated requests
   const getAuthHeader = useCallback((): Record<string, string> => {
-    if (isAuthenticated && session) {
-      return { 'Authorization': `Bearer ${session.access_token}` }
+    if (isAuthenticated && session && user) {
+      return {
+        'Authorization': `Bearer ${session.access_token}`,
+        'X-User-ID': user.id
+      }
     }
     if (deviceId) {
-      return { 'x-device-id': deviceId }
+      return { 'X-Device-ID': deviceId }
     }
     return {}
-  }, [isAuthenticated, session, deviceId])
+  }, [isAuthenticated, session, deviceId, user])
 
   return {
     deviceId,

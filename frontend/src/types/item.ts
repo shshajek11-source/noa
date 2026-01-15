@@ -22,6 +22,71 @@ export interface ItemSearchResult {
 
     // 획득처
     source?: string
+
+    // 공식 API 추가 필드
+    options?: string[] | ItemOption[]
+    tradable?: boolean
+    description?: string
+}
+
+export interface ItemOption {
+    name: string
+    value: string | number
+    isRandom?: boolean
+}
+
+// 공식 API 아이템 응답
+export interface OfficialItem {
+    id: number
+    name: string
+    image: string
+    grade: string // 'Common' | 'Rare' | 'Legend' | 'Unique' | 'Epic'
+    options: string[]
+    favorite: boolean
+    tradable: boolean
+    categoryName: string
+    description: string
+}
+
+// 공식 API 검색 응답
+export interface OfficialSearchResponse {
+    contents: OfficialItem[]
+    pagination: {
+        page: number
+        size: number
+        lastPage: number
+        total: number
+        limit: number
+    }
+}
+
+// 공식 API 카테고리
+export interface OfficialCategory {
+    id: string
+    name: string
+    child?: OfficialCategory[]
+}
+
+// 공식 API 등급
+export interface OfficialGrade {
+    id: string
+    name: string
+}
+
+// OfficialItem -> ItemSearchResult 변환
+export function convertOfficialToSearchResult(item: OfficialItem): ItemSearchResult {
+    return {
+        itemId: String(item.id),
+        name: item.name,
+        categoryName: item.categoryName,
+        grade: item.grade,
+        itemLevel: 0,
+        icon: item.image,
+        slotPos: 0,
+        options: item.options,
+        tradable: item.tradable,
+        description: item.description
+    }
 }
 
 // 아이템 상세 정보
@@ -31,12 +96,6 @@ export interface ItemDetail extends ItemSearchResult {
     setEffects?: SetEffect[]
     manastoneSlots?: number
     godstoneSlot?: boolean
-}
-
-export interface ItemOption {
-    name: string
-    value: string | number
-    isRandom?: boolean
 }
 
 export interface SetEffect {

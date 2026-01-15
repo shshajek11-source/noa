@@ -299,3 +299,80 @@
 .statValue {
     color: #E5E7EB;
 }
+
+/* Item Options (아이템 옵션 미리보기) */
+.itemOptions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+}
+
+.itemOption {
+    color: #6B7280;
+    background: rgba(107, 114, 128, 0.15);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding: 1rem 0;
+}
+
+.pageBtn {
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: #9CA3AF;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.pageBtn:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.pageBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pageInfo {
+    padding: 0.5rem 1rem;
+    color: #E5E7EB;
+    font-size: 0.9rem;
+}
+
+/* 아이템 카드 반응형 */
+@media (max-width: 768px) {
+    .resultsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .itemOptions {
+        display: none;
+    }
+
+    .pagination {
+        gap: 0.25rem;
+    }
+
+    .pageBtn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+}

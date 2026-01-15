@@ -1,74 +1,108 @@
 .card {
   background: linear-gradient(135deg, rgba(26, 29, 36, 0.95) 0%, rgba(15, 17, 21, 0.95) 100%);
   border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 16px;
-  transition: all 0.3s;
+  border-radius: 10px;
+  padding: 12px;
+  transition: all 0.2s;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .card:hover {
   border-color: rgba(250, 204, 21, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .cardSold {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
   border-color: rgba(16, 185, 129, 0.3);
+  opacity: 0.7;
 }
 
+.cardSelected {
+  border-color: #facc15;
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3);
+}
+
+/* 선택 체크박스 */
+.selectCheckbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #facc15;
+  cursor: pointer;
+}
+
+/* 판매완료 뱃지 */
+.soldBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+/* 헤더: 아이템 정보 */
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  gap: 10px;
+  min-height: 50px;
 }
 
-.titleArea {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.icon {
-  width: 48px;
-  height: 48px;
+.itemIcon {
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   background: rgba(250, 204, 21, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 20px;
   flex-shrink: 0;
 }
 
-.info {
+.itemInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .itemName {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   color: #E5E7EB;
   margin-bottom: 4px;
-  font-family: 'Rajdhani', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 24px;
 }
 
-.meta {
+.itemMeta {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-  flex-wrap: wrap;
 }
 
 .grade {
-  padding: 2px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  text-transform: uppercase;
 }
 
 .gradeCommon { background: rgba(156, 163, 175, 0.2); color: #9CA3AF; }
@@ -77,176 +111,89 @@
 .gradeLegendary { background: rgba(251, 191, 36, 0.2); color: #FBBF24; }
 .gradeUltimate { background: rgba(244, 114, 182, 0.2); color: #F472B6; }
 
-.category {
-  font-size: 12px;
-  color: #9CA3AF;
-}
-
+/* 즐겨찾기 버튼 */
 .favoriteBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 16px;
   cursor: pointer;
-  padding: 4px;
-  transition: transform 0.2s;
+  padding: 2px;
+  opacity: 0.6;
+  transition: all 0.2s;
 }
 
 .favoriteBtn:hover {
-  transform: scale(1.2);
-}
-
-.favoriteActive {
-  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.8));
-}
-
-.divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  margin: 12px 0;
-}
-
-.controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.controlGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.controlLabel {
-  font-size: 11px;
-  color: #9CA3AF;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.quantityControl {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.quantityBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: rgba(26, 29, 36, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #E5E7EB;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.quantityBtn:hover {
-  border-color: #FACC15;
+  opacity: 1;
   transform: scale(1.1);
 }
 
-.quantityBtn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
+.favoriteActive {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.8));
 }
 
-.quantityBtn:disabled:hover {
-  transform: none;
-}
-
-.quantityValue {
-  font-size: 18px;
-  font-weight: 700;
-  color: #FACC15;
-  font-family: 'Rajdhani', sans-serif;
-  min-width: 40px;
-  text-align: center;
-}
-
-.priceInput {
-  padding: 8px 12px;
-  background: rgba(26, 29, 36, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* 가격 정보 */
+.priceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
-  color: #E5E7EB;
-  font-size: 14px;
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 600;
-  transition: all 0.2s;
 }
 
-.priceInput:focus {
-  outline: none;
-  border-color: #FACC15;
-  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.1);
-}
-
-.priceInput:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.total {
-  padding: 12px;
-  background: rgba(250, 204, 21, 0.1);
-  border: 1px solid rgba(250, 204, 21, 0.3);
-  border-radius: 8px;
+.priceRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  font-size: 12px;
 }
 
-.totalLabel {
-  font-size: 13px;
-  color: #9CA3AF;
-  font-weight: 600;
+.priceLabel {
+  color: #888;
+}
+
+.priceValue {
+  color: #ccc;
+  font-weight: 500;
+}
+
+.totalRow {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 6px;
+  margin-top: 4px;
 }
 
 .totalValue {
-  font-size: 20px;
+  color: #facc15;
   font-weight: 700;
-  color: #FACC15;
-  font-family: 'Rajdhani', sans-serif;
-  text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+  font-size: 14px;
 }
 
+/* 액션 버튼 */
 .actions {
   display: flex;
-  gap: 8px;
-}
-
-.actionBtn {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: 'Rajdhani', sans-serif;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 6px;
 }
 
 .sellBtn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
   background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
   color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.sellBtn:hover {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
-  transform: translateY(-2px);
+.sellBtn:hover:not(:disabled) {
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
 }
 
 .sellBtn:disabled {
@@ -254,45 +201,24 @@
   cursor: not-allowed;
 }
 
-.sellBtn:disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
-
 .deleteBtn {
+  width: 36px;
+  padding: 8px;
+  border-radius: 6px;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #ef4444;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.deleteBtn:hover {
+.deleteBtn:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.2);
   border-color: #ef4444;
 }
 
-.soldBadge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 6px 12px;
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .controls {
-    grid-template-columns: 1fr;
-  }
-
-  .actions {
-    flex-direction: column;
-  }
+.deleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

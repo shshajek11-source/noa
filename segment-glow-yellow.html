@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>세그먼트 + 글로우 (부드러운 노란색)</title>
+  <style>
+    body {
+      background: #0B0D12;
+      font-family: 'Rajdhani', sans-serif;
+      padding: 40px;
+      margin: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(26, 29, 36, 0.95);
+      padding: 30px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+    }
+    h1 {
+      color: #E5E7EB;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 24px;
+    }
+    .progress-item {
+      margin-bottom: 30px;
+    }
+    .label {
+      color: #E5E7EB;
+      font-size: 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .count {
+      color: #9CA3AF;
+      font-size: 14px;
+    }
+    .segments {
+      display: flex;
+      gap: 4px;
+      height: 24px;
+      align-items: center;
+    }
+    .segment {
+      flex: 1;
+      height: 100%;
+      border-radius: 4px;
+      transition: all 0.3s;
+    }
+    .segment.filled {
+      background: #fbbf24;
+      box-shadow:
+        0 0 10px rgba(251, 191, 36, 0.8),
+        0 0 20px rgba(251, 191, 36, 0.4),
+        inset 0 0 10px rgba(251, 191, 36, 0.3);
+      animation: glow 2s ease-in-out infinite;
+    }
+    .segment.empty {
+      background: rgba(26, 29, 36, 0.8);
+      border: 1px solid rgba(251, 191, 36, 0.2);
+    }
+    @keyframes glow {
+      0%, 100% {
+        box-shadow:
+          0 0 10px rgba(251, 191, 36, 0.8),
+          0 0 20px rgba(251, 191, 36, 0.4),
+          inset 0 0 10px rgba(251, 191, 36, 0.3);
+      }
+      50% {
+        box-shadow:
+          0 0 15px rgba(251, 191, 36, 1),
+          0 0 30px rgba(251, 191, 36, 0.6),
+          inset 0 0 15px rgba(251, 191, 36, 0.5);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✨ 세그먼트 + 글로우 (부드러운 노란색 #fbbf24)</h1>
+
+    <!-- 사명 (5개 중 3개) -->
+    <div class="progress-item">
+      <div class="label">
+        <span>📜 사명</span>
+        <span class="count">3/5 완료</span>
+      </div>
+      <div class="segments">
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment empty"></div>
+        <div class="segment empty"></div>
+      </div>
+    </div>
+
+    <!-- 주간 지령서 (12개 중 8개) -->
+    <div class="progress-item">
+      <div class="label">
+        <span>📋 주간 지령서</span>
+        <span class="count">8/12 완료</span>
+      </div>
+      <div class="segments">
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment empty"></div>
+        <div class="segment empty"></div>
+        <div class="segment empty"></div>
+        <div class="segment empty"></div>
+      </div>
+    </div>
+
+    <!-- 어비스 주간 지령서 (20개 중 15개) -->
+    <div class="progress-item">
+      <div class="label">
+        <span>🔥 어비스 주간 지령서</span>
+        <span class="count">15/20 완료</span>
+      </div>
+      <div class="segments">
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment filled"></div>
+        <div class="segment empty"></div>
+        <div class="segment empty"></div>
+        <div class="segment empty"></div>
+        <div class="segment empty"></div>
+        <div class="segment empty"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

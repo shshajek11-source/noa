@@ -210,6 +210,27 @@ const stats = await getStats(id)
 3. **Error Handling**: Display user-friendly error messages with copy button for debugging
 4. **TypeScript Strict**: Maintain type safety throughout
 5. **AION2 Data**: Apply game-specific race/class board ID rules accurately
+6. **Data Persistence**: **CRITICAL - ALWAYS use Supabase for data storage, NEVER use localStorage**
+   - All user data, settings, and application state MUST be stored in Supabase PostgreSQL
+   - Create proper database tables with migrations in `supabase/migrations/`
+   - Implement API routes in `frontend/src/app/api/` for data access
+   - Use RLS (Row Level Security) policies to protect user data
+   - localStorage is only acceptable for temporary UI state (e.g., collapsed panels, theme preference)
+   - When implementing new features with data persistence:
+     1. Design the database schema and create migration SQL
+     2. Create API routes (GET/POST/DELETE) with proper authentication
+     3. Implement frontend logic using the API routes
+   - Example pattern:
+     ```typescript
+     // ✅ GOOD: Supabase persistence
+     const res = await fetch('/api/ledger/character-state', {
+       method: 'POST',
+       body: JSON.stringify(data)
+     })
+
+     // ❌ BAD: localStorage persistence
+     localStorage.setItem('user-data', JSON.stringify(data))
+     ```
 
 ## Environment Variables
 
