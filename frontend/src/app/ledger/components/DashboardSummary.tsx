@@ -5,7 +5,6 @@ import { TrendingUp, Calendar, CalendarDays } from 'lucide-react'
 import { LedgerCharacter, ItemGrade } from '@/types/ledger'
 import CharacterStatusTable from './CharacterStatusTable'
 import TotalItemsSummary from './TotalItemsSummary'
-import ContentProgressSummary from './ContentProgressSummary'
 import { getGameDate, getWeekKey } from '../utils/dateUtils'
 import styles from '../ledger.module.css'
 
@@ -533,13 +532,6 @@ export default function DashboardSummary({
         totalSellingCount={totalSellingCount}
         totalSoldCount={totalSoldCount}
         totalSoldIncome={totalSoldIncome}
-      />
-
-      {/* 컨텐츠 진행 현황 */}
-      <ContentProgressSummary
-        weeklyContents={weeklyContents}
-        dailyContents={dailyContents}
-        characterCount={characters.length}
       />
     </>
   )
