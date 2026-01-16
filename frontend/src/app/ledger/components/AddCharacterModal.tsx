@@ -7,17 +7,24 @@ import { SERVERS, SERVER_MAP } from '@/app/constants/servers'
 import { RACES, CLASSES } from '@/app/constants/game-data'
 import { supabaseApi } from '@/lib/supabaseApi'
 
-// pcId를 직업명으로 변환
+// pcId를 직업명으로 변환 (각 직업당 4개 변형 존재)
 const PC_ID_MAP: { [key: number]: string } = {
-  7: '검성',
-  11: '수호성',
-  14: '궁성',
-  20: '살성',
-  24: '마도성',
-  27: '정령성',
-  28: '치유성',
-  36: '호법성',
-  16: '뇌제'
+  // 검성 (Gladiator)
+  6: '검성', 7: '검성', 8: '검성', 9: '검성',
+  // 수호성 (Templar)
+  10: '수호성', 11: '수호성', 12: '수호성', 13: '수호성',
+  // 궁성 (Ranger)
+  14: '궁성', 15: '궁성', 16: '궁성', 17: '궁성',
+  // 살성 (Assassin)
+  18: '살성', 19: '살성', 20: '살성', 21: '살성',
+  // 정령성 (Spiritmaster)
+  22: '정령성', 23: '정령성', 24: '정령성', 25: '정령성',
+  // 마도성 (Sorcerer)
+  26: '마도성', 27: '마도성', 28: '마도성', 29: '마도성',
+  // 치유성 (Cleric)
+  30: '치유성', 31: '치유성', 32: '치유성', 33: '치유성',
+  // 호법성 (Chanter)
+  34: '호법성', 35: '호법성', 36: '호법성', 37: '호법성'
 }
 
 function getClassName(pcId: number): string {
