@@ -85,7 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                     // { name: '파티분석', path: '/analysis' },   // 임시 비활성화
                                     // { name: '파티찾기', path: '/party' },      // 임시 비활성화
                                     // { name: '미니게임', path: '/minigame' },
-                                    { name: '가계부', path: '/ledger' }
+                                    { name: '숙제&가계부', path: '/ledger' }
                                 ].map(item => {
                                     const isActive = item.path === '/'
                                         ? pathname === '/'
