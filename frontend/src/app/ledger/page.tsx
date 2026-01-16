@@ -1089,6 +1089,7 @@ export default function LedgerPage() {
                 <ul>
                   <li><strong>PC 환경 권장</strong>: 숙제&가계부는 PC 환경에 최적화되어 있습니다.</li>
                   <li><strong>Google 로그인 필수</strong>: 데이터 저장 및 동기화를 위해 Google 로그인이 필요합니다.</li>
+                  <li><strong>게임 날짜 기준</strong>: 새벽 5시에 "오늘"이 바뀝니다.</li>
                 </ul>
               </div>
 
@@ -1099,6 +1100,9 @@ export default function LedgerPage() {
                   <li>서버, 종족 선택 후 캐릭터명 검색</li>
                   <li>검색 결과에서 내 캐릭터 선택하여 등록</li>
                 </ol>
+                <p style={{ marginTop: '8px', fontSize: '13px', color: '#9CA3AF' }}>
+                  * 캐릭터 삭제: 캐릭터 탭의 X 버튼 클릭
+                </p>
               </div>
 
               <div className={styles.guideSection}>
@@ -1133,6 +1137,25 @@ export default function LedgerPage() {
               </div>
 
               <div className={styles.guideSection}>
+                <h3>5단계: 총합 탭에서 전체 현황 확인</h3>
+                <ul>
+                  <li><strong>총합</strong> 탭에서 모든 캐릭터의 수입을 한눈에 확인</li>
+                  <li>오늘/이번주/이번달 총 수입 표시</li>
+                  <li>캐릭터별 수입 현황 테이블</li>
+                </ul>
+              </div>
+
+              <div className={styles.guideSection}>
+                <h3>충전 시간 안내</h3>
+                <ul>
+                  <li><strong>8시간 충전</strong>: 05시 / 13시 / 21시 (초월, 원정, 슈고페스타)</li>
+                  <li><strong>일일 충전</strong>: 매일 05시 (사명, 악몽)</li>
+                  <li><strong>24시간 충전</strong>: 마지막 클리어 후 24시간 (차원침공)</li>
+                  <li><strong>주간 리셋</strong>: 수요일 05시 (성역, 지령서, 일일던전, 각성전, 토벌전, 어비스회랑)</li>
+                </ul>
+              </div>
+
+              <div className={styles.guideSection}>
                 <h3>자주 묻는 질문</h3>
                 <div className={styles.guideFaq}>
                   <p><strong>Q: 컨텐츠 횟수가 실제와 다른데요?</strong></p>
@@ -1141,6 +1164,14 @@ export default function LedgerPage() {
                 <div className={styles.guideFaq}>
                   <p><strong>Q: 주간 리셋은 언제인가요?</strong></p>
                   <p>A: 매주 수요일 새벽 5시입니다.</p>
+                </div>
+                <div className={styles.guideFaq}>
+                  <p><strong>Q: 다른 기기에서 접속하면 데이터가 보이나요?</strong></p>
+                  <p>A: 같은 Google 계정으로 로그인하면 자동으로 동기화됩니다.</p>
+                </div>
+                <div className={styles.guideFaq}>
+                  <p><strong>Q: 게임 날짜 기준이 뭔가요?</strong></p>
+                  <p>A: 아이온2는 새벽 5시에 일일 리셋됩니다. 가계부도 동일하게 05시 기준으로 "오늘"이 바뀝니다.</p>
                 </div>
               </div>
             </div>
