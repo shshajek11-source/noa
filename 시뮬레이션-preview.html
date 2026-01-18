@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>캐릭터 시뮬레이터 - 디자인 프리뷰</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ========================================
+       기본 설정
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #0a0a0f;
+      color: #e8e6e3;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    /* ========================================
+       컬러 변수
+       ======================================== */
+    :root {
+      --bg-main: #0a0a0f;
+      --bg-panel: #12121a;
+      --bg-hover: #1a1a25;
+      --border-dark: #2a2a3a;
+      --border-gold: #c9a227;
+      --text-primary: #e8e6e3;
+      --text-secondary: #8b8680;
+      --text-gold: #c9a227;
+      --grade-legendary: #b8860b;
+      --grade-unique: #9932cc;
+      --grade-epic: #ff6b35;
+      --grade-mythic: #ff4757;
+      --stat-up: #22c55e;
+      --stat-down: #ef4444;
+    }
+
+    /* ========================================
+       섹션 구분
+       ======================================== */
+    .preview-section {
+      margin-bottom: 60px;
+    }
+
+    .section-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-dark);
+    }
+
+    /* ========================================
+       1. 페이지 타이틀
+       ======================================== */
+    .page-title {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .page-title-inner {
+      display: inline-block;
+      position: relative;
+      padding: 16px 60px;
+    }
+
+    .page-title-inner::before,
+    .page-title-inner::after {
+      content: '◆';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--border-gold);
+      font-size: 12px;
+    }
+
+    .page-title-inner::before { left: 0; }
+    .page-title-inner::after { right: 0; }
+
+    .page-title h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: var(--text-gold);
+      text-transform: uppercase;
+    }
+
+    .title-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+      margin-top: 8px;
+    }
+
+    /* ========================================
+       2. 장비 슬롯
+       ======================================== */
+    .slot-container {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .equipment-slot {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #1a1a25 0%, #0f0f15 100%);
+      border: 2px solid #3a3a4a;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .equipment-slot::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      border-width: 8px;
+      border-style: solid;
+      border-color: var(--border-gold) transparent transparent var(--border-gold);
+    }
+
+    .equipment-slot::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      border-width: 8px;
+      border-style: solid;
+      border-color: transparent var(--border-gold) var(--border-gold) transparent;
+    }
+
+    .equipment-slot:hover {
+      transform: scale(1.05);
+    }
+
+    .equipment-slot img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .equipment-slot .slot-icon {
+      font-size: 24px;
+      opacity: 0.5;
+    }
+
+    /* 등급별 스타일 */
+    .slot-legendary {
+      border-color: var(--grade-legendary);
+      box-shadow: 0 0 15px rgba(184, 134, 11, 0.4);
+    }
+    .slot-legendary:hover {
+      box-shadow: 0 0 25px rgba(184, 134, 11, 0.6);
+    }
+
+    .slot-unique {
+      border-color: var(--grade-unique);
+      box-shadow: 0 0 15px rgba(153, 50, 204, 0.4);
+    }
+    .slot-unique:hover {
+      box-shadow: 0 0 25px rgba(153, 50, 204, 0.6);
+    }
+
+    .slot-epic {
+      border-color: var(--grade-epic);
+      box-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+    }
+    .slot-epic:hover {
+      box-shadow: 0 0 25px rgba(255, 107, 53, 0.6);
+    }
+
+    .slot-mythic {
+      border-color: var(--grade-mythic);
+      box-shadow: 0 0 15px rgba(255, 71, 87, 0.4);
+    }
+    .slot-mythic:hover {
+      box-shadow: 0 0 25px rgba(255, 71, 87, 0.6);
+    }
+
+    .slot-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    .slot-enhance {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 0 4px #000;
+    }
+
+    /* ========================================
+       3. 캐릭터 패널
+       ======================================== */
+    .character-panel {
+      background: linear-gradient(135deg, rgba(18, 18, 26, 0.98) 0%, rgba(10, 10, 15, 0.98) 100%);
+      border: 1px solid var(--border-dark);
+      position: relative;
+      padding: 24px;
+      max-width: 400px;
+    }
+
+    .character-panel::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(201, 162, 39, 0.2);
+      pointer-events: none;
+    }
+
+    .character-header {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .character-avatar {
+      width: 80px;
+      height: 80px;
+      background: var(--bg-hover);
+      border: 2px solid var(--border-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+
+    .character-info {
+      flex: 1;
+    }
+
+    .character-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .character-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .character-level-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .level-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--bg-main);
+      border: 1px solid var(--border-dark);
+      overflow: hidden;
+    }
+
+    .level-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--border-gold), #ffdf8a);
+      box-shadow: 0 0 8px rgba(201, 162, 39, 0.5);
+    }
+
+    .level-value {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-gold);
+      min-width: 30px;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+      margin: 20px 0;
+    }
+
+    .section-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      color: var(--text-gold);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .equipment-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      justify-items: center;
+    }
+
+    /* ========================================
+       4. 스탯 비교 패널
+       ======================================== */
+    .stat-panel {
+      background: linear-gradient(135deg, rgba(18, 18, 26, 0.98) 0%, rgba(10, 10, 15, 0.98) 100%);
+      border: 1px solid var(--border-dark);
+      position: relative;
+      padding: 24px;
+      max-width: 600px;
+    }
+
+    .stat-panel::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(201, 162, 39, 0.2);
+      pointer-events: none;
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .stat-name {
+      width: 70px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .stat-bar-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--bg-main);
+      border: 1px solid var(--border-dark);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--border-gold), #ffdf8a);
+      box-shadow: 0 0 8px rgba(201, 162, 39, 0.5);
+      transition: width 0.3s ease;
+    }
+
+    .stat-bar-change {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: var(--stat-up);
+      opacity: 0.5;
+    }
+
+    .stat-values {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 150px;
+    }
+
+    .stat-current {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .stat-arrow {
+      color: var(--text-secondary);
+    }
+
+    .stat-new {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .stat-change {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    .stat-change.up {
+      color: var(--stat-up);
+      text-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    }
+
+    .stat-change.down {
+      color: var(--stat-down);
+      text-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+    }
+
+    /* ========================================
+       5. 버튼
+       ======================================== */
+    .button-container {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-game {
+      background: linear-gradient(180deg, #2a2520 0%, #1a1510 100%);
+      border: 2px solid var(--border-gold);
+      color: var(--text-gold);
+      padding: 12px 32px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      clip-path: polygon(
+        10px 0%, calc(100% - 10px) 0%,
+        100% 10px, 100% calc(100% - 10px),
+        calc(100% - 10px) 100%, 10px 100%,
+        0% calc(100% - 10px), 0% 10px
+      );
+    }
+
+    .btn-game:hover {
+      background: linear-gradient(180deg, #3a3530 0%, #2a2520 100%);
+      box-shadow: 0 0 20px rgba(201, 162, 39, 0.4);
+      text-shadow: 0 0 10px var(--border-gold);
+    }
+
+    .btn-game-secondary {
+      background: transparent;
+      border: 1px solid #5a5a6a;
+      color: #8a8a9a;
+      padding: 12px 32px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-game-secondary:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    /* ========================================
+       6. 아이템 선택 팝업
+       ======================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.hidden {
+      display: none;
+    }
+
+    .item-modal {
+      background: linear-gradient(135deg, rgba(18, 18, 26, 0.99) 0%, rgba(10, 10, 15, 0.99) 100%);
+      border: 1px solid var(--border-dark);
+      width: 500px;
+      max-height: 80vh;
+      position: relative;
+    }
+
+    .item-modal::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(201, 162, 39, 0.2);
+      pointer-events: none;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-dark);
+      position: relative;
+    }
+
+    .modal-title-decoration {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .modal-title-decoration::before,
+    .modal-title-decoration::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-gold));
+    }
+
+    .modal-title-decoration::after {
+      background: linear-gradient(90deg, var(--border-gold), transparent);
+    }
+
+    .modal-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-search {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-dark);
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-main);
+      border: 1px solid var(--border-dark);
+      color: var(--text-primary);
+      padding: 10px 14px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--border-gold);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .modal-filters {
+      padding: 12px 20px;
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-dark);
+    }
+
+    .filter-btn {
+      background: var(--bg-hover);
+      border: 1px solid var(--border-dark);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      border-color: var(--border-gold);
+      color: var(--text-gold);
+    }
+
+    .modal-body {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid rgba(42, 42, 58, 0.5);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .item-row:hover {
+      background: var(--bg-hover);
+    }
+
+    .item-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--bg-main);
+      border: 2px solid var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .item-icon.epic {
+      border-color: var(--grade-epic);
+    }
+
+    .item-icon.legendary {
+      border-color: var(--grade-legendary);
+    }
+
+    .item-details {
+      flex: 1;
+    }
+
+    .item-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .item-stats {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .item-grade {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .grade-bar {
+      display: flex;
+      gap: 2px;
+    }
+
+    .grade-pip {
+      width: 8px;
+      height: 4px;
+      background: var(--border-dark);
+    }
+
+    .grade-pip.filled {
+      background: var(--grade-epic);
+    }
+
+    .item-power {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-gold);
+    }
+
+    .modal-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-dark);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* ========================================
+       7. 툴팁
+       ======================================== */
+    .tooltip-demo {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip {
+      position: absolute;
+      bottom: calc(100% + 12px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(18, 18, 26, 0.99) 0%, rgba(10, 10, 15, 0.99) 100%);
+      border: 1px solid var(--border-dark);
+      padding: 16px;
+      width: 280px;
+      z-index: 100;
+    }
+
+    .tooltip::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border: 1px solid rgba(201, 162, 39, 0.2);
+      pointer-events: none;
+    }
+
+    .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 8px solid transparent;
+      border-top-color: var(--border-dark);
+    }
+
+    .tooltip-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--grade-epic);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .tooltip-type {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .tooltip-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+      margin: 12px 0;
+    }
+
+    .tooltip-stat {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .tooltip-stat-name {
+      color: var(--text-secondary);
+    }
+
+    .tooltip-stat-value {
+      color: var(--text-gold);
+      font-weight: 600;
+    }
+
+    .tooltip-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-style: italic;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    /* ========================================
+       8. 전체 레이아웃 데모
+       ======================================== */
+    .full-layout {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .layout-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .layout-body {
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr;
+      gap: 20px;
+      align-items: start;
+      margin-bottom: 32px;
+    }
+
+    .vs-divider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding-top: 100px;
+    }
+
+    .vs-text {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-gold);
+      text-shadow: 0 0 20px rgba(201, 162, 39, 0.5);
+    }
+
+    .vs-line {
+      width: 2px;
+      height: 100px;
+      background: linear-gradient(180deg, var(--border-gold), transparent);
+    }
+
+    /* 스크롤바 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-dark);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================
+       1. 페이지 타이틀
+       ======================================== -->
+  <div class="preview-section">
+    <div class="section-label">1. Page Title</div>
+    <div class="page-title">
+      <div class="page-title-inner">
+        <h1>캐릭터 시뮬레이터</h1>
+        <div class="title-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       2. 장비 슬롯
+       ======================================== -->
+  <div class="preview-section">
+    <div class="section-label">2. Equipment Slots (등급별)</div>
+    <div class="slot-container">
+      <div>
+        <div class="equipment-slot">
+          <span class="slot-icon">⚔️</span>
+        </div>
+        <div class="slot-label">빈 슬롯</div>
+      </div>
+      <div>
+        <div class="equipment-slot slot-legendary">
+          <span class="slot-icon">⚔️</span>
+          <span class="slot-enhance">+15</span>
+        </div>
+        <div class="slot-label">전설</div>
+      </div>
+      <div>
+        <div class="equipment-slot slot-unique">
+          <span class="slot-icon">🛡️</span>
+          <span class="slot-enhance">+12</span>
+        </div>
+        <div class="slot-label">유니크</div>
+      </div>
+      <div>
+        <div class="equipment-slot slot-epic">
+          <span class="slot-icon">👕</span>
+          <span class="slot-enhance">+15</span>
+        </div>
+        <div class="slot-label">에픽</div>
+      </div>
+      <div>
+        <div class="equipment-slot slot-mythic">
+          <span class="slot-icon">💍</span>
+          <span class="slot-enhance">+20</span>
+        </div>
+        <div class="slot-label">신화</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       3. 캐릭터 패널
+       ======================================== -->
+  <div class="preview-section">
+    <div class="section-label">3. Character Panel</div>
+    <div class="character-panel">
+      <div class="character-header">
+        <div class="character-avatar">🧙</div>
+        <div class="character-info">
+          <div class="character-name">도룡뇽</div>
+          <div class="character-meta">Lv.55 살성 · 지켈</div>
+          <div class="character-level-bar">
+            <span style="font-size: 11px; color: var(--text-secondary);">템렙</span>
+            <div class="level-bar">
+              <div class="level-bar-fill" style="width: 75%;"></div>
+            </div>
+            <span class="level-value">95</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+      <div class="section-title">장 비</div>
+
+      <div class="equipment-grid">
+        <div class="equipment-slot slot-epic" style="width: 48px; height: 48px;">
+          <span style="font-size: 18px;">⚔️</span>
+          <span class="slot-enhance">+15</span>
+        </div>
+        <div class="equipment-slot slot-legendary" style="width: 48px; height: 48px;">
+          <span style="font-size: 18px;">🛡️</span>
+          <span class="slot-enhance">+12</span>
+        </div>
+        <div class="equipment-slot slot-unique" style="width: 48px; height: 48px;">
+          <span style="font-size: 18px;">👕</span>
+          <span class="slot-enhance">+10</span>
+        </div>
+        <div class="equipment-slot slot-legendary" style="width: 48px; height: 48px;">
+          <span style="font-size: 18px;">🧤</span>
+          <span class="slot-enhance">+10</span>
+        </div>
+        <div class="equipment-slot slot-legendary" style="width: 48px; height: 48px;">
+          <span style="font-size: 18px;">👢</span>
+          <span class="slot-enhance">+10</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       4. 스탯 비교 패널
+       ======================================== -->
+  <div class="preview-section">
+    <div class="section-label">4. Stat Comparison Panel</div>
+    <div class="stat-panel">
+      <div class="section-title">스탯 비교</div>
+
+      <div class="stat-row">
+        <div class="stat-icon">⚔️</div>
+        <div class="stat-name">공격력</div>
+        <div class="stat-bar-container">
+          <div class="stat-bar">
+            <div class="stat-bar-fill" style="width: 70%;"></div>
+            <div class="stat-bar-change" style="left: 70%; width: 10%;"></div>
+          </div>
+        </div>
+        <div class="stat-values">
+          <span class="stat-current">5,000</span>
+          <span class="stat-arrow">→</span>
+          <span class="stat-new">5,800</span>
+        </div>
+        <div class="stat-change up">▲ +800</div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-icon">🛡️</div>
+        <div class="stat-name">방어력</div>
+        <div class="stat-bar-container">
+          <div class="stat-bar">
+            <div class="stat-bar-fill" style="width: 50%;"></div>
+            <div class="stat-bar-change" style="left: 50%; width: 5%;"></div>
+          </div>
+        </div>
+        <div class="stat-values">
+          <span class="stat-current">3,000</span>
+          <span class="stat-arrow">→</span>
+          <span class="stat-new">3,200</span>
+        </div>
+        <div class="stat-change up">▲ +200</div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-icon">💥</div>
+        <div class="stat-name">치명타</div>
+        <div class="stat-bar-container">
+          <div class="stat-bar">
+            <div class="stat-bar-fill" style="width: 60%;"></div>
+          </div>
+        </div>
+        <div class="stat-values">
+          <span class="stat-current">1,000</span>
+          <span class="stat-arrow">→</span>
+          <span class="stat-new">950</span>
+        </div>
+        <div class="stat-change down">▼ -50</div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--text-secondary);">📊 예상 템렙 변화</span>
+        <span style="font-family: 'Rajdhani', sans-serif; font-size: 18px;">
+          <span style="color: var(--text-secondary);">95</span>
+          <span style="color: var(--text-secondary); margin: 0 8px;">→</span>
+          <span style="color: var(--text-primary); font-weight: 700;">100</span>
+          <span class="stat-change up" style="margin-left: 12px;">▲ +5</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       5. 버튼
+       ======================================== -->
+  <div class="preview-section">
+    <div class="section-label">5. Buttons</div>
+    <div class="button-container">
+      <button class="btn-game">선 택</button>
+      <button class="btn-game">빌드 공유</button>
+      <button class="btn-game-secondary">취 소</button>
+      <button class="btn-game-secondary">초기화</button>
+    </div>
+  </div>
+
+  <!-- ========================================
+       6. 아이템 선택 팝업
+       ======================================== -->
+  <div class="preview-section">
+    <div class="section-label">6. Item Selection Modal (인라인 미리보기)</div>
+    <div class="item-modal" style="position: relative;">
+      <div class="modal-header">
+        <div class="modal-title-decoration">
+          <span class="modal-title">주무기 선택</span>
+        </div>
+        <button class="modal-close">×</button>
+      </div>
+
+      <div class="modal-search">
+        <input type="text" class="search-input" placeholder="🔍 아이템 이름 검색...">
+      </div>
+
+      <div class="modal-filters">
+        <button class="filter-btn active">전체</button>
+        <button class="filter-btn">전설</button>
+        <button class="filter-btn">유니크</button>
+        <button class="filter-btn">에픽</button>
+        <button class="filter-btn">신화</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="item-row">
+          <div class="item-icon epic">⚔️</div>
+          <div class="item-details">
+            <div class="item-name">타락한 용제의 대검</div>
+            <div class="item-stats">공격력 +1,800 · 치명타 +120</div>
+            <div class="item-grade">
+              <div class="grade-bar">
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+              </div>
+              <span style="color: var(--grade-epic);">에픽</span>
+            </div>
+          </div>
+          <div class="item-power">+1,800</div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-icon legendary">⚔️</div>
+          <div class="item-details">
+            <div class="item-name">에레슈키갈의 검</div>
+            <div class="item-stats">공격력 +1,500 · 명중 +80</div>
+            <div class="item-grade">
+              <div class="grade-bar">
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip"></div>
+              </div>
+              <span style="color: var(--grade-legendary);">전설</span>
+            </div>
+          </div>
+          <div class="item-power">+1,500</div>
+        </div>
+
+        <div class="item-row">
+          <div class="item-icon legendary">⚔️</div>
+          <div class="item-details">
+            <div class="item-name">바이젤의 광휘검</div>
+            <div class="item-stats">공격력 +1,200 · 관통 +60</div>
+            <div class="item-grade">
+              <div class="grade-bar">
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip filled"></div>
+                <div class="grade-pip"></div>
+              </div>
+              <span style="color: var(--grade-legendary);">전설</span>
+            </div>
+          </div>
+          <div class="item-power">+1,200</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-game-secondary">취 소</button>
+        <button class="btn-game">선 택</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       7. 툴팁
+       ======================================== -->
+  <div class="preview-section">
+    <div class="section-label">7. Item Tooltip</div>
+    <div style="padding-top: 200px; padding-left: 100px;">
+      <div class="tooltip-demo">
+        <div class="equipment-slot slot-epic">
+          <span class="slot-icon">⚔️</span>
+          <span class="slot-enhance">+15</span>
+        </div>
+
+        <div class="tooltip">
+          <div class="tooltip-name">◆ 타락한 용제의 대검 ◆</div>
+          <div class="tooltip-type">에픽 주무기</div>
+          <div class="tooltip-divider"></div>
+          <div class="tooltip-stat">
+            <span class="tooltip-stat-name">⚔️ 공격력</span>
+            <span class="tooltip-stat-value">+1,800</span>
+          </div>
+          <div class="tooltip-stat">
+            <span class="tooltip-stat-name">💥 치명타</span>
+            <span class="tooltip-stat-value">+120</span>
+          </div>
+          <div class="tooltip-stat">
+            <span class="tooltip-stat-name">🎯 명중</span>
+            <span class="tooltip-stat-value">+80</span>
+          </div>
+          <div class="tooltip-divider"></div>
+          <div class="tooltip-desc">"용제의 분노가 깃든 대검"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       8. 전체 레이아웃 미리보기
+       ======================================== -->
+  <div class="preview-section">
+    <div class="section-label">8. Full Layout Preview</div>
+    <div class="full-layout">
+
+      <!-- 헤더 -->
+      <div class="layout-header">
+        <div class="page-title">
+          <div class="page-title-inner">
+            <h1>캐릭터 시뮬레이터</h1>
+            <div class="title-line"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 좌우 패널 -->
+      <div class="layout-body">
+        <!-- 현재 캐릭터 -->
+        <div class="character-panel">
+          <div class="section-title" style="margin-bottom: 16px; color: var(--text-secondary);">현재 캐릭터</div>
+          <div class="character-header">
+            <div class="character-avatar">🧙</div>
+            <div class="character-info">
+              <div class="character-name">도룡뇽</div>
+              <div class="character-meta">Lv.55 살성 · 지켈</div>
+              <div class="character-level-bar">
+                <span style="font-size: 11px; color: var(--text-secondary);">템렙</span>
+                <div class="level-bar">
+                  <div class="level-bar-fill" style="width: 75%;"></div>
+                </div>
+                <span class="level-value">95</span>
+              </div>
+            </div>
+          </div>
+          <div class="section-divider"></div>
+          <div class="section-title">장 비</div>
+          <div class="equipment-grid">
+            <div class="equipment-slot slot-legendary" style="width: 48px; height: 48px;"><span style="font-size: 16px;">⚔️</span></div>
+            <div class="equipment-slot slot-legendary" style="width: 48px; height: 48px;"><span style="font-size: 16px;">🛡️</span></div>
+            <div class="equipment-slot slot-unique" style="width: 48px; height: 48px;"><span style="font-size: 16px;">👕</span></div>
+            <div class="equipment-slot slot-unique" style="width: 48px; height: 48px;"><span style="font-size: 16px;">🧤</span></div>
+            <div class="equipment-slot slot-unique" style="width: 48px; height: 48px;"><span style="font-size: 16px;">👢</span></div>
+          </div>
+        </div>
+
+        <!-- VS -->
+        <div class="vs-divider">
+          <div class="vs-line"></div>
+          <div class="vs-text">VS</div>
+          <div class="vs-line" style="background: linear-gradient(180deg, transparent, var(--border-gold));"></div>
+        </div>
+
+        <!-- 시뮬레이션 -->
+        <div class="character-panel" style="border-color: var(--border-gold);">
+          <div class="section-title" style="margin-bottom: 16px; color: var(--text-gold);">시뮬레이션</div>
+          <div class="character-header">
+            <div class="character-avatar" style="border-color: var(--stat-up);">🧙</div>
+            <div class="character-info">
+              <div class="character-name">도룡뇽</div>
+              <div class="character-meta">Lv.55 살성 · 지켈</div>
+              <div class="character-level-bar">
+                <span style="font-size: 11px; color: var(--text-secondary);">템렙</span>
+                <div class="level-bar">
+                  <div class="level-bar-fill" style="width: 85%; background: linear-gradient(90deg, var(--stat-up), #4ade80);"></div>
+                </div>
+                <span class="level-value" style="color: var(--stat-up);">100</span>
+              </div>
+            </div>
+          </div>
+          <div class="section-divider"></div>
+          <div class="section-title">장 비 <span style="font-size: 10px; opacity: 0.6;">(클릭하여 변경)</span></div>
+          <div class="equipment-grid">
+            <div class="equipment-slot slot-epic" style="width: 48px; height: 48px; cursor: pointer;"><span style="font-size: 16px;">⚔️</span><span class="slot-enhance">+15</span></div>
+            <div class="equipment-slot slot-legendary" style="width: 48px; height: 48px; cursor: pointer;"><span style="font-size: 16px;">🛡️</span></div>
+            <div class="equipment-slot slot-epic" style="width: 48px; height: 48px; cursor: pointer;"><span style="font-size: 16px;">👕</span></div>
+            <div class="equipment-slot slot-unique" style="width: 48px; height: 48px; cursor: pointer;"><span style="font-size: 16px;">🧤</span></div>
+            <div class="equipment-slot slot-unique" style="width: 48px; height: 48px; cursor: pointer;"><span style="font-size: 16px;">👢</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 스탯 비교 -->
+      <div class="stat-panel" style="max-width: 100%;">
+        <div class="section-title">스탯 비교</div>
+
+        <div class="stat-row">
+          <div class="stat-icon">⚔️</div>
+          <div class="stat-name">공격력</div>
+          <div class="stat-bar-container">
+            <div class="stat-bar">
+              <div class="stat-bar-fill" style="width: 70%;"></div>
+              <div class="stat-bar-change" style="left: 70%; width: 10%;"></div>
+            </div>
+          </div>
+          <div class="stat-values">
+            <span class="stat-current">5,000</span>
+            <span class="stat-arrow">→</span>
+            <span class="stat-new">5,800</span>
+          </div>
+          <div class="stat-change up">▲ +800</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-icon">🛡️</div>
+          <div class="stat-name">방어력</div>
+          <div class="stat-bar-container">
+            <div class="stat-bar">
+              <div class="stat-bar-fill" style="width: 50%;"></div>
+              <div class="stat-bar-change" style="left: 50%; width: 5%;"></div>
+            </div>
+          </div>
+          <div class="stat-values">
+            <span class="stat-current">3,000</span>
+            <span class="stat-arrow">→</span>
+            <span class="stat-new">3,200</span>
+          </div>
+          <div class="stat-change up">▲ +200</div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: var(--text-secondary);">📊 예상 템렙 변화</span>
+          <span style="font-family: 'Rajdhani', sans-serif; font-size: 18px;">
+            <span style="color: var(--text-secondary);">95</span>
+            <span style="color: var(--text-secondary); margin: 0 8px;">→</span>
+            <span style="color: var(--text-primary); font-weight: 700;">100</span>
+            <span class="stat-change up" style="margin-left: 12px;">▲ +5</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- 버튼 -->
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+        <button class="btn-game-secondary">초기화</button>
+        <button class="btn-game">빌드 공유</button>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

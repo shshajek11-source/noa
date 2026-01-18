@@ -1,54 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { getSupabase, getUserFromRequest } from '../../../../lib/auth'
 
-let supabase: SupabaseClient | null = null
-
-function getSupabase(): SupabaseClient {
-  if (!supabase) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!url || !key) {
-      throw new Error('Supabase configuration missing')
-    }
-    supabase = createClient(url, key)
-  }
-  return supabase
-}
-
-// 사용자 인증 헬퍼 함수
-// 주의: Google 로그인은 현재 비활성화 - device_id 우선 사용
-async function getUserFromRequest(request: Request) {
-  const db = getSupabase()
-  const deviceIdHeader = request.headers.get('x-device-id') || request.headers.get('X-Device-ID')
-  const authHeader = request.headers.get('authorization')
-
-  // 1. device_id 우선 사용
-  if (deviceIdHeader) {
-    const { data } = await db
-      .from('ledger_users')
-      .select('id')
-      .eq('device_id', deviceIdHeader)
-      .single()
-    return data
-  }
-
-  // 2. Bearer 토큰 폴백
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.substring(7)
-    const { data: { user }, error } = await db.auth.getUser(token)
-    if (user && !error) {
-      const { data } = await db
-        .from('ledger_users')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single()
-      return data
-    }
-  }
-
-  return null
-}
+// getSupabase의 로컬 별칭 (db로 사용)
+const db = getSupabase()
 
 // GET: 캐릭터의 현재 상태 조회
 export async function GET(request: NextRequest) {

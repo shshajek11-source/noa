@@ -2,7 +2,24 @@
  * Stats aggregation and display types
  */
 
+/**
+ * OCR로 인식한 스탯 정보
+ */
+export interface OcrStat {
+  name: string
+  value: string
+  isPercentage: boolean
+}
+
 export type StatCategory = 'attack' | 'defense' | 'critical' | 'utility' | 'all'
+
+// 페이지별 스탯 분류 (이미지 순서 기준)
+export type StatPageCategory =
+  | 'basic'      // 1번 이미지: 기본 능력치 + 주요스탯 (공격력, 방어력, 명중 등 + 위력, 민첩 등)
+  | 'combat'     // 2번 이미지 상단: 전투 스탯 (관통, 피해 증폭 등)
+  | 'judgment'   // 2번 이미지 하단: 판정 스탯 (다단 히트, 철벽, 완벽 등)
+  | 'pvpPve'     // 3번 이미지: PVP/PVE 스탯
+  | 'special'    // 4번 이미지: 특수/자원 스탯
 
 export interface StatSource {
   name: string                   // '무기', '전투의 달인', '네자칸' 등
@@ -25,6 +42,7 @@ export interface StatSources {
   baseValue: number              // 기본값 (하위 호환용)
   baseStats?: StatSource[]       // 기본 스탯에서 파생된 2차 능력치
   percentageSources?: PercentageSource[]  // % 증가 출처 상세
+  petWork?: StatSource[]         // 기타 스탯 (OCR 총합과 계산값의 차이 - 펫/외형 등 미추적 출처)
 }
 
 export interface StatDetail {

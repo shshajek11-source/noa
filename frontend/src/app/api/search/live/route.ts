@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit'
 
+// characterId 정규화 함수 (URL 인코딩 해제)
+const normalizeCharacterId = (id: string): string => {
+    if (!id) return id
+    try {
+        if (id.includes('%')) {
+            return decodeURIComponent(id)
+        }
+        return id
+    } catch {
+        return id
+    }
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
@@ -32,13 +45,13 @@ export async function POST(request: NextRequest) {
             numericRace = 2
         }
 
-        // 1. Supabase DB에서 검색 (저장된 캐릭터는 항상 나옴)
+        // 1. Supabase DB에서 검색 (정확히 일치하는 이름만)
         let dbQuery = supabase
             .from('characters')
             .select('character_id, name, server_id, class_name, race_name, level, combat_power, item_level, noa_score, profile_image, scraped_at')
-            .ilike('name', `%${name}%`)
+            .eq('name', name)  // 정확히 일치하는 이름만 검색
             .order('level', { ascending: false })
-            .limit(50)  // DB에서 더 많이 가져옴
+            .limit(50)
 
         if (serverId) {
             dbQuery = dbQuery.eq('server_id', serverId)
@@ -168,12 +181,20 @@ export async function POST(request: NextRequest) {
             34: '호법성', 35: '호법성', 36: '호법성', 37: '호법성'
         }
 
+        // API 결과 필터링: 정확히 일치하는 이름만 (HTML 태그 제거 후 비교)
+        const cleanName = (n: string) => n?.replace(/<[^>]*>/g, '').trim()
+        const filteredApiResults = apiResults.filter(item => {
+            const itemName = cleanName(item.name)
+            return itemName === name
+        })
+
         // API 결과 추가 (DB에 없는 것만, forceFresh면 항상 추가)
-        apiResults.forEach(item => {
+        filteredApiResults.forEach(item => {
             const key = normalizeKey(item.characterId)
             if (!mergedMap.has(key) || skipDbResults) {
                 mergedMap.set(key, {
                     ...item,
+                    name: cleanName(item.name),  // HTML 태그 제거
                     // className 결정: className > jobName > pcId 매핑 순서
                     className: item.className || item.jobName || pcIdToClassName[item.pcId] || null
                 })
@@ -201,14 +222,14 @@ export async function POST(request: NextRequest) {
 
         const totalCount = Math.max(mergedList.length, apiTotal, dbResults?.length || 0)
 
-        console.log('[Live Search] Merged results:', mergedList.length, 'items (DB:', dbResults?.length || 0, '+ API:', apiResults.length, ')', apiWarning ? `Warning: ${apiWarning}` : '')
+        console.log('[Live Search] Merged results:', mergedList.length, 'items (DB:', dbResults?.length || 0, ', API:', filteredApiResults.length, '/', apiResults.length, 'filtered)', apiWarning ? `Warning: ${apiWarning}` : '')
 
         return NextResponse.json({
             list: mergedList,
             pagination: { total: totalCount, page: page || 1 },
             source: skipDbResults ? 'fresh' : 'merged',
             dbCount: dbResults?.length || 0,
-            apiCount: apiResults.length,
+            apiCount: filteredApiResults.length,  // 필터링된 결과 수
             warning: apiWarning  // 에러/경고 메시지 포함
         })
 
@@ -256,37 +277,44 @@ function transformCachedToApiFormat(cached: any) {
     }
 }
 
-// 검색 결과를 Supabase에 캐싱
+// 검색 결과를 Supabase에 캐싱 (기존 item_level, noa_score 보존)
 async function cacheSearchResults(supabase: any, results: any[]) {
-    const serverIdToName: Record<number, string> = {
-        1001: '시엘', 1002: '네자칸', 1003: '바이젤', 1004: '카이시넬',
-        1005: '유스티엘', 1006: '아리엘', 1007: '프레기온', 1008: '메스람타에다',
-        1009: '히타니에', 1010: '나니아', 1011: '타하바타', 1012: '루터스',
-        1013: '페르노스', 1014: '다미누', 1015: '카사카', 1016: '바카르마',
-        1017: '챈가룽', 1018: '코치룽', 1019: '이슈타르', 1020: '티아마트',
-        1021: '포에타', 2001: '이스라펠', 2002: '지켈', 2003: '트리니엘',
-        2004: '루미엘', 2005: '마르쿠탄', 2006: '아스펠', 2007: '에레슈키갈',
-        2008: '브리트라', 2009: '네몬', 2010: '하달', 2011: '루드라',
-        2012: '울고른', 2013: '무닌', 2014: '오다르', 2015: '젠카카',
-        2016: '크로메데', 2017: '콰이링', 2018: '바바룽', 2019: '파프니르',
-        2020: '인드나흐', 2021: '이스할겐'
-    }
+    if (results.length === 0) return
 
-    const charactersToUpsert = results.map(item => ({
-        character_id: item.characterId,
-        name: item.name?.replace(/<[^>]*>/g, '') || item.name, // HTML 태그 제거
-        server_id: item.serverId,
-        // server_name: serverIdToName[item.serverId] || item.serverName, // 컬럼 없음
-        class_name: item.className || item.jobName,
-        race_name: item.raceName || (item.race === 1 ? '천족' : '마족'),
-        level: item.level,
-        profile_image: item.profileImageUrl?.startsWith('http')
-            ? item.profileImageUrl
-            : item.profileImageUrl ? `https://profileimg.plaync.com${item.profileImageUrl}` : null,
-        scraped_at: new Date().toISOString()
-    }))
+    // 먼저 기존 DB 데이터 조회 (item_level, noa_score 보존용)
+    // characterId 정규화하여 일관성 유지
+    const characterIds = results.map(item => normalizeCharacterId(item.characterId))
 
-    // character_id 기준으로 upsert (기존 데이터는 업데이트, 새 데이터는 삽입)
+    const { data: existingData } = await supabase
+        .from('characters')
+        .select('character_id, item_level, noa_score')
+        .in('character_id', characterIds)
+
+    // DB의 character_id도 정규화하여 매핑
+    const existingMap = new Map(
+        existingData?.map((d: any) => [normalizeCharacterId(d.character_id), d]) || []
+    )
+
+    const charactersToUpsert = results.map(item => {
+        const normalizedId = normalizeCharacterId(item.characterId)
+        const existing = existingMap.get(normalizedId)
+        return {
+            character_id: normalizedId,
+            name: item.name?.replace(/<[^>]*>/g, '') || item.name,
+            server_id: item.serverId,
+            class_name: item.className || item.jobName,
+            race_name: item.raceName || (item.race === 1 ? '천족' : '마족'),
+            level: item.level,
+            profile_image: item.profileImageUrl?.startsWith('http')
+                ? item.profileImageUrl
+                : item.profileImageUrl ? `https://profileimg.plaync.com${item.profileImageUrl}` : null,
+            // 기존 item_level, noa_score 보존 (있으면 유지, 없으면 null)
+            item_level: existing?.item_level ?? null,
+            noa_score: existing?.noa_score ?? null,
+            scraped_at: new Date().toISOString()
+        }
+    })
+
     const { error } = await supabase
         .from('characters')
         .upsert(charactersToUpsert, {
@@ -297,7 +325,51 @@ async function cacheSearchResults(supabase: any, results: any[]) {
     if (error) {
         console.error('[Cache] Upsert error:', error)
     } else {
-        console.log('[Cache] Saved', charactersToUpsert.length, 'characters')
+        console.log('[Cache] Saved', charactersToUpsert.length, 'characters (preserved existing stats)')
+    }
+
+    // 전투력 없는 캐릭터 백그라운드 동기화 트리거
+    const needsSync = results.filter(r => {
+        const existing = existingMap.get(normalizeCharacterId(r.characterId))
+        return !existing || existing.noa_score === null || existing.noa_score === undefined
+    })
+
+    if (needsSync.length > 0) {
+        triggerBackgroundSync(needsSync.slice(0, 3)).catch(err => {
+            console.error('[Background Sync] Trigger error:', err)
+        })
+    }
+}
+
+// 백그라운드 상세 동기화 (전투력 없는 캐릭터 자동 수집)
+async function triggerBackgroundSync(results: any[]) {
+    if (results.length === 0) return
+
+    const characters = results.map(r => ({
+        characterId: normalizeCharacterId(r.characterId),
+        name: r.name?.replace(/<[^>]*>/g, '') || r.name,
+        server_id: r.serverId,
+        level: r.level,
+        job: r.className || r.jobName,
+        race: r.raceName || (r.race === 1 ? '천족' : '마족'),
+        imageUrl: r.profileImageUrl
+    }))
+
+    console.log('[Background Sync] Triggering sync for', characters.length, 'characters')
+
+    try {
+        // 내부 API 호출로 상세 정보 동기화
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : 'http://localhost:3000'
+
+        await fetch(`${baseUrl}/api/search/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ characters })
+        })
+    } catch (e) {
+        console.error('[Background Sync] Failed:', e)
     }
 }
 

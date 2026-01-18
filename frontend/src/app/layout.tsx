@@ -1,13 +1,10 @@
 'use client'
 
 import './globals.css'
-import Link from 'next/link'
 import Script from 'next/script'
 import { usePathname } from 'next/navigation'
 import HeroSection from './components/home/HeroSection'
-import SearchBar from './components/SearchBar'
-import MainCharacterBadge from './components/MainCharacterBadge'
-import LoginButton from '@/components/LoginButton'
+import Header from './components/shared/Header'
 // import DebugPanel from '@/components/DebugPanel'  // 비활성화
 import Footer from '@/components/Footer'
 import { SyncProvider } from '../context/SyncContext'
@@ -70,59 +67,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <body>
                 <AuthProvider>
                     <SyncProvider>
-                        {/* Header - Adaptive */}
-                        <header className="header-adaptive" style={{ marginBottom: '0' }}>
-                            <div className="header-inner">
-                                <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-                                    <span style={{
-                                        fontFamily: 'Rajdhani, sans-serif',
-                                        fontSize: '28px',
-                                        fontWeight: 700,
-                                        letterSpacing: '-0.02em'
-                                    }}>
-                                        <span style={{ color: '#F59E0B' }}>SU</span>
-                                        <span style={{ color: '#FFFFFF' }}>GO</span>
-                                    </span>
-                                </Link>
-
-                                <nav className="nav" style={{ marginBottom: 0 }}>
-                                    {[
-                                        { name: '홈', path: '/' },
-                                        { name: '랭킹', path: '/ranking' },
-                                        { name: '아이템', path: '/item' },
-                                        { name: '스탯 추출기', path: '/tools/stat-capture' },
-                                        // { name: '캐릭터비교', path: '/compare' },  // 임시 비활성화
-                                        // { name: '파티분석', path: '/analysis' },   // 임시 비활성화
-                                        // { name: '파티찾기', path: '/party' },      // 임시 비활성화
-                                        // { name: '미니게임', path: '/minigame' },
-                                        { name: '숙제&가계부', path: '/ledger' }
-                                    ].map(item => {
-                                        const isActive = item.path === '/'
-                                            ? pathname === '/'
-                                            : pathname?.startsWith(item.path)
-
-                                        return (
-                                            <Link
-                                                key={item.path}
-                                                href={item.path}
-                                                style={{
-                                                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                                                    fontWeight: isActive ? 'bold' : '600'
-                                                }}
-                                            >
-                                                {item.name}
-                                            </Link>
-                                        )
-                                    })}
-                                </nav>
-
-                                {/* 로그인 버튼 & 대표 캐릭터 배지 */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <LoginButton />
-                                    <MainCharacterBadge />
-                                </div>
-                            </div>
-                        </header>
+                        {/* New Header */}
+                        <Header />
 
                         {/* Hero Section - Adaptive */}
                         <HeroSection />

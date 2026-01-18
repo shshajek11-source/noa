@@ -12,3 +12,9 @@ export { useEscapeKey } from './useEscapeKey'
 
 // Party Scanner (기존)
 export { usePartyScanner } from './usePartyScanner'
+
+// Data Caching
+export { useDataCache, clearAllCache, clearCacheByPattern } from './useDataCache'
+
+// Character Data (with caching)
+export { useCharacterData, invalidateCharacterCache } from './useCharacterData'

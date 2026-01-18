@@ -1,39 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const SUPABASE_URL = 'https://mnbngmdjiszyowfvnzhk.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uYm5nbWRqaXN6eW93ZnZuemhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY1NzQ0NDYsImV4cCI6MjA1MjE1MDQ0Nn0.Ie3y7hN_lmYP_1z5wfUUH0z-K9_kVqNqxD-yJIJp-Qo'
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-
-async function getUserFromRequest(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  const deviceIdHeader = request.headers.get('x-device-id')
-
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.substring(7)
-    const { data: { user }, error } = await supabase.auth.getUser(token)
-    if (user && !error) {
-      const { data } = await supabase
-        .from('ledger_users')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single()
-      return data
-    }
-  }
-
-  if (deviceIdHeader) {
-    const { data } = await supabase
-      .from('ledger_users')
-      .select('id')
-      .eq('device_id', deviceIdHeader)
-      .single()
-    return data
-  }
-
-  return null
-}
+import { supabase } from '../../../../lib/supabaseClient'
+import { getUserFromRequest } from '../../../../lib/auth'
 
 // GET: Fetch daily content records for a character and date
 export async function GET(request: NextRequest) {

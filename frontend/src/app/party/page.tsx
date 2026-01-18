@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { usePartyList } from '@/hooks/usePartyList'
 import { useMyParties } from '@/hooks/useMyParties'
@@ -11,7 +12,9 @@ import PartyCard from './components/PartyCard'
 import MyCharacters from './components/MyCharacters'
 import PartyGuide from './components/PartyGuide'
 import NotificationBell from './components/NotificationBell'
-import CreatePartyModal from './components/CreatePartyModal'
+
+// 모달 지연 로딩 (파티 생성 버튼 클릭 시에만 로드)
+const CreatePartyModal = dynamic(() => import('./components/CreatePartyModal'), { ssr: false })
 import PartyDebugPanel from './components/PartyDebugPanel'
 import styles from './page.module.css'
 

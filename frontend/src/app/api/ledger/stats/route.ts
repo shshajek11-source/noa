@@ -1,98 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getSupabase, getUserFromRequest } from '../../../../lib/auth'
+import { verifyCharacterOwnership } from '../../../../lib/ledgerAuth'
+import { getKoreanGameDate } from '../../../../lib/koreanDate'
 
-// Supabase 클라이언트 생성
-const SUPABASE_URL = 'https://mnbngmdjiszyowfvnzhk.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uYm5nbWRqaXN6eW93ZnZuemhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTY0ODAsImV4cCI6MjA4MjU3MjQ4MH0.AIvvGxd_iQKpQDbmOBoe4yAmii1IpB92Pp7Scs8Lz7U'
-
-function getSupabase() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY
-  return createClient(supabaseUrl, supabaseKey)
-}
-
-// 유저 조회 또는 자동 생성 (device_id용)
-async function getOrCreateUserByDeviceId(device_id: string) {
-  const supabase = getSupabase()
-  const { data: existingUser } = await supabase
-    .from('ledger_users')
-    .select('id')
-    .eq('device_id', device_id)
-    .single()
-
-  if (existingUser) return existingUser
-
-  const { data: newUser, error } = await supabase
-    .from('ledger_users')
-    .insert({ device_id })
-    .select('id')
-    .single()
-
-  if (error) {
-    console.error('[Stats API] Failed to create user:', error)
-    return null
-  }
-
-  return newUser
-}
-
-// 게임 날짜 계산 (새벽 5시 기준, KST 한국 시간 기준)
-function getGameDate(date: Date = new Date()): string {
-  // KST(한국 시간) 기준으로 계산 (UTC + 9시간)
-  const kstOffset = 9 * 60 * 60 * 1000
-  const kst = new Date(date.getTime() + kstOffset)
-  const hour = kst.getUTCHours()
-
-  // 새벽 5시 이전이면 전날로 처리
-  if (hour < 5) {
-    kst.setUTCDate(kst.getUTCDate() - 1)
-  }
-
-  return kst.toISOString().split('T')[0]
-}
-
-// 인증된 유저 또는 device_id 유저 조회
-async function getUserFromRequest(request: NextRequest) {
-  const supabase = getSupabase()
-
-  // 1. device_id로 먼저 조회 (우선순위)
-  const device_id = request.headers.get('X-Device-ID') || request.headers.get('x-device-id')
-  if (device_id) {
-    return getOrCreateUserByDeviceId(device_id)
-  }
-
-  // 2. Bearer 토큰으로 인증 확인 (폴백)
-  const authHeader = request.headers.get('Authorization')
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7)
-    const { data: { user }, error } = await supabase.auth.getUser(token)
-
-    if (user && !error) {
-      const { data: ledgerUser } = await supabase
-        .from('ledger_users')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single()
-
-      if (ledgerUser) return ledgerUser
-    }
-  }
-
-  return null
-}
-
-// 캐릭터 소유권 검증
-async function verifyCharacterOwnership(characterId: string, userId: string): Promise<boolean> {
-  const supabase = getSupabase()
-  const { data: character } = await supabase
-    .from('ledger_characters')
-    .select('user_id')
-    .eq('id', characterId)
-    .single()
-
-  if (!character) return false
-  return character.user_id === userId
-}
+// getGameDate를 getKoreanGameDate의 별칭으로 사용
+const getGameDate = getKoreanGameDate
 
 // GET: 통계 조회
 export async function GET(request: NextRequest) {

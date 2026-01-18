@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { useSearchParams, useRouter } from 'next/navigation'
 import ItemTierList from '../../components/item/ItemTierList'
 import SlotSelector from '../../components/item/SlotSelector'
-import ItemDetailModal from '../../components/item/ItemDetailModal'
+
+// 모달 지연 로딩 (아이템 클릭 시에만 로드)
+const ItemDetailModal = dynamic(() => import('../../components/item/ItemDetailModal'), { ssr: false })
 import { CLASSES } from '../../constants/game-data'
 import { ItemUsageStat } from '@/types/item'
 import styles from '../../components/item/ItemTier.module.css'

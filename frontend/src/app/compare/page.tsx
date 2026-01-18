@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { useSearchParams, useRouter } from 'next/navigation'
 import CompareHeader from '@/app/components/compare/CompareHeader'
 import CompareRadarChart, { RadarDataPoint } from '@/app/components/compare/CompareRadarChart'
@@ -8,7 +9,9 @@ import CompareStatGrid from '@/app/components/compare/CompareStatGrid'
 import CompareEquipment from '@/app/components/compare/CompareEquipment'
 import CompareInsight from '@/app/components/compare/CompareInsight'
 import CompareSummary from '@/app/components/compare/CompareSummary'
-import AddCharacterModal from '@/app/components/compare/AddCharacterModal'
+
+// 모달 컴포넌트 지연 로딩 (클릭 시에만 로드)
+const AddCharacterModal = dynamic(() => import('@/app/components/compare/AddCharacterModal'), { ssr: false })
 import { ComparisonCharacter, ComparisonEquipmentItem } from '@/types/character'
 import { CharacterSearchResult, getApiBaseUrl, SERVER_ID_TO_NAME } from '@/lib/supabaseApi'
 import { SERVER_MAP } from '@/app/constants/servers'

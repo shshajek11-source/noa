@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import CharacterShowcase from './profile/CharacterShowcase'
 import styles from './ProfileSection.module.css'
 import { aggregateStats } from '../../lib/statsAggregator'
-import { calculateCombatPowerFromStats } from '../../lib/combatPower'
+import { calculateDualCombatPowerFromStats } from '../../lib/combatPower'
 
 interface ProfileSectionProps {
     character: any
@@ -25,8 +25,8 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
     const [showDebug, setShowDebug] = useState(false)
     const [copied, setCopied] = useState(false)
 
-    // 새로운 전투력 계산 시스템 사용
-    const combatPowerResult = useMemo(() => {
+    // PVE/PVP 전투력 계산
+    const dualCombatPower = useMemo(() => {
         // 장비 또는 스탯 데이터가 있는 경우 새 계산식 사용
         if ((equipment && equipment.length > 0) || stats?.statList) {
             const aggregatedStats = aggregateStats(
@@ -36,55 +36,50 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                 stats,
                 equippedTitleId
             )
-            const result = calculateCombatPowerFromStats(aggregatedStats, stats)
-            // 디버그 로그 (개발 중에만)
-            if (typeof window !== 'undefined' && (window as any).DEBUG_COMBAT_POWER) {
-                console.log('[CombatPower Debug]', {
-                    equipmentCount: equipment?.length || 0,
-                    aggregatedStatsCount: aggregatedStats.length,
-                    result: result.totalScore,
-                    coefficients: result.coefficients
-                })
-            }
-            return result
+            return calculateDualCombatPowerFromStats(aggregatedStats, stats)
         }
         return null
     }, [equipment, titles, daevanion, stats, equippedTitleId])
 
-    // 전투력: 새 계산 결과가 있으면 사용, 없으면 기존 power 또는 0
-    const combatPower = combatPowerResult?.totalScore || character.power || 0
+    // PVE/PVP 전투력
+    const pveCombatPower = dualCombatPower?.pve || character.pve_score || character.power || 0
+    const pvpCombatPower = dualCombatPower?.pvp || character.pvp_score || 0
+    // 호환성 유지
+    const combatPower = pveCombatPower
 
     // 클라이언트에서 계산된 전투력을 DB에 저장 (캐릭터 상세 페이지 조회 시)
-    const savedScoreRef = useRef<number | null>(null)
+    const savedScoreRef = useRef<string | null>(null)
     useEffect(() => {
-        const saveNoaScore = async () => {
+        const saveScores = async () => {
             // 전투력이 계산되었고, 이전에 저장한 값과 다른 경우에만 저장
-            if (!combatPower || combatPower <= 0) return
-            if (savedScoreRef.current === combatPower) return
+            if (!pveCombatPower || pveCombatPower <= 0) return
+            const scoreKey = `${pveCombatPower}-${pvpCombatPower}`
+            if (savedScoreRef.current === scoreKey) return
             if (!character?.characterId) return
 
             try {
-                // API를 통해 noa_score 저장
+                // API를 통해 PVE/PVP 점수 저장
                 const res = await fetch('/api/character/save-score', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         characterId: character.characterId,
-                        noaScore: combatPower
+                        pveScore: pveCombatPower,
+                        pvpScore: pvpCombatPower
                     })
                 })
 
                 if (res.ok) {
-                    savedScoreRef.current = combatPower
-                    console.log(`[ProfileSection] noa_score ${combatPower} saved for ${character.characterName || character.name}`)
+                    savedScoreRef.current = scoreKey
+                    console.log(`[ProfileSection] PVE=${pveCombatPower}, PVP=${pvpCombatPower} saved for ${character.characterName || character.name}`)
                 }
             } catch (err) {
-                console.error('[ProfileSection] Failed to save noa_score:', err)
+                console.error('[ProfileSection] Failed to save scores:', err)
             }
         }
 
-        saveNoaScore()
-    }, [combatPower, character?.characterId, character?.characterName, character?.name])
+        saveScores()
+    }, [pveCombatPower, pvpCombatPower, character?.characterId, character?.characterName, character?.name])
 
     // Calculate Percentile / Tier
     const tierInfo = useMemo(() => {
@@ -169,7 +164,7 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
             characterId: character?.characterId,
             characterName: character?.characterName || character?.name,
             calculatedCombatPower: combatPower,
-            combatPowerResult: combatPowerResult,
+            combatPowerResult: dualCombatPower,
             equipmentCount: equipment?.length || 0,
             equipment: equipment?.map((item: any) => ({
                 slot: item.slot || item.slotPosName,
@@ -191,7 +186,7 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
             stats: stats,
             equippedTitleId: equippedTitleId
         }
-    }, [character, combatPower, combatPowerResult, equipment, titles, daevanion, stats, equippedTitleId])
+    }, [character, combatPower, dualCombatPower, equipment, titles, daevanion, stats, equippedTitleId])
 
     // 복사 함수
     const copyDebugData = () => {
@@ -288,7 +283,8 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                     name={character.character_name || character.name || 'Unknown'}
                     server={character.server_name || character.server || 'Unknown'}
                     rank={character.rank || 0}
-                    combatPower={combatPower}
+                    combatPower={pveCombatPower}
+                    pvpCombatPower={pvpCombatPower}
                     tierImage={`/images/ranks/${tierInfo.tier.toLowerCase()}.png`}
                     job={character.class}
                     race={character.race}

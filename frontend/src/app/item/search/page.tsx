@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect, Suspense, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { useSearchParams, useRouter } from 'next/navigation'
 import ItemSearchBar from '../../components/item/ItemSearchBar'
-import ItemDetailModal from '../../components/item/ItemDetailModal'
+
+// 모달 지연 로딩 (아이템 클릭 시에만 로드)
+const ItemDetailModal = dynamic(() => import('../../components/item/ItemDetailModal'), { ssr: false })
 import {
     ItemSearchResult,
     OfficialItem,

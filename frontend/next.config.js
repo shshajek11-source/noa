@@ -14,6 +14,7 @@ const nextConfig = {
     },
     experimental: {
         caseSensitiveRoutes: false,
+        optimizePackageImports: ['lucide-react', 'recharts'],
     },
 }
 

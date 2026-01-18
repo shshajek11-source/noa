@@ -87,7 +87,7 @@ export default function AddCharacterModal({
   const [error, setError] = useState('')
 
   // 디바운스된 검색어
-  const debouncedName = useDebounce(name, 300)
+  const debouncedName = useDebounce(name, 150)
 
   // 자동 검색
   useEffect(() => {

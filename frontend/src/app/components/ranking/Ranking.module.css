@@ -202,6 +202,12 @@
 
 
 
+.rankingTable tr {
+    /* content-visibility로 화면 밖 행 렌더링 최적화 */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 60px;
+}
+
 .rankingTable tr:hover {
     background: rgba(255, 255, 255, 0.02);
 }

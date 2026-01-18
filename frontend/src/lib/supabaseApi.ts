@@ -1,4 +1,5 @@
 import { SERVER_MAP } from '../app/constants/servers'
+import { normalizeCharacterId } from './characterId'
 import type {
     ExternalCharacterResult,
     LocalCharacterRecord,
@@ -28,7 +29,9 @@ export interface CharacterSearchResult {
     imageUrl?: string
     profileImage?: string // Alias for imageUrl
     item_level?: number // 아이템 레벨
-    noa_score?: number // HITON 전투력
+    noa_score?: number // HITON 전투력 (호환성)
+    pve_score?: number // PVE 전투력
+    pvp_score?: number // PVP 전투력
     raw?: ExternalCharacterResult
 }
 
@@ -116,6 +119,8 @@ const PC_ID_TO_CLASS_NAME: Record<number, string> = {
 // Create reverse lookup for logging unknown pcIds
 const KNOWN_PC_IDS = new Set(Object.keys(PC_ID_TO_CLASS_NAME).map(Number));
 
+// normalizeCharacterId는 lib/characterId.ts에서 import
+
 export const supabaseApi = {
     /**
      * Search for a character by name (Live AION API).
@@ -202,8 +207,8 @@ export const supabaseApi = {
                     }
 
                     return {
-                        // characterId는 이미 API에서 URL-safe 문자열로 제공되므로 별도의 decode를 하지 않는다.
-                        characterId: item.characterId,
+                        // characterId 정규화: URL 인코딩 해제 (DB와 일관성 유지)
+                        characterId: normalizeCharacterId(item.characterId),
                         name: typeof item.name === 'string' ? stripTags(item.name) : item.name,
                         server: item.serverName,
                         server_id: item.serverId,
@@ -231,11 +236,12 @@ export const supabaseApi = {
                     })
                     if (localRes.ok) {
                         const localData: LocalCharacterRecord[] = await localRes.json()
+                        // DB의 character_id도 정규화하여 매핑 (인코딩 차이 해결)
                         const localMap = new Map<string, LocalCharacterRecord>(
-                            localData.map((item) => [item.character_id, item])
+                            localData.map((item) => [normalizeCharacterId(item.character_id), item])
                         )
                         allResults = allResults.map(r => {
-                            const local = localMap.get(r.characterId)
+                            const local = localMap.get(normalizeCharacterId(r.characterId))
                             if (local) {
                                 return {
                                     ...r,
@@ -261,7 +267,7 @@ export const supabaseApi = {
     async searchLocalCharacter(name: string, serverId?: number, race?: string): Promise<CharacterSearchResult[]> {
         const queryParams: Record<string, string> = {
             select: '*',
-            name: `ilike.*${name}*`,
+            name: `eq.${name}`,  // 정확히 일치하는 이름만 검색
             limit: '20'
         }
 
@@ -303,8 +309,8 @@ export const supabaseApi = {
 
             if (!Array.isArray(data)) return []
 
-            return (data as LocalCharacterRecord[]).map((item) => ({
-                characterId: item.character_id,
+            return (data as LocalCharacterRecord[]).map((item: any) => ({
+                characterId: normalizeCharacterId(item.character_id),
                 name: item.name,
                 server: SERVER_ID_TO_NAME[item.server_id] || 'Unknown',
                 server_id: item.server_id,
@@ -313,7 +319,9 @@ export const supabaseApi = {
                 race: item.race_name,
                 imageUrl: item.profile_image ? (item.profile_image.startsWith('http') ? item.profile_image : `https://profileimg.plaync.com${item.profile_image}`) : undefined,
                 item_level: item.item_level,
-                noa_score: item.noa_score
+                noa_score: item.noa_score,
+                pve_score: item.pve_score || item.noa_score,
+                pvp_score: item.pvp_score
             }))
         } catch (e) {
             console.error("Local search exception", e)

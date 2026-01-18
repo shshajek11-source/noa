@@ -16,9 +16,9 @@
         let isReady = false;
 
         // 부모 창에 메시지 전송
-        function sendToParent(type, data) {
+        function sendToParent(type, data, requestId = null) {
             if (window.parent !== window) {
-                window.parent.postMessage({ type, data }, '*');
+                window.parent.postMessage({ type, data, requestId }, '*');
             }
         }
 
@@ -64,9 +64,13 @@
         }
 
         // 이미지 OCR 수행
-        async function processImage(data) {
+        async function processImage(data, reqId) {
             // data = { image: string, psm: string, lang: string }
             const { image, psm, lang } = data;
+
+            // 로컬 요청 ID (덮어쓰기 방지)
+            const myRequestId = reqId;
+            console.log(`[OCR Worker] 처리 시작 (ID: ${myRequestId})`);
 
             // 언어 변경 감지 및 초기화
             if (lang && lang !== currentLang) {
@@ -74,7 +78,7 @@
             }
 
             if (!worker || !isReady) {
-                sendToParent('error', { message: 'OCR이 준비되지 않았습니다' });
+                sendToParent('error', { message: 'OCR이 준비되지 않았습니다' }, myRequestId);
                 return;
             }
 
@@ -87,7 +91,7 @@
                     });
                 }
 
-                sendToParent('status', { message: '텍스트 인식 중...' });
+                sendToParent('status', { message: '텍스트 인식 중...' }, myRequestId);
                 const startTime = performance.now();
 
                 const result = await worker.recognize(image);
@@ -101,27 +105,34 @@
                     [line.bbox.x1, line.bbox.y1], [line.bbox.x0, line.bbox.y1]]
                 })).filter(t => t.text.length > 0);
 
+                console.log(`[OCR Worker] 처리 완료 (ID: ${myRequestId})`);
                 sendToParent('result', {
                     texts: texts,
                     processingTime: endTime - startTime
-                });
+                }, myRequestId);
 
             } catch (err) {
                 console.error('[OCR Worker] 처리 실패:', err);
-                sendToParent('error', { message: err.message });
+                sendToParent('error', { message: err.message }, myRequestId);
             }
         }
 
         // 부모 창에서 메시지 수신
         window.addEventListener('message', async (event) => {
-            const { type, data } = event.data || {};
+            const { type, data, requestId } = event.data || {};
 
             switch (type) {
                 case 'init':
                     await initOcr(data?.lang);
                     break;
                 case 'process':
-                    await processImage(data); // data contains {image, psm, lang}
+                    await processImage(data, requestId); // data contains {image, psm, lang}, requestId for response matching
+                    break;
+                case 'ping':
+                    // ping 응답 (ready 상태 확인용)
+                    if (isReady) {
+                        sendToParent('ready', { success: true });
+                    }
                     break;
             }
         });

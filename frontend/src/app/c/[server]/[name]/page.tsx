@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { useParams, useSearchParams } from 'next/navigation'
 import ProfileSection from '../../../components/ProfileSection'
 import TitleCard from '../../../components/TitleCard'
@@ -8,13 +9,17 @@ import DaevanionCard from '../../../components/DaevanionCard'
 import EquipmentGrid from '../../../components/EquipmentGrid'
 import AccordionCard from '../../../components/AccordionCard'
 import { supabaseApi, CharacterDetail, SERVER_NAME_TO_ID, getApiBaseUrl } from '../../../../lib/supabaseApi'
+import { normalizeCharacterId } from '../../../../lib/characterId'
 import RankingCard from '../../../components/RankingCard'
 import EquipmentDetailList from '../../../components/EquipmentDetailList'
-import ItemDetailModal from '../../../components/ItemDetailModal'
 import SkillSection from '../../../components/SkillSection'
+
+// 모달 지연 로딩 (아이템 클릭 시에만 로드)
+const ItemDetailModal = dynamic(() => import('../../../components/ItemDetailModal'), { ssr: false })
 import DetailedViewSection from '../../../components/DetailedViewSection'
 import StatsSummaryView from '../../../components/StatsSummaryView'
 import { RecentCharacter } from '../../../../types/character'
+import type { OcrStat } from '../../../../types/stats'
 import DSTabs from '@/app/components/design-system/DSTabs'
 import { MAIN_CHARACTER_KEY, MainCharacter } from '../../../components/SearchBar'
 
@@ -308,6 +313,49 @@ const mapStats = (rawStats: any): any[] => {
   }))
 }
 
+// OCR 스탯과 API 스탯 병합 함수
+// 이름이 같으면 OCR 값으로 덮어씌움
+// OcrStat 타입은 types/stats.ts에서 import
+
+const mergeStatsWithOcr = (apiStats: any, ocrStats: OcrStat[] | null): any => {
+  if (!ocrStats || ocrStats.length === 0) return apiStats
+  if (!apiStats?.statList) return apiStats
+
+  // statList 복사
+  const mergedStatList = [...apiStats.statList]
+
+  for (const ocrStat of ocrStats) {
+    const existingIndex = mergedStatList.findIndex(
+      (s: any) => s.name === ocrStat.name
+    )
+
+    const ocrValue = ocrStat.value.replace(/,/g, '').replace(/%$/, '')
+    const numericValue = parseFloat(ocrValue)
+
+    if (existingIndex >= 0) {
+      // 이름이 같으면 덮어씌움
+      mergedStatList[existingIndex] = {
+        ...mergedStatList[existingIndex],
+        value: isNaN(numericValue) ? ocrStat.value : numericValue,
+        isOcrOverride: true // OCR로 덮어씌워진 값임을 표시
+      }
+    } else {
+      // 새 스탯은 추가
+      mergedStatList.push({
+        name: ocrStat.name,
+        value: isNaN(numericValue) ? ocrStat.value : numericValue,
+        isOcrOverride: true
+      })
+    }
+  }
+
+  return {
+    ...apiStats,
+    statList: mergedStatList,
+    hasOcrData: true
+  }
+}
+
 const mapDevanion = (rawDevanion: any) => {
   // DEBUG: Log raw structure to terminal to identify correct keys
   // console.log('[[DEBUG]] mapDevanion raw input:', JSON.stringify(rawDevanion, null, 2));
@@ -425,6 +473,7 @@ export default function CharacterDetailPage() {
     debugInfo: {}
   })
   const [mappedStats, setMappedStats] = useState<any>({})
+  const [ocrStats, setOcrStats] = useState<OcrStat[] | null>(null)
   const [mappedTitles, setMappedTitles] = useState<any>({})
   const [mappedDaevanion, setMappedDaevanion] = useState<any>({})
   const [mappedRankings, setMappedRankings] = useState<any>({})
@@ -551,31 +600,86 @@ export default function CharacterDetailPage() {
       }
       addDebugLog(`매칭 성공: characterId=${match.characterId}`)
 
-      // Step 2: Get Detail from Local API
+      // Step 2: Get Detail from Local API and OCR Stats in parallel
       const serverId = match.server_id || SERVER_NAME_TO_ID[serverName] || 1
       const encodedCharacterId = encodeURIComponent(match.characterId)
-      const apiUrl = `${getApiBaseUrl()}/api/character?id=${encodedCharacterId}&server=${serverId}`
+      const forceParam = refresh ? '&force=true' : ''
+      const apiUrl = `${getApiBaseUrl()}/api/character?id=${encodedCharacterId}&server=${serverId}${forceParam}`
       addDebugLog(`상세 API 호출: ${apiUrl}`)
 
-      const res = await fetch(apiUrl)
-      addDebugLog(`상세 API 응답: status=${res.status}`)
+      // OCR 스탯 조회 URL 준비 (병렬 실행을 위해)
+      const normalizedCharIdForOcr = normalizeCharacterId(match.characterId)
+      const ocrUrl = `/api/character/ocr-stats?characterId=${encodeURIComponent(normalizedCharIdForOcr)}`
+      addDebugLog(`OCR 조회 URL (병렬): ${ocrUrl}`)
 
-      if (!res.ok) {
-        const errorText = await res.text().catch(() => '')
-        addDebugLog(`ERROR: API 실패 - ${errorText}`)
-        throw new Error(`캐릭터 상세 API 호출 실패 (status: ${res.status})${errorText ? ` - ${errorText}` : ''}`)
+      // 상세 API와 OCR API를 병렬로 호출
+      const [detailRes, ocrRes] = await Promise.all([
+        fetch(apiUrl),
+        fetch(ocrUrl).catch(err => {
+          console.error('OCR fetch error:', err)
+          return null
+        })
+      ])
+
+      addDebugLog(`상세 API 응답: status=${detailRes.status}`)
+      if (ocrRes) {
+        addDebugLog(`OCR 응답 상태: ${ocrRes.status} ${ocrRes.statusText}`)
       }
 
-      const detail = await res.json()
-      addDebugLog(`상세 데이터 수신 완료: ${detail.profile?.characterName || 'unknown'}`)
+      if (!detailRes.ok) {
+        const errorText = await detailRes.text().catch(() => '')
+        addDebugLog(`ERROR: API 실패 - ${errorText}`)
+        throw new Error(`캐릭터 상세 API 호출 실패 (status: ${detailRes.status})${errorText ? ` - ${errorText}` : ''}`)
+      }
+
+      const detail = await detailRes.json()
+
+      // API 응답 구조 검증
+      if (!detail || !detail.profile) {
+        addDebugLog(`ERROR: 응답에 profile이 없음 - ${JSON.stringify(detail).substring(0, 200)}`)
+        throw new Error('캐릭터 정보가 올바르지 않습니다. 잠시 후 다시 시도해주세요.')
+      }
+
+      if (!detail.profile.characterId) {
+        addDebugLog(`ERROR: characterId 없음 - profile: ${JSON.stringify(detail.profile).substring(0, 200)}`)
+        throw new Error('캐릭터 ID를 찾을 수 없습니다.')
+      }
+
+      addDebugLog(`상세 데이터 수신 완료: ${detail.profile.characterName || 'unknown'}`)
 
       // Transform logic
-      const mappedStats = detail.stats || {}
+      let mappedStats = detail.stats || {}
       const mappedTitles = detail.titles || {}
       // console.log('Titles data:', detail.titles)
       // console.log('Mapped titles:', mappedTitles)
       const mappedDaevanion = detail.daevanion || {}
       const mappedRankings = detail.rankings || {}
+
+      // OCR 스탯 처리 (이미 병렬로 가져옴)
+      let fetchedOcrStats: OcrStat[] | null = null
+      try {
+        if (ocrRes && ocrRes.ok) {
+          const ocrData = await ocrRes.json()
+          addDebugLog(`OCR 응답 데이터: ${JSON.stringify(ocrData)}`)
+
+          if (ocrData.stats && Array.isArray(ocrData.stats) && ocrData.stats.length > 0) {
+            addDebugLog(`OCR 스탯 ${ocrData.stats.length}개 발견: ${ocrData.stats.map((s: any) => s.name).join(', ')}`)
+            fetchedOcrStats = ocrData.stats
+            // statList에도 병합 (호환성 유지)
+            mappedStats = mergeStatsWithOcr(mappedStats, ocrData.stats)
+          } else {
+            addDebugLog(`OCR 스탯 없음 (stats=${JSON.stringify(ocrData.stats)})`)
+          }
+        } else if (ocrRes) {
+          addDebugLog(`OCR 조회 실패: status=${ocrRes.status}`)
+        } else {
+          addDebugLog(`OCR 조회 스킵 (fetch 실패)`)
+        }
+      } catch (ocrErr) {
+        console.error('OCR stats parse error:', ocrErr)
+        addDebugLog(`OCR 파싱 에러: ${ocrErr}`)
+        // OCR 스탯 조회 실패해도 계속 진행
+      }
 
       // Pass appearance data if available
       const mappedEquipment = mapEquipment(detail.equipment, detail.petwing, detail.appearance || detail.costume)
@@ -631,9 +735,9 @@ export default function CharacterDetailPage() {
 
       setMappedEquipment(mappedEquipment)
       setMappedStats(mappedStats)
+      setOcrStats(fetchedOcrStats)
       setMappedTitles(mappedTitles)
       setMappedDaevanion(mappedDaevanion)
-      setMappedRankings(mappedRankings)
       setMappedRankings(mappedRankings)
       setMappedSkills(mappedSkills)
 
@@ -1229,6 +1333,7 @@ export default function CharacterDetailPage() {
                           daevanion={mappedDaevanion}
                           titles={mappedTitles}
                           equippedTitleId={data.title_id}
+                          ocrStats={ocrStats || undefined}
                         />
                       </div>
                     )

@@ -9,7 +9,8 @@ interface CharacterShowcaseProps {
     name: string
     server: string
     rank: number
-    combatPower: number
+    combatPower: number // PVE 전투력
+    pvpCombatPower?: number // PVP 전투력
     tierImage: string
     job?: string
     race?: string
@@ -24,6 +25,7 @@ export default function CharacterShowcase({
     server,
     rank,
     combatPower,
+    pvpCombatPower = 0,
     tierImage,
     job,
     race,
@@ -133,31 +135,52 @@ export default function CharacterShowcase({
                             </span>
                         </div>
 
-                        {/* HITON 전투력 + 돌파총합 (2열 그리드) */}
+                        {/* PVE/PVP 전투력 + 돌파총합 (3열 그리드) */}
                         <div style={{
                             display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: '8px',
+                            gridTemplateColumns: '1fr 1fr 1fr',
+                            gap: '6px',
                             width: '100%'
                         }}>
-                            {/* HITON 전투력 */}
+                            {/* PVE 전투력 */}
                             <div style={{
-                                background: 'rgba(250, 204, 21, 0.1)',
-                                border: '1px solid rgba(250, 204, 21, 0.3)',
+                                background: 'rgba(74, 222, 128, 0.1)',
+                                border: '1px solid rgba(74, 222, 128, 0.3)',
                                 borderRadius: '8px',
-                                padding: '10px 8px',
+                                padding: '8px 6px',
                                 textAlign: 'center'
                             }}>
-                                <div style={{ fontSize: '0.65rem', color: '#9CA3AF', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    HITON 전투력
+                                <div style={{ fontSize: '0.6rem', color: '#9CA3AF', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    PVE
                                 </div>
                                 <div style={{
-                                    fontSize: '1.3rem',
+                                    fontSize: '1rem',
                                     fontWeight: 'bold',
-                                    color: '#FACC15',
-                                    textShadow: '0 0 10px rgba(250, 204, 21, 0.5)'
+                                    color: '#4ade80',
+                                    textShadow: '0 0 10px rgba(74, 222, 128, 0.5)'
                                 }}>
                                     {combatPower?.toLocaleString() || 0}
+                                </div>
+                            </div>
+
+                            {/* PVP 전투력 */}
+                            <div style={{
+                                background: 'rgba(248, 113, 113, 0.1)',
+                                border: '1px solid rgba(248, 113, 113, 0.3)',
+                                borderRadius: '8px',
+                                padding: '8px 6px',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{ fontSize: '0.6rem', color: '#9CA3AF', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    PVP
+                                </div>
+                                <div style={{
+                                    fontSize: '1rem',
+                                    fontWeight: 'bold',
+                                    color: '#f87171',
+                                    textShadow: '0 0 10px rgba(248, 113, 113, 0.5)'
+                                }}>
+                                    {pvpCombatPower?.toLocaleString() || 0}
                                 </div>
                             </div>
 
@@ -166,22 +189,22 @@ export default function CharacterShowcase({
                                 background: 'rgba(59, 130, 246, 0.1)',
                                 border: '1px solid rgba(59, 130, 246, 0.3)',
                                 borderRadius: '8px',
-                                padding: '10px 8px',
+                                padding: '8px 6px',
                                 textAlign: 'center'
                             }}>
-                                <div style={{ fontSize: '0.65rem', color: '#9CA3AF', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    돌파 총합
+                                <div style={{ fontSize: '0.6rem', color: '#9CA3AF', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    돌파
                                 </div>
                                 <div style={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    gap: '6px'
+                                    gap: '4px'
                                 }}>
                                     {/* 파란 마름모 */}
                                     <div style={{
-                                        width: '14px',
-                                        height: '14px',
+                                        width: '10px',
+                                        height: '10px',
                                         transform: 'rotate(45deg)',
                                         background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 40%, #2563EB 60%, #1D4ED8 100%)',
                                         border: '1px solid #93C5FD',
@@ -189,7 +212,7 @@ export default function CharacterShowcase({
                                         boxShadow: '0 0 6px rgba(59, 130, 246, 0.8)'
                                     }} />
                                     <span style={{
-                                        fontSize: '1.3rem',
+                                        fontSize: '1rem',
                                         fontWeight: 'bold',
                                         color: '#3B82F6',
                                         textShadow: '0 0 10px rgba(59, 130, 246, 0.5)'

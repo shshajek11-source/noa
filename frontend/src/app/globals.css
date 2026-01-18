@@ -22,10 +22,19 @@
 
   --accent-highlight: var(--brand-yellow);
 
+  /* RACE COLORS (Recommendation 1: Neon) */
+  --elyos: #2DD4BF;
+  /* Teal 400 - 천족 */
+  --asmodian: #A78BFA;
+  /* Violet 400 - 마족 */
+  --elyos-bg: rgba(45, 212, 191, 0.1);
+  --asmodian-bg: rgba(167, 139, 250, 0.1);
+
   /* TEXT */
   --text-main: #ffffff;
   --text-secondary: #a5a8b4;
-  --text-disabled: #4B5563;
+  --text-disabled: #6B7280;
+  /* Standardized Gray 500 */
 
   /* BORDER: 보라빛 테두리 */
   --border: rgba(150, 100, 200, 0.15);

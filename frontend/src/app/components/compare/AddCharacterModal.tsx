@@ -42,7 +42,7 @@ export default function AddCharacterModal({ onClose, onSelect, slot }: AddCharac
 
         const timer = setTimeout(() => {
             performSearch(searchTerm)
-        }, 300)
+        }, 150)
 
         return () => clearTimeout(timer)
     }, [searchTerm, raceFilter])

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { CLASSES } from '../../constants/game-data'
 import { aggregateStats } from '@/lib/statsAggregator'
-import { calculateCombatPowerFromStats } from '@/lib/combatPower'
+import { calculateDualCombatPowerFromStats } from '@/lib/combatPower'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit'
 import type {
     ExternalDetailResponse,
@@ -106,6 +106,30 @@ function transformDetailData(detailData: ExternalDetailResponse | null): Transfo
     return result
 }
 
+// OCR 스탯을 API 스탯에 머지하는 함수
+function mergeOcrStats(
+    statList: StatListItem[],
+    ocrStats: { name: string; value: string; isPercentage?: boolean }[]
+): StatListItem[] {
+    if (!ocrStats || ocrStats.length === 0) return statList
+
+    const ocrMap = new Map(ocrStats.map(s => [s.name, s.value]))
+
+    return statList.map(stat => {
+        const ocrValue = ocrMap.get(stat.name)
+        if (ocrValue !== undefined) {
+            // OCR 값으로 대체 (숫자로 파싱)
+            const numericValue = parseFloat(ocrValue.replace(/[,%]/g, ''))
+            return {
+                ...stat,
+                value: isNaN(numericValue) ? stat.value : numericValue,
+                isOcr: true
+            }
+        }
+        return stat
+    })
+}
+
 function calculateNoaScore(stats: CharacterStats | null, className: string): number {
     if (!stats) return 0;
 
@@ -147,13 +171,119 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const characterId = searchParams.get('id')
     const serverId = searchParams.get('server')
+    const forceUpdate = searchParams.get('force') === 'true'
 
     if (!characterId || !serverId) {
         return NextResponse.json({ error: 'Missing characterId or serverId' }, { status: 400 })
     }
 
+    // characterId 정규화: URL 인코딩된 값이 들어올 수 있으므로 디코딩
+    let normalizedCharacterId: string
     try {
-        console.log(`[API] Fetching data for characterId=${characterId}, serverId=${serverId}`)
+        if (characterId.includes('%')) {
+            normalizedCharacterId = decodeURIComponent(characterId)
+        } else {
+            normalizedCharacterId = characterId
+        }
+    } catch {
+        normalizedCharacterId = characterId
+    }
+
+    try {
+        console.log(`[API] Fetching data for characterId=${characterId}, normalized=${normalizedCharacterId}, serverId=${serverId}, force=${forceUpdate}`)
+
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        const supabase = createClient(supabaseUrl, supabaseKey)
+
+        // 0. Cache Check (If not forced)
+        // 정규화된 ID로 조회 (인코딩된 버전과 디코딩된 버전 모두 시도)
+        if (!forceUpdate) {
+            let cachedData = null
+            let cacheError = null
+
+            // 먼저 정규화된 ID로 시도
+            const { data: data1, error: err1 } = await supabase
+                .from('characters')
+                .select('*')
+                .eq('character_id', normalizedCharacterId)
+                .single()
+
+            if (data1 && !err1) {
+                cachedData = data1
+            } else if (characterId !== normalizedCharacterId) {
+                // 원본 ID로도 시도 (레거시 데이터 호환)
+                const { data: data2, error: err2 } = await supabase
+                    .from('characters')
+                    .select('*')
+                    .eq('character_id', characterId)
+                    .single()
+                if (data2 && !err2) {
+                    cachedData = data2
+                    cacheError = err2
+                }
+            }
+
+            if (cachedData && !cacheError) {
+                const scrapedAt = new Date(cachedData.scraped_at).getTime()
+                const now = Date.now()
+                // Cache duration: 60 minutes
+                const isFresh = (now - scrapedAt) < 60 * 60 * 1000
+
+                // 캐시된 데이터에 profile이 없으면 캐시 미스로 처리
+                if (!cachedData.profile || !cachedData.profile.characterId) {
+                    console.log(`[API] Cache INVALID for ${characterId} - missing profile data. Fetching fresh...`)
+                    // Continue to fetch fresh data below
+                } else if (isFresh) {
+                    console.log(`[API] Returning CACHED data for ${characterId} (Age: ${Math.floor((now - scrapedAt) / 60000)}m)`)
+
+                    // Transform DB structure back to API response structure
+                    // The frontend expects: { profile, stats, titles, rankings, daevanion, equipment, skill, petwing, scraped_at }
+                    // Our DB stores these JSONBs directly, so we can just return them.
+                    const responseData: any = {
+                        profile: {
+                            ...cachedData.profile,
+                            pve_score: cachedData.pve_score || cachedData.noa_score,
+                            pvp_score: cachedData.pvp_score || 0,
+                            noa_score: cachedData.noa_score // 호환성 유지
+                        },
+                        stats: cachedData.stats,
+                        titles: cachedData.titles,
+                        rankings: cachedData.rankings,
+                        daevanion: cachedData.daevanion,
+                        equipment: cachedData.equipment,
+                        skill: cachedData.skills, // DB column is 'skills', API expects 'skill'
+                        petwing: cachedData.pet_wing, // DB column is 'pet_wing', API expects 'petwing'
+                        scraped_at: cachedData.scraped_at,
+                        cached: true
+                    }
+
+                    // OCR 스탯 조회 및 머지 (정규화된 ID로 조회)
+                    try {
+                        const { data: ocrData } = await supabase
+                            .from('character_ocr_stats')
+                            .select('stats, updated_at')
+                            .eq('character_id', normalizedCharacterId)
+                            .order('updated_at', { ascending: false })
+                            .limit(1)
+                            .single()
+
+                        if (ocrData?.stats && responseData.stats?.statList) {
+                            responseData.stats.statList = mergeOcrStats(responseData.stats.statList, ocrData.stats)
+                            responseData.ocrUpdatedAt = ocrData.updated_at
+                            console.log(`[API] OCR stats merged for ${characterId}`)
+                        }
+                    } catch (ocrErr) {
+                        // OCR 데이터가 없으면 무시 (정상)
+                    }
+
+                    return NextResponse.json(responseData)
+                } else {
+                    console.log(`[API] Cache EXPIRED for ${characterId} (Age: ${Math.floor((now - scrapedAt) / 60000)}m). Fetching fresh...`)
+                }
+            }
+        }
+
 
         // Common headers to look like a browser
         const headers = {
@@ -265,13 +395,19 @@ export async function GET(request: NextRequest) {
         // 스탯 집계
         const aggregatedStats = aggregateStats(equipmentForCalc, titles, daevanion, infoData.stat, equippedTitleId)
 
-        // 새 전투력 계산
-        const combatPowerResult = calculateCombatPowerFromStats(aggregatedStats, infoData.stat)
-        const noaScore = combatPowerResult.totalScore
+        // PVE/PVP 전투력 계산
+        const dualCombatPower = calculateDualCombatPowerFromStats(aggregatedStats, infoData.stat)
+        const pveScore = dualCombatPower.pve
+        const pvpScore = dualCombatPower.pvp
 
         // 3. Construct Final Response
         const finalData = {
-            profile: { ...infoData.profile, noa_score: noaScore }, // Inject score into profile for frontend convenience
+            profile: {
+                ...infoData.profile,
+                pve_score: pveScore,
+                pvp_score: pvpScore,
+                noa_score: pveScore // 호환성 유지
+            },
             stats: infoData.stat,
             titles: infoData.title,
             rankings: infoData.ranking,
@@ -286,11 +422,9 @@ export async function GET(request: NextRequest) {
         }
 
         // 4. DB Upsert (Synchronizing with Supabase)
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
         if (supabaseUrl && supabaseKey) {
-            const supabase = createClient(supabaseUrl, supabaseKey)
+            // supabase client is already created at the top
+
 
             const dbCharacter = {
                 character_id: infoData.profile.characterId,
@@ -316,7 +450,9 @@ export async function GET(request: NextRequest) {
                 })(),
                 race_name: infoData.profile.raceName,
                 combat_power: combatPower, // Extract from statList
-                noa_score: noaScore,
+                noa_score: pveScore, // 호환성 유지
+                pve_score: pveScore,
+                pvp_score: pvpScore,
                 item_level: (() => {
                     // stats.statList에서 아이템레벨 찾기
                     const itemStatList: StatListItem[] = infoData.stat?.statList || []
@@ -363,6 +499,27 @@ export async function GET(request: NextRequest) {
             }
         } else {
             // console.warn('[Supabase] Credentials missing, skipping DB save')
+        }
+
+        // OCR 스탯 조회 및 머지 (신규 데이터에도 적용, 정규화된 ID 사용)
+        if (supabaseUrl && supabaseKey) {
+            try {
+                const { data: ocrData } = await supabase
+                    .from('character_ocr_stats')
+                    .select('stats, updated_at')
+                    .eq('character_id', normalizedCharacterId)
+                    .order('updated_at', { ascending: false })
+                    .limit(1)
+                    .single()
+
+                if (ocrData?.stats && finalData.stats?.statList) {
+                    finalData.stats.statList = mergeOcrStats(finalData.stats.statList, ocrData.stats)
+                    ;(finalData as any).ocrUpdatedAt = ocrData.updated_at
+                    console.log(`[API] OCR stats merged for fresh data ${characterId}`)
+                }
+            } catch (ocrErr) {
+                // OCR 데이터가 없으면 무시 (정상)
+            }
         }
 
         return NextResponse.json(finalData)

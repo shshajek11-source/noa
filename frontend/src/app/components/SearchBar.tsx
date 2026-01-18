@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, ChevronDown, X, Star } from 'lucide-react'
+import { Search, ChevronDown, X, Star, Check } from 'lucide-react' // Added Check
 import SearchAutocomplete from './SearchAutocomplete'
 import { supabaseApi, CharacterSearchResult, SERVER_NAME_TO_ID } from '../../lib/supabaseApi'
 import { useSyncContext } from '../../context/SyncContext'
+import styles from './SearchBar.module.css' // Added CSS module import
 
 // 최근 검색 캐릭터 타입
 interface RecentSearch {
@@ -29,7 +30,9 @@ export interface MainCharacter {
     race: string
     className?: string
     level?: number
-    hit_score?: number
+    hit_score?: number // 호환성 유지
+    pve_score?: number
+    pvp_score?: number
     item_level?: number
     imageUrl?: string
     setAt: number
@@ -198,7 +201,7 @@ export default function SearchBar() {
                 setResults([])
                 setShowResults(false)
             }
-        }, 300)
+        }, 150)
         return () => clearTimeout(timer)
     }, [name, race, server])
 
@@ -426,217 +429,124 @@ export default function SearchBar() {
         : '전체 서버'
 
     return (
-        <div
-            ref={wrapperRef}
-            style={{
-                width: '100%',
-                maxWidth: '800px',
-                margin: '0 auto',
-                position: 'relative',
-                zIndex: (isDropdownOpen || showResults) ? 9999 : 100
-            }}
-        >
-            <form
-                onSubmit={handleSearch}
-                style={{
-                    position: 'relative',
-                    zIndex: 10
-                }}
-            >
-                {/* Gradient Border Container (From DSSearchBar) */}
-                <div
-                    style={{
-                        padding: '2px',
-                        borderRadius: '50px',
-                        background: (name.length > 0) // Simplified focus check
-                            ? 'linear-gradient(90deg, var(--brand-red-main), #F59E0B, var(--brand-red-main))'
-                            : 'var(--border)',
-                        backgroundSize: '200% 100%',
-                        transition: 'all 0.3s ease',
-                        animation: (name.length > 0) ? 'gradientMove 3s linear infinite' : 'none'
-                    }}
-                >
-                    {/* Inner Input Container */}
-                    <div style={{
-                        background: '#0B0D12',
-                        borderRadius: '48px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '0.2rem',
-                        position: 'relative',
-                        height: '50px'
-                    }}>
+        <div className={`${styles.searchContainer} ${isDropdownOpen || showResults ? styles.focused : ''}`} ref={wrapperRef}>
+            <div className={styles.searchWrapper}>
+                {/* Server Selection Dropdown */}
+                <div className={styles.serverDropdown} ref={dropdownRef}>
+                    <button
+                        className={`${styles.serverTrigger} ${server ? (race === 'elyos' ? styles.elyos : styles.asmodian) : ''}`}
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    >
+                        <span>{server || '전체 서버'}</span>
+                        <ChevronDown size={14} className={isDropdownOpen ? 'rotate-180' : ''} style={{ transition: 'transform 0.2s' }} />
+                    </button>
 
-                        {/* Server Select Button */}
-                        <div style={{ position: 'relative' }} ref={dropdownRef}>
-                            <button
-                                type="button"
-                                onClick={toggleDropdown}
-                                style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: 'var(--text-main)',
-                                    padding: '0 1rem 0 1.5rem',
-                                    height: '100%',
-                                    cursor: 'pointer',
-                                    fontSize: '0.9rem',
-                                    fontWeight: 600,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    whiteSpace: 'nowrap'
-                                }}
-                            >
-                                {triggerText}
-                                <ChevronDown size={14} style={{ opacity: 0.7, transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
-                            </button>
-
-                            {/* Dropdown Menu (Existing Logic Adapted) */}
-                            {isDropdownOpen && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '120%',
-                                    left: '0.5rem',
-                                    minWidth: '180px',
-                                    background: '#1F2937',
-                                    border: '1px solid var(--border-light)',
-                                    borderRadius: '8px',
-                                    padding: '0.5rem',
-                                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8)',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.5rem',
-                                    zIndex: 99999
-                                }}>
-                                    {/* Race Toggle Actions */}
-                                    <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
-                                        <button
-                                            type="button"
-                                            onClick={() => selectRace('elyos')}
-                                            style={{
-                                                flex: 1,
-                                                padding: '6px',
-                                                fontSize: '0.75rem',
-                                                borderRadius: '4px',
-                                                border: race === 'elyos' ? '1px solid #10B981' : '1px solid var(--border)',
-                                                color: race === 'elyos' ? '#10B981' : 'var(--text-secondary)',
-                                                background: race === 'elyos' ? 'rgba(16,185,129,0.1)' : 'transparent',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            천족
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => selectRace('asmodian')}
-                                            style={{
-                                                flex: 1,
-                                                padding: '6px',
-                                                fontSize: '0.75rem',
-                                                borderRadius: '4px',
-                                                border: race === 'asmodian' ? '1px solid #EF4444' : '1px solid var(--border)',
-                                                color: race === 'asmodian' ? '#EF4444' : 'var(--text-secondary)',
-                                                background: race === 'asmodian' ? 'rgba(239,68,68,0.1)' : 'transparent',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            마족
-                                        </button>
-                                    </div>
-
-                                    {/* Server List */}
-                                    <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                        {currentServerList.map(srv => (
-                                            <button
-                                                key={srv}
-                                                type="button"
-                                                onClick={() => selectServer(srv)}
-                                                style={{
-                                                    padding: '6px 10px',
-                                                    textAlign: 'left',
-                                                    background: server === srv ? 'rgba(255,255,255,0.05)' : 'transparent',
-                                                    color: server === srv ? 'white' : 'var(--text-secondary)',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    borderRadius: '4px',
-                                                    fontSize: '0.85rem'
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                                                onMouseLeave={(e) => { if (server !== srv) e.currentTarget.style.background = 'transparent' }}
-                                            >
-                                                {srv}
-                                            </button>
-                                        ))}
-                                    </div>
+                    {/* Dropdown Menu */}
+                    {isDropdownOpen && (
+                        <div className={styles.dropdownMenu}>
+                            {/* Race Select Tabs */}
+                            <div className={styles.raceTabs}>
+                                <div
+                                    className={`${styles.raceTab} ${race === 'elyos' ? styles.activeElyos : ''}`}
+                                    onClick={() => setRace('elyos')}
+                                >
+                                    천족
                                 </div>
-                            )}
+                                <div
+                                    className={`${styles.raceTab} ${race === 'asmodian' ? styles.activeAsmodian : ''}`}
+                                    onClick={() => setRace('asmodian')}
+                                >
+                                    마족
+                                </div>
+                            </div>
+
+                            {/* Server List */}
+                            <div className={styles.serverList}>
+                                <div
+                                    className={`${styles.serverItem} ${!server ? styles.selected : ''}`}
+                                    onClick={() => {
+                                        setServer('')
+                                        setIsDropdownOpen(false)
+                                    }}
+                                >
+                                    전체 서버
+                                    {!server && <Check size={14} className={styles.checkIcon} />}
+                                </div>
+                                {currentServerList.map((srv) => (
+                                    <div
+                                        key={srv}
+                                        className={`${styles.serverItem} ${server === srv ? styles.selected : ''}`}
+                                        onClick={() => {
+                                            setServer(srv)
+                                            setIsDropdownOpen(false)
+                                        }}
+                                    >
+                                        {srv}
+                                        {server === srv && <Check size={14} className={styles.checkIcon} />}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-
-                        {/* Divider */}
-                        <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 0.5rem' }}></div>
-
-                        {/* Input Field */}
-                        <input
-                            type="text"
-                            placeholder="캐릭터명을 입력하세요"
-                            value={name}
-                            onChange={(e) => {
-                                suppressResultsRef.current = false
-                                setName(e.target.value)
-                            }}
-                            onFocus={() => {
-                                setIsDropdownOpen(false) // 입력창 포커스 시 서버 드롭다운 닫기
-                                if (!suppressResultsRef.current && name.length >= 1) setShowResults(true)
-                            }}
-                            style={{
-                                flex: 1,
-                                background: 'transparent',
-                                border: 'none',
-                                color: 'var(--text-main)',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                padding: '0 0.5rem'
-                            }}
-                        />
-
-                        {/* Search Button (Icon Only) */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            style={{
-                                background: 'var(--brand-red-main)',
-                                border: 'none',
-                                borderRadius: '50%',
-                                color: 'white',
-                                width: '42px',
-                                height: '42px',
-                                margin: '4px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'transform 0.1s, background 0.2s',
-                                boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--brand-red-dark)'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'var(--brand-red-main)'}
-                            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
-                            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                        >
-                            <Search size={20} strokeWidth={2.5} />
-                        </button>
-                    </div>
+                    )}
                 </div>
 
-                {/* Global Styles for Gradient Animation */}
-                <style jsx global>{`
-                    @keyframes gradientMove {
-                        0% { background-position: 0% 50%; }
-                        50% { background-position: 100% 50%; }
-                        100% { background-position: 0% 50%; }
-                    }
-                `}</style>
-            </form>
+                {/* Input Field */}
+                <div className={styles.inputWrapper}>
+                    <input
+                        type="text"
+                        className={styles.searchInput}
+                        placeholder="캐릭터 검색..."
+                        value={name}
+                        onChange={(e) => {
+                            setName(e.target.value)
+                            setShowResults(true)
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                if (results.length > 0) {
+                                    const first = results[0]
+                                    let raceVal: 'elyos' | 'asmodian' = 'elyos'
+                                    if (first.race.toLowerCase().includes('asmodian') || first.race === '마족') {
+                                        raceVal = 'asmodian'
+                                    }
+                                    const query = `?race=${raceVal}`
+
+                                    // 최근 검색어 저장 Logic
+                                    addRecentSearch(first)
+
+                                    router.push(`/c/${first.server_id ?? first.server}/${first.name}${query}`)
+                                    setShowResults(false)
+                                } else {
+                                    performHybridSearch(name)
+                                }
+                            }
+                        }}
+                    />
+                    {name && (
+                        <button
+                            onClick={() => {
+                                setName('')
+                                setResults([])
+                                setShowResults(false)
+                                suppressResultsRef.current = true
+                                setTimeout(() => suppressResultsRef.current = false, 350)
+                            }}
+                            style={{ background: 'none', border: 'none', color: 'var(--text-disabled)', cursor: 'pointer', display: 'flex' }}
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
+                </div>
+
+                {/* Search Button */}
+                <button
+                    className={styles.searchButton}
+                    onClick={() => performHybridSearch(name)}
+                    disabled={loading}
+                >
+                    <Search size={20} />
+                </button>
+            </div>
 
             {/* Error Message */}
             {error && (
@@ -655,163 +565,49 @@ export default function SearchBar() {
                 </div>
             )}
 
-            {/* Integrated Dropdown Panel is now above inside the input container */}
+            {/* Results Autocomplete */}
+            {showResults && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 12px)', left: 0, right: 0, zIndex: 100 }}>
+                    <SearchAutocomplete
+                        results={results}
+                        isLoading={isSearching}
+                        onSelect={(char) => {
+                            handleResultSelect(char)
+                        }}
+                        warning={searchWarning}
+                        isVisible={showResults}
+                        onRefreshSearch={handleRefreshSearch}
+                        onDetailsFetched={(updatedChar => {
+                            setResults(prev => prev.map(r =>
+                                r.characterId === updatedChar.characterId ? updatedChar : r
+                            ))
+                        })}
+                    />
+                </div>
+            )}
 
-            {/* Autocomplete Dropdown */}
-            <SearchAutocomplete
-                results={results}
-                isVisible={showResults}
-                isLoading={isSearching}
-                onSelect={handleResultSelect}
-                onDetailsFetched={(updatedChar) => {
-                    // 백그라운드에서 조회된 상세 정보로 results 업데이트
-                    setResults(prev => prev.map(r =>
-                        r.characterId === updatedChar.characterId ? updatedChar : r
-                    ))
-                }}
-                warning={searchWarning}
-                onRefreshSearch={handleRefreshSearch}
-            />
-
-            {/* 최근 검색 캐릭터 - 검색창이 비어있고 드롭다운이 닫혀있을 때만 표시 */}
-            {!showResults && !isDropdownOpen && recentSearches.length > 0 && name.trim().length === 0 && (
-                <div style={{
-                    marginTop: '0.5rem',
-                    display: 'grid',
-                    gridTemplateColumns: `repeat(${Math.min(recentSearches.length, 5)}, 1fr)`,
-                    gap: '0.4rem',
-                    width: '100%',
-                    maxWidth: '800px'
-                }}>
+            {/* Recent Search Tags */}
+            {recentSearches.length > 0 && !showResults && (
+                <div className={styles.recentTags}>
                     {recentSearches.map((recent) => (
                         <div
                             key={recent.characterId}
+                            className={styles.recentTag}
                             onClick={() => handleRecentClick(recent)}
-                            style={{
-                                position: 'relative',
-                                background: 'rgba(31, 41, 55, 0.9)',
-                                borderRadius: '8px',
-                                padding: '0.35rem 0.5rem',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                transform: 'translateY(0)',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-2px)'
-                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.4)'
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)'
-                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)'
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
-                            }}
                         >
-                            {/* 프로필 이미지 */}
-                            <div style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '50%',
-                                overflow: 'hidden',
-                                flexShrink: 0,
-                                background: '#374151'
-                            }}>
-                                {recent.imageUrl ? (
-                                    <img
-                                        src={recent.imageUrl}
-                                        alt={recent.name}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    />
-                                ) : (
-                                    <div style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '0.7rem',
-                                        color: '#9ca3af'
-                                    }}>
-                                        {recent.name.charAt(0)}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* 캐릭터 정보 */}
-                            <div style={{
-                                flex: 1,
-                                minWidth: 0,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '0'
-                            }}>
-                                <span style={{
-                                    fontSize: '0.75rem',
-                                    fontWeight: 600,
-                                    color: '#f3f4f6',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    lineHeight: 1.2
-                                }}>
-                                    {recent.name}
-                                </span>
-                                <span style={{
-                                    fontSize: '0.55rem',
-                                    color: '#9ca3af',
-                                    lineHeight: 1.2
-                                }}>
-                                    {recent.server}
-                                    {(recent.noa_score || recent.item_level) && ' · '}
-                                    {recent.item_level ? `IL ${recent.item_level}` : ''}
-                                    {recent.item_level && recent.noa_score ? ' · ' : ''}
-                                    {recent.noa_score ? (
-                                        <span style={{ color: 'var(--brand-red-main, #D92B4B)', fontWeight: 600 }}>
-                                            {recent.noa_score.toLocaleString()}
-                                        </span>
-                                    ) : ''}
-                                </span>
-                            </div>
-
-                            {/* X 버튼 */}
-                            <button
+                            <img
+                                src={recent.imageUrl || '/placeholder-avatar.svg'}
+                                alt={recent.name}
+                                className={styles.recentAvatar}
+                                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-avatar.svg' }}
+                            />
+                            <span className={styles.recentName}>{recent.name}</span>
+                            <span
+                                className={styles.recentDelete}
                                 onClick={(e) => removeRecentSearch(recent.characterId, e)}
-                                style={{
-                                    width: '14px',
-                                    height: '14px',
-                                    borderRadius: '50%',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: 0,
-                                    transition: 'all 0.15s ease',
-                                    opacity: 0.4,
-                                    flexShrink: 0
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)'
-                                    e.currentTarget.style.opacity = '1'
-                                    const svg = e.currentTarget.querySelector('svg')
-                                    if (svg) (svg as SVGElement).style.color = 'white'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'transparent'
-                                    e.currentTarget.style.opacity = '0.4'
-                                    const svg = e.currentTarget.querySelector('svg')
-                                    if (svg) (svg as SVGElement).style.color = '#6b7280'
-                                }}
                             >
-                                <X size={10} style={{ color: '#6b7280' }} />
-                            </button>
+                                <X size={10} />
+                            </span>
                         </div>
                     ))}
                 </div>

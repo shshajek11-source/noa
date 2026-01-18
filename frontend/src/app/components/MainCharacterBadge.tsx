@@ -1,11 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { Star, X, Plus } from 'lucide-react'
 import { MainCharacter, MAIN_CHARACTER_KEY } from './SearchBar'
-import MainCharacterModal from './MainCharacterModal'
 import { useAuth } from '@/context/AuthContext'
+import styles from './shared/HeaderButtons.module.css'
+
+// 모달 지연 로딩 (클릭 시에만 로드)
+const MainCharacterModal = dynamic(() => import('./MainCharacterModal'), { ssr: false })
 
 export default function MainCharacterBadge() {
     const router = useRouter()
@@ -130,33 +134,10 @@ export default function MainCharacterBadge() {
             <div style={{ position: 'relative', marginLeft: 'auto' }}>
                 <button
                     onClick={handleAddClick}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.4rem',
-                        padding: '0.35rem 0.75rem',
-                        background: 'transparent',
-                        border: '1px dashed rgba(250, 204, 21, 0.4)',
-                        borderRadius: '20px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        color: 'rgba(250, 204, 21, 0.7)'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(250, 204, 21, 0.1)'
-                        e.currentTarget.style.borderColor = 'rgba(250, 204, 21, 0.6)'
-                        e.currentTarget.style.color = '#FACC15'
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent'
-                        e.currentTarget.style.borderColor = 'rgba(250, 204, 21, 0.4)'
-                        e.currentTarget.style.color = 'rgba(250, 204, 21, 0.7)'
-                    }}
+                    className={styles.mainCharButton}
                 >
                     <Plus size={14} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                        대표캐릭터
-                    </span>
+                    <span>대표캐릭터</span>
                 </button>
 
                 <MainCharacterModal
@@ -174,83 +155,48 @@ export default function MainCharacterBadge() {
             onClick={handleClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.35rem 0.6rem',
-                background: isHovered ? 'rgba(250, 204, 21, 0.15)' : 'rgba(250, 204, 21, 0.1)',
-                border: '1px solid rgba(250, 204, 21, 0.3)',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                marginLeft: 'auto'
-            }}
+            className={styles.mainCharBadge}
         >
             {/* 프로필 이미지 */}
-            <div style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                background: '#374151',
-                flexShrink: 0
-            }}>
+            <div className={styles.avatarWrapper}>
                 {mainCharacter.imageUrl ? (
                     <img
                         src={mainCharacter.imageUrl}
                         alt={mainCharacter.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        className={styles.avatar}
                     />
                 ) : (
-                    <div style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.7rem',
-                        color: '#9ca3af'
-                    }}>
+                    <div className="w-full h-full flex items-center justify-center bg-gray-700 text-xs text-gray-400">
                         {mainCharacter.name.charAt(0)}
                     </div>
                 )}
             </div>
 
             {/* 캐릭터 정보 */}
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0'
-            }}>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem'
-                }}>
-                    <Star size={10} fill="#FACC15" color="#FACC15" />
-                    <span style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: '#FACC15'
-                    }}>
-                        {mainCharacter.name}
-                    </span>
+            <div className="flex flex-col">
+                <div className={styles.mainCharName}>
+                    <Star size={10} className="fill-current text-primary" />
+                    <span>{mainCharacter.name}</span>
                 </div>
-                <span style={{
-                    fontSize: '0.55rem',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.2
-                }}>
+                <span className={styles.mainCharInfo}>
                     {mainCharacter.server}
                     {mainCharacter.race && ` · ${mainCharacter.race.toLowerCase() === 'elyos' ? '천족' : mainCharacter.race.toLowerCase() === 'asmodian' ? '마족' : mainCharacter.race}`}
                     {mainCharacter.className && ` · ${mainCharacter.className}`}
                     {mainCharacter.item_level && mainCharacter.item_level > 0 && ` · IL ${mainCharacter.item_level}`}
-                    {mainCharacter.hit_score && mainCharacter.hit_score > 0 && (
+                    {/* PVE/PVP 전투력 */}
+                    {(mainCharacter.pve_score || mainCharacter.hit_score) && (
                         <>
                             {' · '}
-                            <span style={{ color: 'var(--brand-red-main, #D92B4B)', fontWeight: 600 }}>
-                                {mainCharacter.hit_score.toLocaleString()}
+                            <span style={{ color: '#4ade80', fontWeight: 600 }}>
+                                E {(mainCharacter.pve_score || mainCharacter.hit_score || 0).toLocaleString()}
+                            </span>
+                        </>
+                    )}
+                    {mainCharacter.pvp_score && mainCharacter.pvp_score > 0 && (
+                        <>
+                            {' '}
+                            <span style={{ color: '#f87171', fontWeight: 600 }}>
+                                P {mainCharacter.pvp_score.toLocaleString()}
                             </span>
                         </>
                     )}
@@ -261,19 +207,7 @@ export default function MainCharacterBadge() {
             {isHovered && (
                 <button
                     onClick={handleRemove}
-                    style={{
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        background: 'rgba(239, 68, 68, 0.8)',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: 0,
-                        marginLeft: '0.25rem'
-                    }}
+                    className="w-4 h-4 rounded-full bg-red-500/80 flex items-center justify-center border-none cursor-pointer ml-1 p-0 hover:bg-red-500"
                 >
                     <X size={10} color="white" />
                 </button>

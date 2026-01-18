@@ -1,4 +1,5 @@
 'use client'
+import { useMemo } from 'react'
 import EquipmentCard from './EquipmentCard'
 import styles from './ProfileSection.module.css'
 
@@ -12,7 +13,32 @@ interface EquipmentGridProps {
     onItemClick?: (item: any) => void
 }
 
+// 정렬 순서 상수 (컴포넌트 외부에 정의하여 매번 재생성 방지)
+const APPEARANCE_ORDER: Record<string, number> = {
+    '투구': 1, '머리': 1, '두건': 1, '모자': 1, '머리장식': 1, '가발': 1,
+    '흉갑': 2, '상의': 2, '의상': 2, '옷': 2, '전신': 2,
+    '견갑': 3, '어깨': 3,
+    '장갑': 4, '손': 4,
+    '각반': 5, '하의': 5,
+    '장화': 6, '신발': 6, '발': 6,
+    '주무기': 7, '무기': 7,
+    '보조무기': 8, '방패': 8,
+    '날개': 9,
+    '모션': 10
+}
+
 export default function EquipmentGrid({ equipment = [], accessories = [], pets = [], wings = [], appearance = [], debugInfo, onItemClick }: EquipmentGridProps) {
+    // useMemo로 정렬된 외형 아이템 캐싱 - appearance가 변경될 때만 재정렬
+    const sortedAppearance = useMemo(() => {
+        return [...appearance].sort((a, b) => {
+            const slotA = a.slot || a.categoryName || ''
+            const slotB = b.slot || b.categoryName || ''
+            const scoreA = APPEARANCE_ORDER[slotA] || 99
+            const scoreB = APPEARANCE_ORDER[slotB] || 99
+            return scoreA - scoreB
+        })
+    }, [appearance])
+
     // Equipment slots - Ordered by User Request (Top-Left to Bottom-Right)
     const weaponSlots = [
         '주무기',   // 1
@@ -87,32 +113,13 @@ export default function EquipmentGrid({ equipment = [], accessories = [], pets =
             )}
 
             {/* Appearance */}
-            {appearance.length > 0 && (
+            {sortedAppearance.length > 0 && (
                 <div style={{ marginTop: '0.5rem' }}>
                     <h3 className={styles.sectionTitle}>
                         외형 / 모션
                     </h3>
                     <div className={styles.equipmentRows}>
-                        {/* Sort Appearance Items: Head -> Body -> Hands -> Legs -> Feet -> Others */}
-                        {[...appearance].sort((a, b) => {
-                            const order: Record<string, number> = {
-                                '투구': 1, '머리': 1, '두건': 1, '모자': 1, '머리장식': 1, '가발': 1,
-                                '흉갑': 2, '상의': 2, '의상': 2, '옷': 2, '전신': 2,
-                                '견갑': 3, '어깨': 3,
-                                '장갑': 4, '손': 4,
-                                '각반': 5, '하의': 5,
-                                '장화': 6, '신발': 6, '발': 6,
-                                '주무기': 7, '무기': 7,
-                                '보조무기': 8, '방패': 8,
-                                '날개': 9,
-                                '모션': 10
-                            }
-                            const slotA = a.slot || a.categoryName || ''
-                            const slotB = b.slot || b.categoryName || ''
-                            const scoreA = order[slotA] || 99
-                            const scoreB = order[slotB] || 99
-                            return scoreA - scoreB
-                        }).map((item, idx) => (
+                        {sortedAppearance.map((item, idx) => (
                             <EquipmentCard key={`appearance-${idx}`} slot={item.slot || "외형"} item={item} onClick={onItemClick} />
                         ))}
                     </div>

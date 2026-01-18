@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import styles from '@/app/Home.module.css'
 import { RankingCharacter } from '@/types/character'
 import { SERVER_MAP, SERVERS } from '@/app/constants/servers'
 
@@ -68,31 +69,27 @@ export default function RankingWidget() {
     const renderRaceRanking = () => {
         const { elyos, asmodian } = rankingData
         return (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div className={styles.rankingGrid}>
                 {/* Elyos Column */}
                 <div>
-                    <div style={{
-                        fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: '#4BC0C0',
-                        marginBottom: '0.5rem', padding: '0.25rem 0',
-                        borderBottom: '1px solid rgba(75, 192, 192, 0.3)'
-                    }}>천족 TOP 5</div>
+                    <div className={`${styles.rankingColumnHeader} ${styles.elyosHeader}`}>
+                        천족 TOP 5
+                    </div>
                     {elyos.length === 0 ? (
-                        <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)', padding: '0.5rem 0' }}>데이터 없음</div>
+                        <div className={styles.loadingState}>데이터 없음</div>
                     ) : elyos.map((char, idx) => (
-                        <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} raceColor="#4BC0C0" />
+                        <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} raceColor="var(--elyos)" />
                     ))}
                 </div>
                 {/* Asmodian Column */}
                 <div>
-                    <div style={{
-                        fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: '#FF6384',
-                        marginBottom: '0.5rem', padding: '0.25rem 0',
-                        borderBottom: '1px solid rgba(255, 99, 132, 0.3)'
-                    }}>마족 TOP 5</div>
+                    <div className={`${styles.rankingColumnHeader} ${styles.asmodianHeader}`}>
+                        마족 TOP 5
+                    </div>
                     {asmodian.length === 0 ? (
-                        <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)', padding: '0.5rem 0' }}>데이터 없음</div>
+                        <div className={styles.loadingState}>데이터 없음</div>
                     ) : asmodian.map((char, idx) => (
-                        <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} raceColor="#FF6384" />
+                        <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} raceColor="var(--asmodian)" />
                     ))}
                 </div>
             </div>
@@ -110,8 +107,8 @@ export default function RankingWidget() {
                     style={{
                         width: '100%', padding: '0.5rem',
                         background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)',
-                        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px',
-                        fontSize: 'calc(0.85rem + 2px)', marginBottom: '0.75rem', cursor: 'pointer'
+                        border: '1px solid var(--border)', borderRadius: '6px',
+                        fontSize: '0.9rem', marginBottom: '0.75rem', cursor: 'pointer'
                     }}
                 >
                     {SERVERS.map(s => (
@@ -119,13 +116,11 @@ export default function RankingWidget() {
                     ))}
                 </select>
                 {/* Server Ranking List */}
-                <div style={{
-                    fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: 'var(--text-secondary)',
-                    marginBottom: '0.5rem', padding: '0.25rem 0',
-                    borderBottom: '1px solid rgba(255,255,255,0.1)'
-                }}>{SERVER_MAP[selectedServer]} TOP 5</div>
+                <div className={styles.rankingColumnHeader} style={{ color: 'var(--text-secondary)' }}>
+                    {SERVER_MAP[selectedServer]} TOP 5
+                </div>
                 {server.length === 0 ? (
-                    <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)', padding: '0.5rem 0' }}>데이터 없음</div>
+                    <div className={styles.loadingState}>데이터 없음</div>
                 ) : server.map((char, idx) => (
                     <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} showClass />
                 ))}
@@ -147,11 +142,11 @@ export default function RankingWidget() {
                             key={cls}
                             onClick={() => setSelectedClass(cls)}
                             style={{
-                                padding: '0.3rem 0.5rem', fontSize: 'calc(0.7rem + 2px)',
+                                padding: '0.3rem 0.5rem', fontSize: '0.8rem',
                                 borderRadius: '4px', cursor: 'pointer',
-                                border: selectedClass === cls ? '1px solid #f59e0b' : '1px solid rgba(255,255,255,0.1)',
+                                border: selectedClass === cls ? '1px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)',
                                 background: selectedClass === cls ? 'rgba(245, 158, 11, 0.2)' : 'transparent',
-                                color: selectedClass === cls ? '#f59e0b' : 'var(--text-secondary)',
+                                color: selectedClass === cls ? 'var(--primary)' : 'var(--text-secondary)',
                                 fontWeight: selectedClass === cls ? 'bold' : 'normal',
                                 transition: 'all 0.2s'
                             }}
@@ -161,14 +156,12 @@ export default function RankingWidget() {
                     ))}
                 </div>
                 {/* Class Ranking List */}
-                <div style={{
-                    fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: '#f59e0b',
-                    marginBottom: '0.5rem', padding: '0.25rem 0',
-                    borderBottom: '1px solid rgba(245, 158, 11, 0.3)'
-                }}>{selectedClass} 전투력 랭킹</div>
+                <div className={styles.rankingColumnHeader} style={{ color: 'var(--primary)', borderBottomColor: 'rgba(245, 158, 11, 0.3)' }}>
+                    {selectedClass} 전투력 랭킹
+                </div>
                 <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
                     {classData.length === 0 ? (
-                        <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)', padding: '0.5rem 0' }}>데이터 없음</div>
+                        <div className={styles.loadingState}>데이터 없음</div>
                     ) : classData.map((char, idx) => (
                         <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} showServer />
                     ))}
@@ -178,24 +171,16 @@ export default function RankingWidget() {
     }
 
     return (
-        <section style={{
-            marginBottom: '1rem',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
-            borderRadius: '12px', padding: '1rem',
-            border: '1px solid rgba(255,255,255,0.05)'
-        }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <h2 style={{
-                    fontSize: 'calc(0.85rem + 2px)', fontWeight: 'bold', color: '#f59e0b',
-                    letterSpacing: '-0.02em', margin: 0
-                }}>실시간 전투력 랭킹</h2>
-                <Link href="/ranking" style={{ fontSize: 'calc(0.75rem + 2px)', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+        <section className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle} style={{ color: 'var(--primary)' }}>실시간 전투력 랭킹</h2>
+                <Link href="/ranking" className={styles.sectionLink}>
                     전체보기 &gt;
                 </Link>
             </div>
 
             {/* Filter Tabs */}
-            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.75rem' }} role="tablist">
+            <div className={styles.tabList} role="tablist">
                 {(['race', 'server', 'class'] as const).map((mode) => {
                     const labels = { race: '종족', server: '서버', class: '직업' }
                     return (
@@ -204,14 +189,7 @@ export default function RankingWidget() {
                             role="tab"
                             aria-selected={filterMode === mode}
                             onClick={() => setFilterMode(mode)}
-                            style={{
-                                padding: '0.4rem 0.8rem', borderRadius: '16px', fontSize: 'calc(0.8rem + 2px)',
-                                background: filterMode === mode ? 'rgba(255,255,255,0.1)' : 'transparent',
-                                border: filterMode === mode ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent',
-                                color: filterMode === mode ? 'var(--text-main)' : 'var(--text-secondary)',
-                                fontWeight: filterMode === mode ? 'bold' : 'normal',
-                                cursor: 'pointer', transition: 'all 0.2s'
-                            }}
+                            className={`${styles.tabButton} ${filterMode === mode ? styles.tabButtonActive : ''}`}
                         >{labels[mode]}</button>
                     )
                 })}
@@ -220,21 +198,12 @@ export default function RankingWidget() {
             {/* Content */}
             <div>
                 {loading ? (
-                    <div style={{ padding: '1.5rem', textAlign: 'center' }}>
-                        <div style={{
-                            width: '20px', height: '20px',
-                            border: '2px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--brand-red-main)',
-                            borderRadius: '50%', animation: 'spin 0.8s linear infinite',
-                            margin: '0 auto 0.4rem'
-                        }} />
-                        <span style={{ color: 'var(--text-secondary)', fontSize: 'calc(0.8rem + 2px)' }}>로딩중...</span>
-                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                    <div className={styles.loadingState}>
+                        <div className={styles.loadingSpinner} />
+                        <span>로딩중...</span>
                     </div>
                 ) : error ? (
-                    <div style={{
-                        padding: '1.5rem', textAlign: 'center', color: '#f87171',
-                        background: 'rgba(248, 113, 113, 0.1)', borderRadius: '8px', fontSize: 'calc(0.8rem + 2px)'
-                    }}>{error}</div>
+                    <div className={styles.errorState}>{error}</div>
                 ) : (
                     <>
                         {filterMode === 'race' && renderRaceRanking()}
@@ -258,65 +227,41 @@ interface RankingMiniItemProps {
 
 function RankingMiniItem({ character, rank, raceColor, showClass, showServer }: RankingMiniItemProps) {
     const isElyos = character.race_name?.toLowerCase() === 'elyos'
-    const color = raceColor || (isElyos ? '#4BC0C0' : '#FF6384')
+    const color = raceColor || (isElyos ? 'var(--elyos)' : 'var(--asmodian)')
     const serverName = SERVER_MAP[character.server_id] || character.server_id
 
     return (
         <Link
             href={`/c/${encodeURIComponent(serverName)}/${encodeURIComponent(character.name)}`}
-            style={{ textDecoration: 'none', display: 'block' }}
+            className={styles.rankingItem}
         >
-            <div style={{
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.4rem 0', borderBottom: '1px solid rgba(255,255,255,0.03)',
-                transition: 'background 0.2s', cursor: 'pointer'
-            }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-            >
-                {/* Rank Badge */}
-                <div style={{
-                    width: '18px', height: '18px', borderRadius: '50%',
-                    background: rank <= 3 ? (rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : '#CD7F32') : 'rgba(255,255,255,0.1)',
-                    color: rank <= 3 ? '#000' : 'var(--text-secondary)',
-                    fontSize: 'calc(0.65rem + 2px)', fontWeight: 'bold',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0
-                }}>{rank}</div>
+            {/* Rank Badge */}
+            <div className={`${styles.rankBadge} ${rank === 1 ? styles.rankTop1 : rank === 2 ? styles.rankTop2 : rank === 3 ? styles.rankTop3 : ''}`}>
+                {rank}
+            </div>
 
-                {/* Profile Image */}
-                <div style={{
-                    width: '24px', height: '24px', borderRadius: '50%', overflow: 'hidden',
-                    border: `1.5px solid ${color}`, flexShrink: 0, background: '#222'
-                }}>
-                    <img
-                        src={character.profile_image || '/placeholder-avatar.svg'}
-                        alt={character.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-avatar.svg' }}
-                    />
-                </div>
+            {/* Profile Image */}
+            <div className={styles.charImage} style={{ borderColor: color }}>
+                <img
+                    src={character.profile_image || '/placeholder-avatar.svg'}
+                    alt={character.name}
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-avatar.svg' }}
+                />
+            </div>
 
-                {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                        color: 'var(--text-main)', fontSize: 'calc(0.8rem + 2px)', fontWeight: '600',
-                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                    }}>{character.name}</div>
-                    <div style={{ fontSize: 'calc(0.65rem + 2px)', color: 'var(--text-disabled)' }}>
-                        {showClass && character.class_name}
-                        {showServer && serverName}
-                        {!showClass && !showServer && (isElyos ? '천족' : '마족')}
-                    </div>
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <div className={styles.charName}>{character.name}</div>
+                <div className={styles.charMeta}>
+                    {showClass && character.class_name}
+                    {showServer && serverName}
+                    {!showClass && !showServer && (isElyos ? '천족' : '마족')}
                 </div>
+            </div>
 
-                {/* HITON Score */}
-                <div style={{
-                    fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: '#f59e0b',
-                    flexShrink: 0
-                }}>
-                    {(character.noa_score || character.hiton_score || 0).toLocaleString()}
-                </div>
+            {/* HITON Score */}
+            <div className={styles.charScore}>
+                {(character.noa_score || character.hiton_score || 0).toLocaleString()}
             </div>
         </Link>
     )

@@ -124,7 +124,7 @@ export default function MainCharacterModal({ isOpen, onClose, onSelect }: MainCh
             } finally {
                 setIsSearching(false)
             }
-        }, 300)
+        }, 150)
 
         return () => {
             if (searchTimeoutRef.current) {

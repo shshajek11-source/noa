@@ -34,7 +34,7 @@ const STAT_CATEGORIES = [
 ]
 
 export default function StatCapturePage() {
-    // 4개 이미지 슬롯 상태 (특수/자원 추가됨)
+    // 4개 이미지 슬롯 상태
     const [imageSlots, setImageSlots] = useState<ImageSlot[]>(
         STAT_CATEGORIES.map(cat => ({
             id: cat.id,
@@ -43,11 +43,15 @@ export default function StatCapturePage() {
             isProcessing: false
         }))
     )
+
     const [activeSlotId, setActiveSlotId] = useState<string>('basic')
     const [recognizedStats, setRecognizedStats] = useState<StatCategory[]>([])
-    const [editingIndex, setEditingIndex] = useState<{ categoryId: string; statIndex: number } | null>(null)
     const [ocrTexts, setOcrTexts] = useState<Record<string, string>>({})
+    const [isProcessing, setIsProcessing] = useState(false)
+    const [editingIndex, setEditingIndex] = useState<{ categoryId: string, index: number } | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [debugMode, setDebugMode] = useState(false)
+    const [rawText, setRawText] = useState('')
     const [compareViewId, setCompareViewId] = useState<string | null>(null)
 
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -130,6 +134,7 @@ export default function StatCapturePage() {
 
             // OCR 워커에 요청
             const text = await sendToOcrWorker(processedImage)
+            setRawText(text) // 디버그용 원본 텍스트 저장
 
             // OCR 텍스트 저장
             setOcrTexts(prev => ({ ...prev, [slotId]: text }))
@@ -271,7 +276,7 @@ export default function StatCapturePage() {
         // 보스 스탯
         '보스 공격력', '보스 방어력', '보스 피해 증폭', '보스 피해 내성',
         // 특수 스탯
-        '질주 속도', '비행 속도', '탑승물 지상 이동 속도', '탑승물 질주 행동력 소모', '탑승물 질주 행동력 소...',
+        '질주 속도', '비행 속도', '탑승물 지상 이동 속도', '탑승물 질주 행동력 소모',
         '치유 증폭', '받는 치유량', '재사용 시간', '적대치 획득량',
         // 자원 스탯
         '행동력', '비행력',
@@ -281,65 +286,105 @@ export default function StatCapturePage() {
         '전투 비행력 자연 회복', '비전투 비행력 자연 회복'
     ]
 
-    // 스탯 파싱 (2열 레이아웃 대응)
-    const parseStats = (text: string): RecognizedStat[] => {
-        const lines = text.split('\n').filter(line => line.trim())
-        const stats: RecognizedStat[] = []
-
-        for (const line of lines) {
-            const trimmedLine = line.trim()
-
-            // 각 줄에서 알려진 스탯명을 찾아 분리
-            const foundStats = extractStatsFromLine(trimmedLine)
-            stats.push(...foundStats)
-        }
-
-        return stats
+    // OCR 오인식 방지를 위한 별칭(Alias) 매핑
+    const STAT_ALIASES: Record<string, string[]> = {
+        '명중': ['명증', '멍중', '영중', '몀중', '명 중', '띵중', '명:중', '[ [그', '[[그', '[ [ 그'],
+        '치명타': ['치면타', '치멍타', '차명타', '치영타', '치 1 명타', '치:명타', '치명', 'XIE', 'xie'],
+        '공격력': ['공걱력', '공격럭'],
+        '방어력': ['방어럭', '방이력'],
+        '회피': ['회 피', '화피', '회:피'],
+        '생명력': ['생명럭', '상명력'],
+        '정신력': ['정신럭', '점신력'],
+        '전투 속도': ['전투속도', '전투 소도', '전투 쇽도'],
+        '이동 속도': ['이동속도', '이동 소도'],
+        '철벽': ['HY', 'hy', 'H Y', 'h y', '철 벽'],
+        'PVP 회피': ['pvp 2m', 'pvp 2 m', 'pvp2m'],
+        '봉혼석 추가 피해': ['BEA', 'bea', 'BEA 추가 피해', 'bea 추가 피해', 'BEA추가피해'],
+        '탑승물 질주 행동력 소모': ['탑승물 질주 행동력 소', '탑승물 질주 행동력 소...'],
+        '행동력': ['행통력', '행 동 력', '행 통 력'],
+        '전투 행동력 자연 회복': ['전투 행통력 자연 회복', '전투 행통력 자연회복'],
+        '비전투 행동력 자연 회복': ['비전투 행통력 자연 회복', '비전투 행통력 자연회복']
     }
 
-    // 한 줄에서 스탯 추출 (2열 대응)
-    const extractStatsFromLine = (line: string): RecognizedStat[] => {
-        const results: RecognizedStat[] = []
-        let remaining = line
-
-        // 알려진 스탯명을 긴 것부터 정렬 (더 정확한 매칭)
+    // 전체 텍스트에서 스탯 추출 (주력 로직)
+    const extractAllStats = (text: string): RecognizedStat[] => {
+        // 결과와 매칭 인덱스를 함께 저장할 임시 배열
+        const tempResults: { index: number, stat: RecognizedStat }[] = []
+        // 긴 이름부터 처리하여 중복 매칭 방지 (치명타 저항 vs 치명타)
         const sortedStatNames = [...KNOWN_STAT_NAMES].sort((a, b) => b.length - a.length)
 
-        while (remaining.length > 0) {
-            let found = false
+        let remainingText = text
 
-            for (const statName of sortedStatNames) {
-                // 스탯명으로 시작하는지 확인
-                if (remaining.startsWith(statName)) {
-                    // 스탯명 뒤의 값 추출
-                    const afterName = remaining.substring(statName.length).trim()
-                    // 음수 및 백분율 지원 정규식 (-9%, 100, 5.9% 등)
-                    const valueMatch = afterName.match(/^([-]?[\d,]+\.?\d*%?)/)
+        for (const statName of sortedStatNames) {
+            // 별칭(Alias) 처리 포함
+            const searchNames = [statName, ...(STAT_ALIASES[statName] || [])]
 
-                    if (valueMatch) {
-                        const value = valueMatch[1].replace(/,/g, '')
-                        results.push({
-                            name: statName,
-                            value,
-                            isPercentage: value.endsWith('%')
-                        })
+            for (const searchName of searchNames) {
+                // 스탯명 사이 공백/특수문자 허용 Regex 생성
+                const cleanName = searchName.replace(/\s+/g, '')
+                // 이름 사이사이 오타/노이즈 허용범위 확대 (점, 밑줄, 파이프, 대괄호 등)
+                const escapedParams = cleanName.split('').map(char => char.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('[\\s._\\|\\[\\]]*')
 
-                        // 처리한 부분 제거
-                        remaining = afterName.substring(valueMatch[0].length).trim()
-                        found = true
-                        break
+                // 스탯명 + 구분자 + 값
+                // 구분자: 숫자, 한글, 하이픈을 제외한 모든 문자(OCR 노이즈)를 건너뜀
+                const regex = new RegExp(`(${escapedParams})[^0-9가-힣\\-]*?([-]?[\\d,]+\\.?\\d*\\s*%?)`, 'g')
+
+                let match
+                // 동일 스탯이 여러 번 나올 수 있으므로 반복 매칭 (매칭된 부분은 제거)
+                while ((match = regex.exec(remainingText)) !== null) {
+                    const fullMatch = match[0]
+                    const rawValue = match[2].trim()
+
+                    if (!rawValue || rawValue === '-' || rawValue === '.') continue;
+
+                    let isPercent = rawValue.endsWith('%')
+                    let finalValue = rawValue
+
+                    if (isPercent) {
+                        if (finalValue.includes(',')) {
+                            finalValue = finalValue.replace(/,/, '.')
+                        }
+                        const numericVal = parseFloat(finalValue.replace('%', ''))
+                        // 속도, 완벽, 재생, 강타, 철벽, 적중 등 소수점이 노락되어 100%를 넘는 경우 보정 (예: 24.2% -> 242%)
+                        if ((statName.includes('속도') || statName.includes('완벽') || statName.includes('재생') || statName.includes('강타') || statName.includes('철벽') || statName.includes('적중')) && numericVal > 100 && !finalValue.includes('.')) {
+                            finalValue = (numericVal / 10).toFixed(1) + '%'
+                        }
+                    } else {
+                        finalValue = finalValue.replace(/,/g, '')
                     }
-                }
-            }
 
-            if (!found) {
-                // 매칭되지 않으면 한 문자씩 건너뛰기
-                remaining = remaining.substring(1).trim()
+                    tempResults.push({
+                        index: match.index,
+                        stat: {
+                            name: statName, // 표준 이름 사용
+                            value: finalValue,
+                            isPercentage: isPercent
+                        }
+                    })
+
+                    const beforeMatch = remainingText.substring(0, match.index)
+                    const afterMatch = remainingText.substring(match.index + fullMatch.length)
+                    const spaces = ' '.repeat(fullMatch.length)
+
+                    remainingText = beforeMatch + spaces + afterMatch
+                    regex.lastIndex = 0
+                }
             }
         }
 
-        return results
+        // 인덱스 기준 정렬 (이미지 상의 순서대로)
+        return tempResults.sort((a, b) => a.index - b.index).map(r => r.stat)
     }
+
+    // 스탯 파싱 (개선됨: 전체 스캔 우선 + 줄 단위 백업)
+    // 스탯 파싱
+    const parseStats = (text: string): RecognizedStat[] => {
+        // 1. 전체 텍스트에서 강력한 Regex로 추출 (줄바꿈 무시)
+        const allStats = extractAllStats(text)
+        return allStats
+    }
+
+
 
     // 스탯 값 수정
     const handleStatEdit = (categoryId: string, statIndex: number, newValue: string) => {
@@ -388,6 +433,7 @@ export default function StatCapturePage() {
         setRecognizedStats([])
         setOcrTexts({})
         setError(null)
+        setRawText('')
         if (fileInputRef.current) {
             fileInputRef.current.value = ''
         }
@@ -397,7 +443,7 @@ export default function StatCapturePage() {
     const totalStats = recognizedStats.reduce((sum, cat) => sum + cat.stats.length, 0)
 
     return (
-        <main className={styles.main}>
+        <main className={styles.main} >
             <div className={styles.container}>
                 {/* 헤더 */}
                 <header className={styles.header}>
@@ -489,10 +535,31 @@ export default function StatCapturePage() {
                                 '인식 결과'
                             )}
                         </h2>
-                        {totalStats > 0 && (
-                            <p className={styles.resultHint}>값을 클릭하여 수정할 수 있습니다.</p>
-                        )}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button
+                                className={styles.compareButton}
+                                onClick={() => setDebugMode(!debugMode)}
+                                style={{ backgroundColor: debugMode ? '#F59E0B' : 'transparent', border: debugMode ? 'none' : '1px solid rgba(255,255,255,0.1)' }}
+                            >
+                                <Eye size={16} />
+                                디버그
+                            </button>
+                            {totalStats > 0 && (
+                                <p className={styles.resultHint}>값을 클릭하여 수정할 수 있습니다.</p>
+                            )}
+                        </div>
                     </div>
+
+                    {debugMode && (
+                        <div className={styles.debugSection} style={{ padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', marginBottom: '16px' }}>
+                            <h4 style={{ color: '#F59E0B', marginBottom: '8px', fontSize: '14px' }}>OCR Raw Text</h4>
+                            <textarea
+                                value={rawText}
+                                readOnly
+                                style={{ width: '100%', height: '150px', background: '#111', color: '#ccc', fontSize: '12px', padding: '8px', border: '1px solid #333', borderRadius: '4px' }}
+                            />
+                        </div>
+                    )}
 
                     {recognizedStats.length > 0 ? (
                         <div className={styles.statsContainer}>
@@ -525,7 +592,7 @@ export default function StatCapturePage() {
                                                     {category.stats.map((stat, idx) => (
                                                         <div key={idx} className={styles.statItem}>
                                                             <span className={styles.statName}>{stat.name}</span>
-                                                            {editingIndex?.categoryId === category.id && editingIndex.statIndex === idx ? (
+                                                            {editingIndex?.categoryId === category.id && editingIndex.index === idx ? (
                                                                 <input
                                                                     type="text"
                                                                     defaultValue={stat.value}
@@ -543,7 +610,7 @@ export default function StatCapturePage() {
                                                             ) : (
                                                                 <span
                                                                     className={styles.statValue}
-                                                                    onClick={() => setEditingIndex({ categoryId: category.id, statIndex: idx })}
+                                                                    onClick={() => setEditingIndex({ categoryId: category.id, index: idx })}
                                                                     title="클릭하여 수정"
                                                                 >
                                                                     {stat.value}
@@ -566,7 +633,7 @@ export default function StatCapturePage() {
                                                 {category.stats.map((stat, idx) => (
                                                     <div key={idx} className={styles.statItem}>
                                                         <span className={styles.statName}>{stat.name}</span>
-                                                        {editingIndex?.categoryId === category.id && editingIndex.statIndex === idx ? (
+                                                        {editingIndex?.categoryId === category.id && editingIndex.index === idx ? (
                                                             <input
                                                                 type="text"
                                                                 defaultValue={stat.value}
@@ -584,7 +651,7 @@ export default function StatCapturePage() {
                                                         ) : (
                                                             <span
                                                                 className={styles.statValue}
-                                                                onClick={() => setEditingIndex({ categoryId: category.id, statIndex: idx })}
+                                                                onClick={() => setEditingIndex({ categoryId: category.id, index: idx })}
                                                                 title="클릭하여 수정"
                                                             >
                                                                 {stat.value}
@@ -644,12 +711,13 @@ export default function StatCapturePage() {
             <canvas ref={canvasRef} style={{ display: 'none' }} />
 
             {/* OCR 워커 iframe */}
-            <iframe
+            < iframe
                 ref={workerRef}
                 src="/ocr-worker/index.html"
-                style={{ display: 'none' }}
+                style={{ display: 'none' }
+                }
                 title="OCR Worker"
             />
-        </main>
+        </main >
     )
 }

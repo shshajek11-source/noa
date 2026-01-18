@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePartyDetail } from '@/hooks/usePartyDetail'
@@ -9,7 +10,9 @@ import { getTimeOfDay, getRelativeTime, getRemainingTime } from '@/types/party'
 import { SERVERS } from '@/app/constants/servers'
 import SlotCard from '../components/SlotCard'
 import PartyComments from '../components/PartyComments'
-import ApplyModal from '../components/ApplyModal'
+
+// 모달 지연 로딩 (신청 버튼 클릭 시에만 로드)
+const ApplyModal = dynamic(() => import('../components/ApplyModal'), { ssr: false })
 import PartyDebugPanel from '../components/PartyDebugPanel'
 import styles from './page.module.css'
 

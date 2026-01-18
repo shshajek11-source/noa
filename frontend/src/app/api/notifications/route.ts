@@ -1,24 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const SUPABASE_URL = 'https://mnbngmdjiszyowfvnzhk.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uYm5nbWRqaXN6eW93ZnZuemhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTY0ODAsImV4cCI6MjA4MjU3MjQ4MH0.AIvvGxd_iQKpQDbmOBoe4yAmii1IpB92Pp7Scs8Lz7U'
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-
-// 사용자 인증 헬퍼
-async function getUserFromRequest(request: NextRequest) {
-  const deviceId = request.headers.get('X-Device-ID') || request.headers.get('x-device-id')
-  if (!deviceId) return null
-
-  const { data: user } = await supabase
-    .from('ledger_users')
-    .select('id, device_id')
-    .eq('device_id', deviceId)
-    .single()
-
-  return user
-}
+import { supabase } from '../../../lib/supabaseClient'
+import { getUserFromRequest } from '../../../lib/auth'
 
 // GET: 알림 목록 조회
 export async function GET(request: NextRequest) {

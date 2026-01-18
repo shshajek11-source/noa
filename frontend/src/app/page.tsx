@@ -10,6 +10,7 @@ import RecentCharacterCard from './components/RecentCharacterCard'
 import LiveStreamContainer from './components/live/LiveStreamContainer'
 import OfficialNewsFeed from './components/home/news/OfficialNewsFeed'
 import { RecentCharacter } from '../types/character'
+import styles from './Home.module.css'
 
 export default function Home() {
     const router = useRouter()
@@ -97,32 +98,13 @@ export default function Home() {
     }
 
     return (
-        <main style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '2rem 1rem'
-        }}>
-            {/* Main Content Info Grid */}
-            <style>{`
-                .home-grid {
-                    display: grid;
-                    grid-template-columns: 1fr;
-                    gap: 1.5rem;
-                    margin-bottom: 2rem;
-                }
-                @media (min-width: 1024px) {
-                    .home-grid {
-                        grid-template-columns: 2.2fr 1fr;
-                    }
-                }
-            `}</style>
-
+        <main className="container" style={{ padding: '2rem 1rem' }}>
             {/* Live Stream Section */}
             <div style={{ marginBottom: '2rem' }}>
                 <LiveStreamContainer />
             </div>
 
-            <div className="home-grid">
+            <div className={styles.homeGrid}>
                 {/* Phase 2: Ranking - Main Column */}
                 <div>
                     <RankingWidget />
@@ -136,27 +118,14 @@ export default function Home() {
                 </div>
             </div>
 
-
-
             {/* Phase 3: Floating Compare Bar */}
             <CompareQuickBar />
 
             {/* Recent Characters Section */}
             {recentCharacters.length > 0 && (
                 <div>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: '1rem',
-                        padding: '0 4px'
-                    }}>
-                        <h3 style={{
-                            fontSize: 'calc(0.9rem + 2px)',
-                            fontWeight: 'bold',
-                            color: '#9CA3AF',
-                            margin: 0
-                        }}>
+                    <div className={styles.sectionHeader}>
+                        <h3 className={styles.sectionTitle} style={{ color: 'var(--text-secondary)' }}>
                             최근 검색한 캐릭터
                         </h3>
                         <button
@@ -167,8 +136,8 @@ export default function Home() {
                             style={{
                                 background: 'none',
                                 border: 'none',
-                                color: '#6B7280',
-                                fontSize: 'calc(0.8rem + 2px)',
+                                color: 'var(--text-disabled)',
+                                fontSize: '0.875rem',
                                 cursor: 'pointer',
                                 textDecoration: 'underline'
                             }}
@@ -182,7 +151,7 @@ export default function Home() {
                         flexDirection: 'column',
                         borderRadius: '12px',
                         overflow: 'hidden',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        border: '1px solid var(--border)',
                         background: 'rgba(255, 255, 255, 0.02)'
                     }}>
                         {recentCharacters.slice(0, 5).map((char) => (
@@ -201,12 +170,12 @@ export default function Home() {
                 <div style={{
                     textAlign: 'center',
                     padding: '4rem 0',
-                    color: '#6B7280'
+                    color: 'var(--text-disabled)'
                 }}>
-                    <p style={{ fontSize: 'calc(1.1rem + 2px)', marginBottom: '0.5rem' }}>
+                    <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
                         검색한 캐릭터가 없습니다
                     </p>
-                    <p style={{ fontSize: 'calc(0.9rem + 2px)' }}>
+                    <p style={{ fontSize: '0.9rem' }}>
                         위 검색창에서 캐릭터를 검색해보세요!
                     </p>
                 </div>

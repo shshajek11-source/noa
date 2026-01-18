@@ -90,30 +90,31 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
     // 현재 조회 중인 characterId 추적
     const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
 
-    // 백그라운드 상세 조회 로직 (순차 조회 + 딜레이로 Rate Limit 방지)
+    // 백그라운드 상세 조회 로직 (noa_score 없는 캐릭터 자동 조회)
     useEffect(() => {
         if (!isVisible || results.length === 0 || !onDetailsFetched) return
 
-        // DB에 item_level이 없는 캐릭터 필터링 (아직 조회 안 한 것만)
+        // 상세 조회가 필요한 캐릭터 필터링:
+        // - noa_score가 없는 경우 (DB/API 무관하게 모두 조회)
+        // - 이미 조회 요청 안 한 경우
         const needsFetch = results.filter(char =>
             char.characterId &&
             char.server_id &&
-            (!char.item_level || char.item_level === 0) &&
+            !char.noa_score &&  // noa_score가 없는 경우
             !fetchedIdsRef.current.has(char.characterId)
         )
 
         if (needsFetch.length === 0) return
 
-        // 취소 플래그 - 검색어 바뀌면 이전 조회 중단
         let cancelled = false
 
-        // 순차 조회 (조회 시작 전 2초 대기, 조회 간격 8초)
         const fetchSequentially = async () => {
-            // 검색 결과 안정화 대기 (2초)
-            await new Promise(resolve => setTimeout(resolve, 2000))
+            // 짧은 대기 후 조회 시작
+            await new Promise(resolve => setTimeout(resolve, 500))
             if (cancelled) return
 
-            for (const char of needsFetch.slice(0, 1)) { // 최대 1개만
+            // 전체 순차 조회 (데이터 축적 목적)
+            for (const char of needsFetch) {
                 if (cancelled) break
                 if (fetchedIdsRef.current.has(char.characterId)) continue
 
@@ -140,16 +141,11 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                         return next
                     })
                 }
-
-                if (cancelled) break
-                // Rate Limit 방지: 8초 대기
-                await new Promise(resolve => setTimeout(resolve, 8000))
             }
         }
 
         fetchSequentially()
 
-        // cleanup: 검색어 바뀌면 취소
         return () => {
             cancelled = true
         }
@@ -308,15 +304,18 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                                     >
                                         {char.name.replace(/<\/?[^>]+(>|$)/g, '')}
                                     </span>
-                                    {char.noa_score !== undefined && char.noa_score > 0 && (
-                                        <span style={{
-                                            color: '#fbbf24',
-                                            fontSize: '12px',
-                                            fontWeight: '700',
-                                            flexShrink: 0
-                                        }}>
-                                            {formatNumber(char.noa_score)}
-                                        </span>
+                                    {/* PVE/PVP 전투력 표시 */}
+                                    {(char.pve_score || char.noa_score) && (
+                                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0, fontSize: '11px' }}>
+                                            <span style={{ color: '#4ade80', fontWeight: '600' }}>
+                                                E {formatNumber(char.pve_score || char.noa_score)}
+                                            </span>
+                                            {char.pvp_score !== undefined && char.pvp_score > 0 && (
+                                                <span style={{ color: '#f87171', fontWeight: '600' }}>
+                                                    P {formatNumber(char.pvp_score)}
+                                                </span>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
 

@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import { Search } from 'lucide-react'
 import EnhancedItemCard, { EnhancedLedgerItem } from './EnhancedItemCard'
 import FavoriteItemsPanel, { FavoriteItem } from './FavoriteItemsPanel'
-import ItemRegisterModal from './ItemRegisterModal'
+
+// 모달 지연 로딩 (아이템 등록 버튼 클릭 시에만 로드)
+const ItemRegisterModal = dynamic(() => import('./ItemRegisterModal'), { ssr: false })
 import styles from './ItemManagementTab.module.css'
 
 // 등급 색상 (즐겨찾기와 동일하게 통일)

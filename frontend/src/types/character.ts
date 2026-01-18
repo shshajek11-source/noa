@@ -21,8 +21,10 @@ export interface RankingCharacter {
     guild_name?: string;
     combat_power?: number;
     profile_image?: string;
-    noa_score?: number;        // HITON 전투력 (DB 컬럼명)
+    noa_score?: number;        // HITON 전투력 (DB 컬럼명, 호환성)
     hiton_score?: number;      // HITON 전투력 (별칭)
+    pve_score?: number;        // PVE 전투력
+    pvp_score?: number;        // PVP 전투력
     ranking_ap?: number;
     ranking_gp?: number;
     item_level?: number;       // 아이템 레벨

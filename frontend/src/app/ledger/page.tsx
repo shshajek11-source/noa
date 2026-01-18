@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { Wallet, HelpCircle, X } from 'lucide-react'
 import {
   useDeviceId,
@@ -20,11 +21,13 @@ import WeeklyContentSection from './components/WeeklyContentSection'
 import DailyContentSection from './components/DailyContentSection'
 import ItemSection from './components/ItemSection'
 import ItemManagementTab from './components/ItemManagementTab'
-import AddCharacterModal from './components/AddCharacterModal'
-import AddItemModal from './components/AddItemModal'
-import CalendarModal from './components/CalendarModal'
-import MainCharacterModal from '@/components/MainCharacterModal'
 import LedgerLoginRequired from './components/LedgerLoginRequired'
+
+// 모달 컴포넌트 지연 로딩 (클릭 시에만 로드)
+const AddCharacterModal = dynamic(() => import('./components/AddCharacterModal'), { ssr: false })
+const AddItemModal = dynamic(() => import('./components/AddItemModal'), { ssr: false })
+const CalendarModal = dynamic(() => import('./components/CalendarModal'), { ssr: false })
+const MainCharacterModal = dynamic(() => import('@/components/MainCharacterModal'), { ssr: false })
 import { useAuth } from '@/context/AuthContext'
 import { getGameDate, getWeekKey } from './utils/dateUtils'
 import styles from './ledger.module.css'
@@ -991,6 +994,7 @@ export default function LedgerPage() {
         }))}
         onClose={() => setShowDateModal(false)}
         onSelectDate={setSelectedDate}
+        getAuthHeader={getAuthHeader}
       />
 
       {/* 대표 캐릭터 설정 모달 */}

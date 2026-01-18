@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ExternalLink, Eye, RefreshCw } from 'lucide-react'
+import styles from '@/app/Home.module.css'
 
 interface NewsItem {
     id: string
@@ -66,50 +67,23 @@ export default function OfficialNewsFeed() {
 
     if (loading) {
         return (
-            <section style={{
-                marginTop: '1.5rem',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
-                borderRadius: '12px',
-                padding: '1.25rem',
-                border: '1px solid rgba(255,255,255,0.05)'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{
-                        width: '16px',
-                        height: '16px',
-                        border: '2px solid rgba(255,255,255,0.1)',
-                        borderTopColor: 'var(--brand-red-main)',
-                        borderRadius: '50%',
-                        animation: 'spin 0.8s linear infinite'
-                    }} />
-                    <span style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.85rem + 2px)' }}>공식 소식 로딩중...</span>
+            <section className={styles.sectionCard}>
+                <div className={styles.loadingState}>
+                    <div className={styles.loadingSpinner} />
+                    <span>공식 소식 로딩중...</span>
                 </div>
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </section>
         )
     }
 
     if (error) {
         return (
-            <section style={{
-                marginTop: '1.5rem',
-                background: 'rgba(248, 113, 113, 0.1)',
-                borderRadius: '12px',
-                padding: '1.25rem',
-                border: '1px solid rgba(248, 113, 113, 0.3)'
-            }}>
-                <div style={{ color: '#f87171', fontSize: 'calc(0.85rem + 2px)', textAlign: 'center' }}>
+            <section className={styles.errorState}>
+                <div style={{ color: 'var(--danger)', fontSize: '0.9rem', textAlign: 'center' }}>
                     공식 소식을 불러올 수 없습니다
                     <button
                         onClick={fetchNews}
-                        style={{
-                            marginLeft: '0.5rem',
-                            background: 'none',
-                            border: 'none',
-                            color: '#f87171',
-                            cursor: 'pointer',
-                            textDecoration: 'underline'
-                        }}
+                        className={styles.retryButton}
                     >
                         다시 시도
                     </button>
@@ -119,40 +93,16 @@ export default function OfficialNewsFeed() {
     }
 
     return (
-        <section style={{
-            marginTop: '1.5rem',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
-            borderRadius: '12px',
-            padding: '1.25rem',
-            border: '1px solid rgba(255,255,255,0.05)'
-        }}>
+        <section className={styles.sectionCard}>
             {/* Header */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '1rem'
-            }}>
-                <h2 style={{
-                    fontSize: 'calc(0.9rem + 2px)',
-                    fontWeight: 'bold',
-                    color: '#9CA3AF',
-                    letterSpacing: '-0.02em',
-                    margin: 0
-                }}>
+            <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
                     공식 업데이트
                 </h2>
                 <Link
                     href="https://aion2.plaync.com/ko-kr/board/update/list"
                     target="_blank"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        color: 'var(--text-secondary)',
-                        fontSize: 'calc(0.75rem + 2px)',
-                        textDecoration: 'none'
-                    }}
+                    className={styles.sectionLink}
                 >
                     더보기 <ExternalLink size={12} />
                 </Link>
@@ -165,68 +115,22 @@ export default function OfficialNewsFeed() {
                         key={item.id}
                         href={item.link}
                         target="_blank"
-                        style={{ textDecoration: 'none' }}
+                        className={styles.newsItem}
                     >
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.75rem',
-                            padding: '0.6rem 0.75rem',
-                            borderRadius: '8px',
-                            background: 'rgba(255,255,255,0.02)',
-                            border: '1px solid rgba(255,255,255,0.03)',
-                            transition: 'all 0.15s ease',
-                            cursor: 'pointer'
-                        }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
-                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.03)'
-                            }}
-                        >
-                            {/* Date Badge */}
-                            <div style={{
-                                minWidth: '40px',
-                                padding: '2px 6px',
-                                background: 'var(--brand-red-main)',
-                                borderRadius: '4px',
-                                fontSize: 'calc(0.7rem + 2px)',
-                                fontWeight: 600,
-                                color: '#fff',
-                                textAlign: 'center'
-                            }}>
-                                {formatDate(item.postedAt)}
-                            </div>
+                        {/* Date Badge */}
+                        <div className={styles.newsDateBadge}>
+                            {formatDate(item.postedAt)}
+                        </div>
 
-                            {/* Title */}
-                            <div style={{
-                                flex: 1,
-                                fontSize: 'calc(0.85rem + 2px)',
-                                color: 'var(--text-main)',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                lineHeight: 1.4
-                            }}>
-                                {item.title.replace(/\[안내\]\s*/g, '')}
-                            </div>
+                        {/* Title */}
+                        <div className={styles.newsTitle}>
+                            {item.title.replace(/\[안내\]\s*/g, '')}
+                        </div>
 
-                            {/* View Count */}
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                fontSize: 'calc(0.7rem + 2px)',
-                                color: 'var(--text-disabled)',
-                                minWidth: '50px',
-                                justifyContent: 'flex-end'
-                            }}>
-                                <Eye size={11} />
-                                {formatViewCount(item.viewCount)}
-                            </div>
+                        {/* View Count */}
+                        <div className={styles.newsMeta}>
+                            <Eye size={11} />
+                            {formatViewCount(item.viewCount)}
                         </div>
                     </Link>
                 ))}

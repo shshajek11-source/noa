@@ -23,6 +23,12 @@ interface OcrOptions {
     sharpness: boolean
     psm: string
     lang: string
+    // Advanced
+    adaptiveThreshold: boolean
+    adaptiveWindow: number
+    adaptiveC: number
+    morphology: 'none' | 'erode' | 'dilate' | 'open' | 'close'
+    morphologyKernel: number
 }
 
 const DEFAULT_OPTIONS: OcrOptions = {
@@ -35,7 +41,13 @@ const DEFAULT_OPTIONS: OcrOptions = {
     scale: 1.5,
     sharpness: false,
     psm: '6',
-    lang: 'kor+eng'
+    lang: 'kor+eng',
+    // Advanced Default
+    adaptiveThreshold: false,
+    adaptiveWindow: 10,
+    adaptiveC: 5,
+    morphology: 'none',
+    morphologyKernel: 1
 }
 
 const PSM_MODES = [
@@ -46,6 +58,102 @@ const PSM_MODES = [
     { value: '11', label: '11 - Sparse Text (Find text)' },
     { value: '12', label: '12 - Sparse Text with OSD' },
 ]
+
+// --- Image Processing Helpers ---
+
+function applyAdaptiveThreshold(data: Uint8ClampedArray, width: number, height: number, windowSize: number, constantC: number) {
+    const integral = new Int32Array(width * height)
+
+    // 1. Calculate Integral Image
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const i = (y * width + x) * 4
+            const val = data[i] // Assuming grayscale
+
+            let sum = val
+            if (x > 0) sum += integral[y * width + (x - 1)]
+            if (y > 0) sum += integral[(y - 1) * width + x]
+            if (x > 0 && y > 0) sum -= integral[(y - 1) * width + (x - 1)]
+
+            integral[y * width + x] = sum
+        }
+    }
+
+    // 2. Apply Threshold
+    const s2 = Math.floor(windowSize / 2)
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const x1 = Math.max(0, x - s2)
+            const y1 = Math.max(0, y - s2)
+            const x2 = Math.min(width - 1, x + s2)
+            const y2 = Math.min(height - 1, y + s2)
+
+            const count = (x2 - x1 + 1) * (y2 - y1 + 1)
+
+            let sum = integral[y2 * width + x2]
+            if (x1 > 0) sum -= integral[y2 * width + (x1 - 1)]
+            if (y1 > 0) sum -= integral[(y1 - 1) * width + x2]
+            if (x1 > 0 && y1 > 0) sum += integral[(y1 - 1) * width + (x1 - 1)]
+
+            const mean = sum / count
+            const i = (y * width + x) * 4
+            const val = data[i]
+
+            // If pixel is significantly darker than background (mean), it's text (0)
+            // Otherwise background (255)
+            // Note: Since we might invert LATER, or we want standard logic:
+            // Standard: Text is Dark (0), BG is Light (255). 
+            // Threshold: val < mean - C ? 0 : 255
+
+            const bin = val < (mean - constantC) ? 0 : 255
+
+            data[i] = data[i + 1] = data[i + 2] = bin
+        }
+    }
+}
+
+function applyMorphology(data: Uint8ClampedArray, width: number, height: number, type: 'erode' | 'dilate', radius: number) {
+    // Erode: Minimum in kernel (Thins white regions, expands black)
+    // Dilate: Maximum in kernel (Expands white regions, shrinks black)
+    // Note: If text is BLACK (0), Erode will EXPAND text (because MIN(255, 0) = 0). 
+    // Wait, Erode usually means "Erode Foreground". If Foreground is White (255), Erode shrinks it.
+    // If we assume Text is Black (0) and BG is White (255):
+    // Erode (Min) will find 0s and spread them -> Makes text BOLDER.
+    // Dilate (Max) will find 255s and spread them -> Makes text THINNER.
+
+    const output = new Uint8ClampedArray(data)
+    // We only process one channel since it's grayscale
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            let min = 255
+            let max = 0
+
+            const yStart = Math.max(0, y - radius)
+            const yEnd = Math.min(height - 1, y + radius)
+            const xStart = Math.max(0, x - radius)
+            const xEnd = Math.min(width - 1, x + radius)
+
+            // Kernel Loop
+            for (let ky = yStart; ky <= yEnd; ky++) {
+                for (let kx = xStart; kx <= xEnd; kx++) {
+                    const val = data[(ky * width + kx) * 4]
+                    if (val < min) min = val
+                    if (val > max) max = val
+                }
+            }
+
+            const i = (y * width + x) * 4
+            const newVal = type === 'erode' ? min : max
+
+            output[i] = output[i + 1] = output[i + 2] = newVal
+        }
+    }
+
+    // Copy back
+    data.set(output)
+}
 
 export default function OcrTestPage() {
     // --- State ---
@@ -135,30 +243,8 @@ export default function OcrTestPage() {
                 if (!ctx) return
 
                 // Scaling logic
-                // If crop is active, we should crop from the original image based on relative coordinates
-                // But for simplicity in this sandbox, let's process the WHOLE image first (brightness/contrast)
-                // AND THEN crop it. Or crop first?
-                // Cropping first is more efficient but coordinate mapping from UI is tricky.
-
-                // Let's draw the full image scaled first
                 const scaledWidth = img.width * options.scale
                 const scaledHeight = img.height * options.scale
-
-                // If crop exists, canvas size is crop size
-                // We need to map cropRect (which is in display percentages or pixels of the CONTAINER) to actual image pixels.
-                // This is complex because the image is "object-fit: contain".
-
-                // Simplified Approach: 
-                // We will implement Crop "Visually" by just passing variables to the worker? 
-                // No, we should actually send the cropped image to the worker.
-
-                // Let's stick to full image processing for now unless I implement robust coordinate mapping.
-                // WAIT! Users want to see the effect of their crop.
-                // So I will implement a "Basic" version where we only process, but if I add crop later...
-                // Actually, the plan said "Implement ROI / Cropping".
-                // I will add the UI for it, but calculating exact pixels from "object-fit: contain" image is hard without more code.
-                // I will modify the logic to use the Full Image for now, and standard processing. 
-                // IF cropRect is defined, we crop the result canvas.
 
                 canvas.width = scaledWidth
                 canvas.height = scaledHeight
@@ -168,55 +254,72 @@ export default function OcrTestPage() {
                 let imageData = ctx.getImageData(0, 0, scaledWidth, scaledHeight)
                 let data = imageData.data
 
-                // 2. Adjust Brightness & Contrast
+                // 2. Adjust Brightness & Contrast & Grayscale & Invert
+                // Note: We process basic filters first
                 const contrastFactor = (259 * (options.contrast * 255 + 255)) / (255 * (259 - options.contrast * 255))
 
                 for (let i = 0; i < data.length; i += 4) {
                     // Brightness
-                    data[i] += options.brightness
-                    data[i + 1] += options.brightness
-                    data[i + 2] += options.brightness
+                    let r = data[i] + options.brightness
+                    let g = data[i + 1] + options.brightness
+                    let b = data[i + 2] + options.brightness
 
                     // Contrast
-                    data[i] = contrastFactor * (data[i] - 128) + 128
-                    data[i + 1] = contrastFactor * (data[i + 1] - 128) + 128
-                    data[i + 2] = contrastFactor * (data[i + 2] - 128) + 128
+                    r = contrastFactor * (r - 128) + 128
+                    g = contrastFactor * (g - 128) + 128
+                    b = contrastFactor * (b - 128) + 128
 
-                    // Grayscale
-                    if (options.grayscale) {
-                        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3
-                        data[i] = data[i + 1] = data[i + 2] = avg
+                    // Clamp
+                    r = Math.max(0, Math.min(255, r))
+                    g = Math.max(0, Math.min(255, g))
+                    b = Math.max(0, Math.min(255, b))
+
+                    // Grayscale (Required for Adaptive or just option)
+                    // If Adaptive is ON, we force effective grayscale storage
+                    if (options.grayscale || options.adaptiveThreshold) {
+                        const avg = (r + g + b) / 3
+                        r = g = b = avg
                     }
 
-                    // Invert
+                    // Invert (Before Thresholding)
                     if (options.invert) {
-                        data[i] = 255 - data[i]
-                        data[i + 1] = 255 - data[i + 1]
-                        data[i + 2] = 255 - data[i + 2]
+                        r = 255 - r
+                        g = 255 - g
+                        b = 255 - b
                     }
-                    // Threshold (Binarization)
-                    if (options.grayscale) {
+
+                    data[i] = r
+                    data[i + 1] = g
+                    data[i + 2] = b
+                }
+
+                // 3. Thresholding
+                if (options.adaptiveThreshold) {
+                    applyAdaptiveThreshold(data, scaledWidth, scaledHeight, options.adaptiveWindow, options.adaptiveC)
+                } else if (options.grayscale) {
+                    // Standard Global Threshold
+                    for (let i = 0; i < data.length; i += 4) {
                         const v = data[i]
                         const bin = v > options.threshold ? 255 : 0
                         data[i] = data[i + 1] = data[i + 2] = bin
                     }
                 }
 
-                ctx.putImageData(imageData, 0, 0)
-
-                // Crop Handling (Post-Processing Crop)
-                // If we have a crop rect, we cut that part out.
-                // NOTE: The cropRect is in % relative to the container. We need to map it to the canvas.
-                // This is extremely tricky to do accurately in a few lines because of `object-fit: contain`.
-                // For now, I will SKIP the actual Canvas Cropping logic to avoid breaking the image alignment, 
-                // but I will leave the UI ready.
-                // TODO: Implement exact coordinate mapping for object-fit: contain.
-
-                if (cropRect && previewContainerRef.current) {
-                    // Placeholder for cropping logic
-                    // We would need the displayed image dimensions vs actual image dimensions.
+                // 4. Morphology
+                if (options.morphology !== 'none') {
+                    if (options.morphology === 'erode') applyMorphology(data, scaledWidth, scaledHeight, 'erode', options.morphologyKernel)
+                    if (options.morphology === 'dilate') applyMorphology(data, scaledWidth, scaledHeight, 'dilate', options.morphologyKernel)
+                    if (options.morphology === 'open') {
+                        applyMorphology(data, scaledWidth, scaledHeight, 'erode', options.morphologyKernel)
+                        applyMorphology(data, scaledWidth, scaledHeight, 'dilate', options.morphologyKernel)
+                    }
+                    if (options.morphology === 'close') {
+                        applyMorphology(data, scaledWidth, scaledHeight, 'dilate', options.morphologyKernel)
+                        applyMorphology(data, scaledWidth, scaledHeight, 'erode', options.morphologyKernel)
+                    }
                 }
 
+                ctx.putImageData(imageData, 0, 0)
                 setProcessedImageSrc(canvas.toDataURL('image/png'))
 
             } catch (e) {
@@ -430,83 +533,91 @@ export default function OcrTestPage() {
 
                     {/* --- TAB: TUNE --- */}
                     {activeTab === 'tune' && (
-                        <div className="space-y-6 animate-fadeIn">
-                            {/* Scale */}
-                            <div className={styles.controlGroup}>
-                                <div className={styles.controlHeader}>
-                                    <div className={styles.controlLabel}><ZoomIn className="w-3 h-3 text-[var(--brand-orange)]" /> PRE-SCALE</div>
-                                    <div className={styles.controlActions}>
-                                        <span className={styles.controlValue}>{options.scale}x</span>
-                                        <button onClick={() => handleResetOption('scale')} className={styles.resetBtn}><RotateCcw className="w-3 h-3" /></button>
+                        <div className="space-y-6 animate-fadeIn pb-10">
+                            {/* Basic Controls Group */}
+                            <div className="space-y-4">
+                                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Basic Adjustments</h3>
+
+                                {/* Scale */}
+                                <div className={styles.controlGroup}>
+                                    <div className={styles.controlHeader}>
+                                        <div className={styles.controlLabel}><ZoomIn className="w-3 h-3 text-[var(--brand-orange)]" /> PRE-SCALE</div>
+                                        <div className={styles.controlActions}>
+                                            <span className={styles.controlValue}>{options.scale}x</span>
+                                            <button onClick={() => handleResetOption('scale')} className={styles.resetBtn}><RotateCcw className="w-3 h-3" /></button>
+                                        </div>
+                                    </div>
+                                    <div className={styles.rangeContainer}>
+                                        <input
+                                            type="range" min="0.5" max="4.0" step="0.1"
+                                            value={options.scale}
+                                            onChange={e => setOptions({ ...options, scale: Number(e.target.value) })}
+                                            className={styles.rangeInput}
+                                        />
                                     </div>
                                 </div>
-                                <div className={styles.rangeContainer}>
-                                    <input
-                                        type="range" min="0.5" max="4.0" step="0.1"
-                                        value={options.scale}
-                                        onChange={e => setOptions({ ...options, scale: Number(e.target.value) })}
-                                        className={styles.rangeInput}
-                                    />
-                                </div>
-                            </div>
 
-                            {/* Brightness */}
-                            <div className={styles.controlGroup}>
-                                <div className={styles.controlHeader}>
-                                    <div className={styles.controlLabel}><Sun className="w-3 h-3 text-[var(--brand-orange)]" /> BRIGHTNESS</div>
-                                    <div className={styles.controlActions}>
-                                        <span className={styles.controlValue}>{options.brightness}</span>
-                                        <button onClick={() => handleResetOption('brightness')} className={styles.resetBtn}><RotateCcw className="w-3 h-3" /></button>
+                                {/* Brightness */}
+                                <div className={styles.controlGroup}>
+                                    <div className={styles.controlHeader}>
+                                        <div className={styles.controlLabel}><Sun className="w-3 h-3 text-[var(--brand-orange)]" /> BRIGHTNESS</div>
+                                        <div className={styles.controlActions}>
+                                            <span className={styles.controlValue}>{options.brightness}</span>
+                                            <button onClick={() => handleResetOption('brightness')} className={styles.resetBtn}><RotateCcw className="w-3 h-3" /></button>
+                                        </div>
+                                    </div>
+                                    <div className={styles.rangeContainer}>
+                                        <input
+                                            type="range" min="-100" max="100" step="5"
+                                            value={options.brightness}
+                                            onChange={e => setOptions({ ...options, brightness: Number(e.target.value) })}
+                                            className={styles.rangeInput}
+                                        />
                                     </div>
                                 </div>
-                                <div className={styles.rangeContainer}>
-                                    <input
-                                        type="range" min="-100" max="100" step="5"
-                                        value={options.brightness}
-                                        onChange={e => setOptions({ ...options, brightness: Number(e.target.value) })}
-                                        className={styles.rangeInput}
-                                    />
-                                </div>
-                            </div>
 
-                            {/* Threshold */}
-                            <div className={styles.controlGroup}>
-                                <div className={styles.controlHeader}>
-                                    <div className={styles.controlLabel}><Sliders className="w-3 h-3 text-[var(--brand-orange)]" /> THRESHOLD</div>
-                                    <div className={styles.controlActions}>
-                                        <span className={styles.controlValue}>{options.threshold}</span>
-                                        <button onClick={() => handleResetOption('threshold')} className={styles.resetBtn}><RotateCcw className="w-3 h-3" /></button>
+                                {/* Contrast */}
+                                <div className={styles.controlGroup}>
+                                    <div className={styles.controlHeader}>
+                                        <div className={styles.controlLabel}>CONTRAST</div>
+                                        <div className={styles.controlActions}>
+                                            <span className={styles.controlValue}>{options.contrast}</span>
+                                            <button onClick={() => handleResetOption('contrast')} className={styles.resetBtn}><RotateCcw className="w-3 h-3" /></button>
+                                        </div>
+                                    </div>
+                                    <div className={styles.rangeContainer}>
+                                        <input
+                                            type="range" min="0.5" max="4.0" step="0.1"
+                                            value={options.contrast}
+                                            onChange={e => setOptions({ ...options, contrast: Number(e.target.value) })}
+                                            className={styles.rangeInput}
+                                        />
                                     </div>
                                 </div>
-                                <div className={styles.rangeContainer}>
-                                    <input
-                                        type="range" min="0" max="255"
-                                        value={options.threshold}
-                                        onChange={e => setOptions({ ...options, threshold: Number(e.target.value) })}
-                                        className={styles.rangeInput}
-                                    />
-                                </div>
-                            </div>
 
-                            {/* Contrast */}
-                            <div className={styles.controlGroup}>
-                                <div className={styles.controlHeader}>
-                                    <div className={styles.controlLabel}>CONTRAST</div>
-                                    <div className={styles.controlActions}>
-                                        <span className={styles.controlValue}>{options.contrast}</span>
-                                        <button onClick={() => handleResetOption('contrast')} className={styles.resetBtn}><RotateCcw className="w-3 h-3" /></button>
+                                {/* Global Threshold (Shown only if Adaptive is OFF) */}
+                                {!options.adaptiveThreshold && (
+                                    <div className={styles.controlGroup}>
+                                        <div className={styles.controlHeader}>
+                                            <div className={styles.controlLabel}><Sliders className="w-3 h-3 text-[var(--brand-orange)]" /> THRESHOLD</div>
+                                            <div className={styles.controlActions}>
+                                                <span className={styles.controlValue}>{options.threshold}</span>
+                                                <button onClick={() => handleResetOption('threshold')} className={styles.resetBtn}><RotateCcw className="w-3 h-3" /></button>
+                                            </div>
+                                        </div>
+                                        <div className={styles.rangeContainer}>
+                                            <input
+                                                type="range" min="0" max="255"
+                                                value={options.threshold}
+                                                onChange={e => setOptions({ ...options, threshold: Number(e.target.value) })}
+                                                className={styles.rangeInput}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                                <div className={styles.rangeContainer}>
-                                    <input
-                                        type="range" min="0.5" max="4.0" step="0.1"
-                                        value={options.contrast}
-                                        onChange={e => setOptions({ ...options, contrast: Number(e.target.value) })}
-                                        className={styles.rangeInput}
-                                    />
-                                </div>
+                                )}
                             </div>
 
+                            {/* Toggles */}
                             <div className={styles.toggleGrid}>
                                 <button
                                     onClick={() => setOptions({ ...options, grayscale: !options.grayscale })}
@@ -522,6 +633,101 @@ export default function OcrTestPage() {
                                     <div className="text-[10px] uppercase font-bold mb-1">Invert</div>
                                     <div className="text-xs opacity-70">{options.invert ? 'On' : 'Off'}</div>
                                 </button>
+                            </div>
+
+                            <div className="border-t border-[var(--border)] my-4"></div>
+
+                            {/* Advanced Controls Group */}
+                            <div className="space-y-4">
+                                <h3 className="text-[10px] font-bold text-[var(--brand-orange)] uppercase tracking-wider mb-2 flex items-center gap-2">
+                                    <Sliders className="w-3 h-3" /> Advanced Filters
+                                </h3>
+
+                                {/* Adaptive Threshold Toggle */}
+                                <div className="flex items-center justify-between p-3 bg-black/20 rounded border border-[var(--border)]">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-gray-200">Adaptive Threshold</span>
+                                        <span className="text-[10px] text-gray-500">Local binarization for shadows</span>
+                                    </div>
+                                    <button
+                                        onClick={() => setOptions({ ...options, adaptiveThreshold: !options.adaptiveThreshold })}
+                                        className={`w-10 h-5 rounded-full relative transition-colors ${options.adaptiveThreshold ? 'bg-[var(--primary)]' : 'bg-gray-700'}`}
+                                    >
+                                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${options.adaptiveThreshold ? 'left-6' : 'left-1'}`} />
+                                    </button>
+                                </div>
+
+                                {/* Adaptive Params */}
+                                {options.adaptiveThreshold && (
+                                    <div className="space-y-3 pl-2 border-l-2 border-[var(--primary)] animate-fadeIn">
+                                        {/* Window */}
+                                        <div className={styles.controlGroup}>
+                                            <div className={styles.controlHeader}>
+                                                <div className={styles.controlLabel}>WINDOW SIZE</div>
+                                                <span className={styles.controlValue}>{options.adaptiveWindow}px</span>
+                                            </div>
+                                            <div className={styles.rangeContainer}>
+                                                <input
+                                                    type="range" min="3" max="50" step="1"
+                                                    value={options.adaptiveWindow}
+                                                    onChange={e => setOptions({ ...options, adaptiveWindow: Number(e.target.value) })}
+                                                    className={styles.rangeInput}
+                                                />
+                                            </div>
+                                        </div>
+                                        {/* Constant C */}
+                                        <div className={styles.controlGroup}>
+                                            <div className={styles.controlHeader}>
+                                                <div className={styles.controlLabel}>CONSTANT (C)</div>
+                                                <span className={styles.controlValue}>{options.adaptiveC}</span>
+                                            </div>
+                                            <div className={styles.rangeContainer}>
+                                                <input
+                                                    type="range" min="0" max="50" step="1"
+                                                    value={options.adaptiveC}
+                                                    onChange={e => setOptions({ ...options, adaptiveC: Number(e.target.value) })}
+                                                    className={styles.rangeInput}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Morphology */}
+                                <div className={styles.controlGroup}>
+                                    <div className={styles.controlHeader}>
+                                        <div className={styles.controlLabel}>MORPHOLOGY</div>
+                                        <select
+                                            value={options.morphology}
+                                            onChange={(e: any) => setOptions({ ...options, morphology: e.target.value })}
+                                            className="bg-black/40 border border-[var(--border)] rounded text-[10px] px-2 py-1 outline-none text-gray-300"
+                                        >
+                                            <option value="none">None</option>
+                                            <option value="erode">Erode (Thicken)</option>
+                                            <option value="dilate">Dilate (Thin)</option>
+                                            <option value="open">Open (Clean)</option>
+                                            <option value="close">Close (Fill)</option>
+                                        </select>
+                                    </div>
+
+                                    {options.morphology !== 'none' && (
+                                        <div className="mt-2">
+                                            <div className={`${styles.controlHeader} mb-1`}>
+                                                <div className="text-[9px] text-gray-500">KERNEL SIZE</div>
+                                                <span className="text-[9px] text-gray-400">{options.morphologyKernel}px</span>
+                                            </div>
+                                            <div className={styles.rangeContainer}>
+                                                <input
+                                                    type="range" min="1" max="5" step="1"
+                                                    value={options.morphologyKernel}
+                                                    onChange={e => setOptions({ ...options, morphologyKernel: Number(e.target.value) })}
+                                                    className={styles.rangeInput}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
                             </div>
                         </div>
                     )}

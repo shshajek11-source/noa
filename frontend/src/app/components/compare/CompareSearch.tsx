@@ -26,7 +26,7 @@ export default function CompareSearch({ onSelect, placeholder = "캐릭터 검�
                 setResults([])
                 setShowResults(false)
             }
-        }, 300)
+        }, 150)
         return () => clearTimeout(timer)
     }, [name])
 

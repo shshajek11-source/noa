@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import styles from '@/app/Home.module.css'
 
 interface StatsData {
     elyosPercent: number
@@ -39,25 +40,11 @@ export default function ServerStatsDashboard() {
     // Loading State
     if (loading) {
         return (
-            <section style={{
-                marginBottom: '1rem',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
-                borderRadius: '12px',
-                padding: '1.25rem',
-                border: '1px solid rgba(255,255,255,0.05)'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{
-                        width: '16px',
-                        height: '16px',
-                        border: '2px solid rgba(255,255,255,0.1)',
-                        borderTopColor: 'var(--brand-red-main)',
-                        borderRadius: '50%',
-                        animation: 'spin 0.8s linear infinite'
-                    }} />
-                    <span style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.85rem + 2px)' }}>통계 로딩중...</span>
+            <section className={styles.sectionCard}>
+                <div className={styles.loadingState}>
+                    <div className={styles.loadingSpinner} />
+                    <span>통계 로딩중...</span>
                 </div>
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </section>
         )
     }
@@ -65,76 +52,92 @@ export default function ServerStatsDashboard() {
     // Error State
     if (error || !stats) {
         return (
-            <section style={{
-                marginBottom: '1rem',
-                background: 'rgba(248, 113, 113, 0.1)',
-                borderRadius: '12px',
-                padding: '1.25rem',
-                border: '1px solid rgba(248, 113, 113, 0.3)'
-            }}>
-                <div style={{ color: '#f87171', fontSize: 'calc(0.85rem + 2px)', textAlign: 'center' }}>
+            <section className={`${styles.sectionCard} ${styles.errorCard}`}>
+                <div className={styles.errorText}>
                     {error || '통계 데이터를 불러올 수 없습니다'}
                 </div>
             </section>
         )
     }
 
-    return (
-        <section style={{
-            marginBottom: '1rem',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
-            borderRadius: '12px',
-            padding: '1.25rem',
-            border: '1px solid rgba(255,255,255,0.05)'
-        }}>
-            <h2 style={{
-                fontSize: 'calc(0.9rem + 2px)',
-                fontWeight: 'bold',
-                color: '#9CA3AF',
-                letterSpacing: '-0.02em',
-                margin: 0,
-                marginBottom: '1rem'
-            }}>
-                서버 통계 현황
-            </h2>
+    // Calculate derived stats
+    const totalCharacters = stats.totalCharacters
+    const elyosCount = Math.round(totalCharacters * (stats.elyosPercent / 100))
+    const asmodianCount = Math.round(totalCharacters * (stats.asmodianPercent / 100))
 
-            {/* Race Balance */}
-            <div style={{ marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: 'calc(0.85rem + 2px)' }}>
-                    <span style={{ color: '#4BC0C0' }}>천족 {stats.elyosPercent}%</span>
-                    <span style={{ color: 'var(--text-disabled)' }}>전체 {stats.totalCharacters.toLocaleString()}명</span>
-                    <span style={{ color: '#FF6384' }}>마족 {stats.asmodianPercent}%</span>
+    return (
+        <section className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                    서버 현황
+                </h2>
+                <span className={styles.sectionMeta}>
+                    전체 {totalCharacters.toLocaleString()} 캐릭터
+                </span>
+            </div>
+
+            <div className={styles.dashboardGrid}>
+                {/* Elyos Stats */}
+                <div className={`${styles.dashboardStat} ${styles.elyosStat}`}>
+                    <div className={styles.statLabel}>천족</div>
+                    <div className={styles.statValue} style={{ color: 'var(--elyos)' }}>
+                        {elyosCount.toLocaleString()}
+                    </div>
+                    <div className={styles.statSubValue}>{stats.elyosPercent}%</div>
                 </div>
-                <div style={{ height: '6px', borderRadius: '3px', overflow: 'hidden', display: 'flex', background: 'rgba(255,255,255,0.05)' }}>
-                    <div style={{ width: `${stats.elyosPercent}%`, background: '#4BC0C0', transition: 'width 0.5s' }} />
-                    <div style={{ width: `${stats.asmodianPercent}%`, background: '#FF6384', transition: 'width 0.5s' }} />
+
+                {/* Ratio Bar */}
+                <div className={styles.ratioBarContainer}>
+                    <div className={styles.ratioBar}>
+                        <div
+                            className={styles.ratioSegment}
+                            style={{
+                                width: `${stats.elyosPercent}%`,
+                                backgroundColor: 'var(--elyos)'
+                            }}
+                        />
+                        <div
+                            className={styles.ratioSegment}
+                            style={{
+                                width: `${stats.asmodianPercent}%`,
+                                backgroundColor: 'var(--asmodian)'
+                            }}
+                        />
+                    </div>
+                </div>
+
+                {/* Asmodian Stats */}
+                <div className={`${styles.dashboardStat} ${styles.asmodianStat}`}>
+                    <div className={styles.statLabel}>마족</div>
+                    <div className={styles.statValue} style={{ color: 'var(--asmodian)' }}>
+                        {asmodianCount.toLocaleString()}
+                    </div>
+                    <div className={styles.statSubValue}>{stats.asmodianPercent}%</div>
                 </div>
             </div>
 
-            {/* Class Distribution - Mini */}
-            <div>
-                <h4 style={{ fontSize: 'calc(0.8rem + 2px)', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>인기 직업 TOP 3</h4>
+            {/* Top Classes */}
+            <div className={styles.classDistribution}>
+                <h4 className={styles.classDistributionTitle}>인기 직업 TOP 3</h4>
                 {stats.topClasses && stats.topClasses.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div className={styles.classItemList}>
                         {stats.topClasses.map((cls, idx) => (
-                            <div key={idx} style={{ display: 'flex', alignItems: 'center', fontSize: 'calc(0.85rem + 2px)' }}>
-                                <div style={{ width: '60px', color: 'var(--text-main)', fontSize: 'calc(0.8rem + 2px)' }}>{cls.name}</div>
-                                <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
-                                    <div style={{
-                                        width: `${cls.percent}%`,
-                                        height: '100%',
-                                        background: 'rgba(245, 158, 11, 0.8)',
-                                        transition: 'width 0.5s'
-                                    }} />
+                            <div key={idx} className={styles.classItem}>
+                                <div className={styles.className}>{cls.name}</div>
+                                <div className={styles.classProgressBar}>
+                                    <div
+                                        className={styles.classProgressBarFill}
+                                        style={{
+                                            width: `${cls.percent}%`
+                                        }}
+                                    />
                                 </div>
-                                <div style={{ width: '35px', textAlign: 'right', color: 'var(--text-secondary)', fontSize: 'calc(0.8rem + 2px)' }}>{cls.percent}%</div>
+                                <div className={styles.classPercent}>{cls.percent}%</div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)' }}>
-                        직업 데이터가 없습니다
-                    </div>
+                    <div className={styles.emptyState}>데이터 없음</div>
                 )}
             </div>
         </section>

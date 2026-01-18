@@ -8,7 +8,7 @@ import { Trophy, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react'
 import styles from './Ranking.module.css'
 import { SERVER_MAP } from '../../constants/servers'
 import { RankingCharacter } from '../../../types/character'
-import { getTierInfo, TierInfo } from '../../utils/combatPower'
+
 
 interface RankingTableProps {
     type: 'hiton' | 'cp' | 'content'
@@ -33,14 +33,7 @@ const getRankChange = (currentRank: number, prevRank?: number | null): RankChang
     return { type: 'down', amount: currentRank - prevRank }
 }
 
-// 티어 진급 체크 (Bronze → Silver → Gold → Platinum → Emerald → Sapphire → Ruby → Diamond)
-const checkTierPromotion = (currentTier: TierInfo, prevTierName?: string): boolean => {
-    if (!prevTierName) return false
-    const tierOrder = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Sapphire', 'Ruby', 'Diamond']
-    const currentIndex = tierOrder.indexOf(currentTier.tier)
-    const prevIndex = tierOrder.indexOf(prevTierName)
-    return currentIndex > prevIndex
-}
+
 
 const RankingSkeleton = () => (
     <div style={{ paddingBottom: '2rem' }}>
@@ -52,7 +45,6 @@ const RankingSkeleton = () => (
                     <th>캐릭터</th>
                     <th style={{ width: '100px', textAlign: 'center' }}>서버/종족</th>
                     <th style={{ width: '80px', textAlign: 'center' }}>아이템Lv</th>
-                    <th style={{ width: '90px', textAlign: 'center' }}>티어</th>
                     <th style={{ width: '120px', textAlign: 'right' }}>HITON 전투력</th>
                 </tr>
             </thead>
@@ -80,9 +72,7 @@ const RankingSkeleton = () => (
                         <td style={{ textAlign: 'center' }}>
                             <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '40px', margin: '0 auto' }}></div>
                         </td>
-                        <td style={{ textAlign: 'center' }}>
-                            <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '60px', margin: '0 auto' }}></div>
-                        </td>
+
                         <td style={{ textAlign: 'right' }}>
                             <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '80px', marginLeft: 'auto' }}></div>
                         </td>
@@ -151,37 +141,7 @@ const RankChangeCell = memo(function RankChangeCell({ change, prevRank, currentR
     )
 })
 
-// 티어 뱃지 컴포넌트 (오픈 레이아웃 - 카드 없음)
-const TierBadge = memo(function TierBadge({ tierInfo, isPromoted }: { tierInfo: TierInfo, isPromoted: boolean }) {
-    return (
-        <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            position: 'relative'
-        }}>
-            {isPromoted && <Sparkles className={styles.promotionSparkle} size={16} />}
-            {/* 보석 아이콘 - 2배 크기 (32px) */}
-            <Image
-                src={tierInfo.image}
-                alt={tierInfo.tier}
-                width={32}
-                height={32}
-                style={{ objectFit: 'contain' }}
-            />
-            {/* 티어명 (예: D5, R3, Sa1) */}
-            <span style={{
-                fontSize: '1rem',
-                fontWeight: 600,
-                color: tierInfo.color,
-                whiteSpace: 'nowrap'
-            }}>
-                {tierInfo.displayName}
-            </span>
-        </div>
-    )
-})
+
 
 export default function RankingTable({ type }: RankingTableProps) {
     const searchParams = useSearchParams()
@@ -257,15 +217,6 @@ export default function RankingTable({ type }: RankingTableProps) {
     // HITON 탭인 경우에만 확장 컬럼 표시
     const isHitonTab = type === 'hiton'
 
-    const getScoreLabel = () => {
-        switch (type) {
-            case 'hiton': return 'HITON 전투력'
-            case 'cp': return '전투력'
-            case 'content': return '어비스 포인트'
-            default: return '점수'
-        }
-    }
-
     const getScoreValue = (char: RankingCharacter) => {
         switch (type) {
             case 'hiton': return char.hiton_score?.toLocaleString() || 0
@@ -299,8 +250,13 @@ export default function RankingTable({ type }: RankingTableProps) {
                             <th>캐릭터</th>
                             <th style={{ width: '100px', textAlign: 'center' }}>서버/종족</th>
                             {isHitonTab && <th style={{ width: '80px', textAlign: 'center' }}>아이템Lv</th>}
-                            {isHitonTab && <th style={{ width: '90px', textAlign: 'center' }}>티어</th>}
-                            <th style={{ textAlign: 'right' }}>{getScoreLabel()}</th>
+                            {isHitonTab && (
+                                <>
+                                    <th style={{ width: '90px', textAlign: 'right' }}>PVE</th>
+                                    <th style={{ width: '90px', textAlign: 'right' }}>PVP</th>
+                                </>
+                            )}
+                            {!isHitonTab && <th style={{ textAlign: 'right' }}>{type === 'cp' ? '전투력' : '어비스 포인트'}</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -309,8 +265,6 @@ export default function RankingTable({ type }: RankingTableProps) {
                             const rankChange = getRankChange(currentRank, char.prev_rank)
                             // 1등 전투력 기준으로 티어 계산 (상대 평가)
                             const topPower = data[0]?.hiton_score || char.hiton_score || 1
-                            const tierInfo = getTierInfo(char.hiton_score || 0, topPower)
-                            const isPromoted = checkTierPromotion(tierInfo, char.prev_tier)
 
                             return (
                                 <tr
@@ -319,7 +273,7 @@ export default function RankingTable({ type }: RankingTableProps) {
                                         ${idx === 0 ? styles.rankRow1 : ''}
                                         ${idx === 1 ? styles.rankRow2 : ''}
                                         ${idx === 2 ? styles.rankRow3 : ''}
-                                        ${isPromoted && isHitonTab ? styles.promotedRow : ''}
+                                        ${idx === 2 ? styles.rankRow3 : ''}
                                     `}
                                 >
                                     {isHitonTab && (
@@ -381,16 +335,27 @@ export default function RankingTable({ type }: RankingTableProps) {
                                             </div>
                                         </td>
                                     )}
-                                    {isHitonTab && (
-                                        <td style={{ textAlign: 'center' }}>
-                                            <TierBadge tierInfo={tierInfo} isPromoted={isPromoted} />
+
+                                    {isHitonTab ? (
+                                        <>
+                                            <td style={{ textAlign: 'right' }}>
+                                                <div className={styles.scoreValue} style={{ color: '#4ade80' }}>
+                                                    {(char.pve_score || char.hiton_score || 0).toLocaleString()}
+                                                </div>
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                <div className={styles.scoreValue} style={{ color: '#f87171' }}>
+                                                    {char.pvp_score?.toLocaleString() || '-'}
+                                                </div>
+                                            </td>
+                                        </>
+                                    ) : (
+                                        <td style={{ textAlign: 'right' }}>
+                                            <div className={styles.scoreValue}>
+                                                {getScoreValue(char)}
+                                            </div>
                                         </td>
                                     )}
-                                    <td style={{ textAlign: 'right' }}>
-                                        <div className={styles.scoreValue}>
-                                            {getScoreValue(char)}
-                                        </div>
-                                    </td>
                                 </tr>
                             )
                         })}

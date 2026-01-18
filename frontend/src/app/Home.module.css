@@ -1,0 +1,401 @@
+/* Main Layout Grid */
+.homeGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .homeGrid {
+        grid-template-columns: 2.2fr 1fr;
+        align-items: start;
+    }
+}
+
+/* Common Section Card Style */
+.sectionCard {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 1rem;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.sectionTitle {
+    font-size: 1rem;
+    /* previously calc(0.9rem + 2px) approx */
+    font-weight: 700;
+    color: var(--text-secondary);
+    /* or brand-orange if needed */
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.sectionLink {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.sectionLink:hover {
+    color: var(--primary);
+}
+
+/* Loading & Error States */
+.loadingState {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.loadingSpinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    margin: 0 auto 0.5rem;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.errorState {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.retryButton {
+    margin-left: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: inherit;
+}
+
+/* Tab Navigation (RankingWidget) */
+.tabList {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.tabButton {
+    padding: 0.4rem 0.8rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+}
+
+.tabButtonActive {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+/* News List Items */
+.newsItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: all 0.15s ease;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.newsItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.newsDateBadge {
+    min-width: 40px;
+    padding: 2px 6px;
+    background: var(--brand-red-main);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+}
+
+.newsTitle {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.newsMeta {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.75rem;
+    color: var(--text-disabled);
+    min-width: 50px;
+    justify-content: flex-end;
+}
+
+/* Ranking Items */
+.rankingGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.rankingColumnHeader {
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.elyosHeader {
+    color: var(--elyos);
+    border-bottom-color: var(--elyos-bg);
+}
+
+.asmodianHeader {
+    color: var(--asmodian);
+    border-bottom-color: var(--asmodian-bg);
+}
+
+.rankingItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    transition: background 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.rankingItem:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.rankBadge {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.rankTop1 {
+    background: #FFD700;
+    color: #000;
+}
+
+.rankTop2 {
+    background: #C0C0C0;
+    color: #000;
+}
+
+.rankTop3 {
+    background: #CD7F32;
+    color: #000;
+}
+
+.charImage {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1.5px solid transparent;
+    flex-shrink: 0;
+    background: #222;
+}
+
+.charImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.charName {
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.charMeta {
+    font-size: 0.75rem;
+    color: var(--text-disabled);
+}
+
+.charScore {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+/* Stats Dashboard Refactored */
+.sectionMeta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.dashboardGrid {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.dashboardStat {
+    text-align: center;
+}
+
+.statLabel {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.2rem;
+}
+
+.statValue {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.statSubValue {
+    font-size: 0.75rem;
+    color: var(--text-disabled);
+}
+
+.ratioBarContainer {
+    width: 100%;
+}
+
+.ratioBar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 0.5rem;
+}
+
+.ratioSegment {
+    height: 100%;
+    transition: width 0.5s ease-out;
+}
+
+.ratioLabels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.classDistributionTitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    margin-top: 0;
+}
+
+.classItemList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.classItem {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.className {
+    width: 60px;
+    color: var(--text-main);
+    font-size: 0.85rem;
+}
+
+.classProgressBar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.classProgressBarFill {
+    height: 100%;
+    background: rgba(245, 158, 11, 0.8);
+    transition: width 0.5s ease;
+}
+
+.classPercent {
+    width: 35px;
+    text-align: right;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.emptyState {
+    color: var(--text-disabled);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 1rem;
+}
+
+.errorCard {
+    background: rgba(248, 113, 113, 0.1);
+    border-color: rgba(248, 113, 113, 0.3);
+}
+
+.errorText {
+    color: var(--danger);
+    font-size: 0.9rem;
+    text-align: center;
+}

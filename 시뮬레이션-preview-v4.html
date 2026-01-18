@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>캐릭터 시뮬레이터 - 애니메이션 v4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      background: #09090b;
+      color: #fafafa;
+      min-height: 100vh;
+      padding: 40px 20px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    :root {
+      --bg-base: #09090b;
+      --bg-card: #18181b;
+      --bg-elevated: #27272a;
+      --bg-input: #1f1f23;
+
+      --border: #27272a;
+      --border-hover: #3f3f46;
+
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --accent-glow: rgba(245, 158, 11, 0.4);
+
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.4);
+      --danger: #ef4444;
+
+      --grade-rare: #3b82f6;
+      --grade-rare-glow: rgba(59, 130, 246, 0.5);
+      --grade-epic: #8b5cf6;
+      --grade-epic-glow: rgba(139, 92, 246, 0.5);
+      --grade-legendary: #f59e0b;
+      --grade-legendary-glow: rgba(245, 158, 11, 0.6);
+      --grade-mythic: #ef4444;
+      --grade-mythic-glow: rgba(239, 68, 68, 0.6);
+    }
+
+    /* ========================================
+       배경 파티클 & 그라데이션
+       ======================================== */
+    .bg-effects {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .bg-gradient {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .bg-gradient-1 {
+      background: var(--accent);
+      top: -200px;
+      right: -100px;
+      animation-delay: 0s;
+    }
+
+    .bg-gradient-2 {
+      background: var(--grade-epic);
+      bottom: -200px;
+      left: -100px;
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(30px, 30px) scale(1.1); }
+      50% { transform: translate(-20px, 50px) scale(0.95); }
+      75% { transform: translate(-40px, -20px) scale(1.05); }
+    }
+
+    /* 파티클 */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0;
+      animation: particle-rise 8s ease-in-out infinite;
+    }
+
+    @keyframes particle-rise {
+      0% { opacity: 0; transform: translateY(100vh) scale(0); }
+      10% { opacity: 0.6; }
+      90% { opacity: 0.6; }
+      100% { opacity: 0; transform: translateY(-100px) scale(1); }
+    }
+
+    /* 섹션 */
+    .section {
+      margin-bottom: 64px;
+      position: relative;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    /* ========================================
+       1. 헤더
+       ======================================== */
+    .page-header {
+      margin-bottom: 48px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .page-header h1 span {
+      color: var(--accent);
+      text-shadow: 0 0 30px var(--accent-glow);
+      animation: title-glow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes title-glow {
+      from { text-shadow: 0 0 20px var(--accent-glow); }
+      to { text-shadow: 0 0 40px var(--accent-glow), 0 0 60px var(--accent-glow); }
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ========================================
+       2. 장비 슬롯 - 글로우 & 호버 효과
+       ======================================== */
+    .slots-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .slot-item {
+      text-align: center;
+    }
+
+    .slot {
+      width: 64px;
+      height: 64px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slot::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+
+    .slot:hover {
+      transform: translateY(-4px) scale(1.05);
+      border-color: var(--border-hover);
+    }
+
+    .slot:hover::before {
+      transform: translateX(100%);
+    }
+
+    .slot-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--bg-elevated);
+      border-radius: 6px;
+      transition: all 0.3s;
+    }
+
+    .slot:hover .slot-icon {
+      transform: scale(1.1);
+    }
+
+    .slot-grade {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      transition: all 0.3s;
+    }
+
+    /* 등급별 글로우 효과 */
+    .slot.has-rare { box-shadow: 0 0 0 rgba(59, 130, 246, 0); }
+    .slot.has-rare:hover { box-shadow: 0 4px 20px var(--grade-rare-glow), inset 0 0 20px rgba(59, 130, 246, 0.1); }
+
+    .slot.has-epic { box-shadow: 0 0 0 rgba(139, 92, 246, 0); }
+    .slot.has-epic:hover { box-shadow: 0 4px 20px var(--grade-epic-glow), inset 0 0 20px rgba(139, 92, 246, 0.1); }
+
+    .slot.has-legendary {
+      animation: legendary-pulse 2s ease-in-out infinite;
+    }
+    .slot.has-legendary:hover {
+      box-shadow: 0 4px 25px var(--grade-legendary-glow), inset 0 0 25px rgba(245, 158, 11, 0.15);
+      animation: none;
+    }
+
+    .slot.has-mythic {
+      animation: mythic-pulse 1.5s ease-in-out infinite;
+    }
+    .slot.has-mythic:hover {
+      box-shadow: 0 4px 30px var(--grade-mythic-glow), inset 0 0 30px rgba(239, 68, 68, 0.2);
+      animation: none;
+    }
+
+    @keyframes legendary-pulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+      50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
+    }
+
+    @keyframes mythic-pulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+      50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.5); }
+    }
+
+    .slot-grade.rare { background: var(--grade-rare); }
+    .slot-grade.epic { background: var(--grade-epic); }
+    .slot-grade.legendary { background: linear-gradient(90deg, var(--grade-legendary), #fcd34d, var(--grade-legendary)); background-size: 200% 100%; animation: shimmer 2s linear infinite; }
+    .slot-grade.mythic { background: linear-gradient(90deg, var(--grade-mythic), #fca5a5, var(--grade-mythic)); background-size: 200% 100%; animation: shimmer 1.5s linear infinite; }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .slot-enhance {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .slot-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      transition: color 0.3s;
+    }
+
+    .slot-item:hover .slot-label {
+      color: var(--text-secondary);
+    }
+
+    /* ========================================
+       3. 캐릭터 카드
+       ======================================== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 360px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border-color: var(--border-hover);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-header {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #3f3f46, #27272a);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+      animation: avatar-shine 3s ease-in-out infinite;
+    }
+
+    @keyframes avatar-shine {
+      0%, 100% { transform: translateX(-100%) rotate(45deg); }
+      50% { transform: translateX(100%) rotate(45deg); }
+    }
+
+    .avatar-placeholder {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-elevated);
+      border-radius: 50%;
+    }
+
+    .card-info {
+      flex: 1;
+    }
+
+    .card-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .card-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .card-stats {
+      display: flex;
+      gap: 16px;
+    }
+
+    .card-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .card-stat-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .card-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 16px 0;
+    }
+
+    .card-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .equipment-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .equipment-grid .slot {
+      width: 100%;
+      height: 48px;
+    }
+
+    .equipment-grid .slot-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    /* ========================================
+       4. 스탯 비교 - 바 애니메이션
+       ======================================== */
+    .stats-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 520px;
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .stats-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .stats-badge {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      animation: badge-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes badge-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 var(--success-glow); }
+      50% { box-shadow: 0 0 0 6px transparent; }
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      opacity: 0;
+      transform: translateX(-20px);
+      animation: stat-row-in 0.5s ease forwards;
+    }
+
+    .stat-row:nth-child(1) { animation-delay: 0.1s; }
+    .stat-row:nth-child(2) { animation-delay: 0.2s; }
+    .stat-row:nth-child(3) { animation-delay: 0.3s; }
+    .stat-row:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes stat-row-in {
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--bg-elevated);
+      border-radius: 8px;
+      margin-right: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .stat-row:hover .stat-icon {
+      background: var(--accent);
+      transform: scale(1.1);
+    }
+
+    .stat-row:hover .stat-icon svg {
+      color: #000;
+    }
+
+    .stat-icon svg {
+      width: 18px;
+      height: 18px;
+      color: var(--text-muted);
+      transition: color 0.3s;
+    }
+
+    .stat-content {
+      flex: 1;
+    }
+
+    .stat-name {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .stat-bar {
+      height: 4px;
+      background: var(--bg-base);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      border-radius: 2px;
+      width: 0;
+      animation: bar-fill 1s ease forwards;
+      position: relative;
+    }
+
+    .stat-bar-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: bar-shine 2s ease-in-out infinite;
+    }
+
+    @keyframes bar-fill {
+      to { width: var(--fill-width, 50%); }
+    }
+
+    @keyframes bar-shine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .stat-bar-increase {
+      height: 100%;
+      background: var(--success);
+      display: inline-block;
+    }
+
+    .stat-values {
+      text-align: right;
+      min-width: 120px;
+      margin-left: 16px;
+    }
+
+    .stat-value-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .stat-old {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .stat-arrow {
+      color: var(--text-muted);
+      font-size: 12px;
+      animation: arrow-pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes arrow-pulse {
+      0%, 100% { opacity: 0.5; transform: translateX(0); }
+      50% { opacity: 1; transform: translateX(3px); }
+    }
+
+    .stat-new {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .stat-diff {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .stat-diff.positive {
+      color: var(--success);
+      animation: diff-pop 0.3s ease;
+    }
+    .stat-diff.negative {
+      color: var(--danger);
+    }
+
+    @keyframes diff-pop {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ========================================
+       5. 버튼 - Ripple 효과
+       ======================================== */
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:active::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color: #000;
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px var(--accent-glow);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+    }
+
+    .btn-ghost:hover {
+      color: var(--text-primary);
+      background: var(--bg-elevated);
+    }
+
+    /* ========================================
+       6. 아이템 선택 모달
+       ======================================== */
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 440px;
+      overflow: hidden;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+      animation: modal-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes modal-in {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      transform: rotate(90deg);
+    }
+
+    .modal-search {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .modal-filters {
+      padding: 12px 20px;
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filter-tag {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-tag:hover {
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    .filter-tag.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      box-shadow: 0 2px 10px var(--accent-glow);
+    }
+
+    .modal-list {
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .list-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--accent);
+      transform: scaleY(0);
+      transition: transform 0.2s;
+    }
+
+    .list-item:hover {
+      background: var(--bg-elevated);
+      padding-left: 24px;
+    }
+
+    .list-item:hover::before {
+      transform: scaleY(1);
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .item-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--bg-base);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: transform 0.2s;
+    }
+
+    .list-item:hover .item-icon {
+      transform: scale(1.1);
+    }
+
+    .item-icon-inner {
+      width: 28px;
+      height: 28px;
+      background: var(--bg-elevated);
+      border-radius: 4px;
+    }
+
+    .item-icon-grade {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      border-radius: 0 0 6px 6px;
+    }
+
+    .item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+      transition: all 0.2s;
+    }
+
+    .item-name.epic { color: var(--grade-epic); }
+    .item-name.legendary { color: var(--grade-legendary); text-shadow: 0 0 10px var(--grade-legendary-glow); }
+
+    .item-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .item-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* ========================================
+       7. 툴팁 - 페이드인 애니메이션
+       ======================================== */
+    .tooltip-demo {
+      padding-top: 180px;
+      padding-left: 60px;
+    }
+
+    .tooltip-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip-content {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      width: 220px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.4);
+      animation: tooltip-in 0.3s ease;
+    }
+
+    @keyframes tooltip-in {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+    }
+
+    .tooltip-content::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--border);
+    }
+
+    .tooltip-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .tooltip-name.epic {
+      color: var(--grade-epic);
+      text-shadow: 0 0 10px var(--grade-epic-glow);
+    }
+
+    .tooltip-type {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .tooltip-stat {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      padding: 4px 0;
+      opacity: 0;
+      animation: stat-fade-in 0.3s ease forwards;
+    }
+
+    .tooltip-stat:nth-child(3) { animation-delay: 0.1s; }
+    .tooltip-stat:nth-child(4) { animation-delay: 0.15s; }
+    .tooltip-stat:nth-child(5) { animation-delay: 0.2s; }
+
+    @keyframes stat-fade-in {
+      to { opacity: 1; }
+    }
+
+    .tooltip-stat-label {
+      color: var(--text-secondary);
+    }
+
+    .tooltip-stat-value {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ========================================
+       8. 전체 레이아웃
+       ======================================== */
+    .layout {
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    .layout-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .layout-body {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 24px;
+    }
+
+    .layout-divider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 60px;
+    }
+
+    .layout-divider-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--border), transparent);
+    }
+
+    .layout-divider-text {
+      background: var(--bg-base);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 0;
+      animation: vs-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes vs-pulse {
+      0%, 100% { color: var(--text-muted); }
+      50% { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+    }
+
+    .layout-card {
+      position: relative;
+    }
+
+    .layout-card-label {
+      position: absolute;
+      top: -8px;
+      left: 16px;
+      background: var(--bg-base);
+      padding: 0 8px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      z-index: 1;
+    }
+
+    .layout-card-label.active {
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .layout-card.active .card {
+      border-color: var(--accent);
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    .layout-footer {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    /* 스크롤바 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 배경 효과 -->
+  <div class="bg-effects">
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="particles">
+      <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+      <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+      <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+      <div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+      <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+      <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+      <div class="particle" style="left: 70%; animation-delay: 6s;"></div>
+      <div class="particle" style="left: 80%; animation-delay: 7s;"></div>
+      <div class="particle" style="left: 90%; animation-delay: 0.5s;"></div>
+    </div>
+  </div>
+
+  <!-- 1. 헤더 -->
+  <div class="section">
+    <div class="section-title">1. Header (with glow animation)</div>
+    <div class="page-header">
+      <h1>캐릭터 <span>시뮬레이터</span></h1>
+      <p>장비를 변경하고 스탯 변화를 미리 확인하세요</p>
+    </div>
+  </div>
+
+  <!-- 2. 장비 슬롯 -->
+  <div class="section">
+    <div class="section-title">2. Equipment Slots (hover for glow effects)</div>
+    <div class="slots-row">
+      <div class="slot-item">
+        <div class="slot">
+          <div class="slot-icon"></div>
+        </div>
+        <div class="slot-label">빈 슬롯</div>
+      </div>
+      <div class="slot-item">
+        <div class="slot has-rare">
+          <div class="slot-icon"></div>
+          <div class="slot-grade rare"></div>
+          <span class="slot-enhance">+10</span>
+        </div>
+        <div class="slot-label">레어</div>
+      </div>
+      <div class="slot-item">
+        <div class="slot has-epic">
+          <div class="slot-icon"></div>
+          <div class="slot-grade epic"></div>
+          <span class="slot-enhance">+12</span>
+        </div>
+        <div class="slot-label">에픽</div>
+      </div>
+      <div class="slot-item">
+        <div class="slot has-legendary">
+          <div class="slot-icon"></div>
+          <div class="slot-grade legendary"></div>
+          <span class="slot-enhance">+15</span>
+        </div>
+        <div class="slot-label">전설</div>
+      </div>
+      <div class="slot-item">
+        <div class="slot has-mythic">
+          <div class="slot-icon"></div>
+          <div class="slot-grade mythic"></div>
+          <span class="slot-enhance">+20</span>
+        </div>
+        <div class="slot-label">신화</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 캐릭터 카드 -->
+  <div class="section">
+    <div class="section-title">3. Character Card (hover for lift effect)</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="avatar">
+          <div class="avatar-placeholder"></div>
+        </div>
+        <div class="card-info">
+          <div class="card-name">도룡뇽</div>
+          <div class="card-meta">Lv.55 · 살성 · 지켈</div>
+          <div class="card-stats">
+            <div class="card-stat">
+              <span class="card-stat-label">템렙</span>
+              <span class="card-stat-value">95</span>
+            </div>
+            <div class="card-stat">
+              <span class="card-stat-label">전투력</span>
+              <span class="card-stat-value">12,450</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-section-label">장착 장비</div>
+      <div class="equipment-grid">
+        <div class="slot has-legendary"><div class="slot-icon"></div><div class="slot-grade legendary"></div></div>
+        <div class="slot has-epic"><div class="slot-icon"></div><div class="slot-grade epic"></div></div>
+        <div class="slot has-epic"><div class="slot-icon"></div><div class="slot-grade epic"></div></div>
+        <div class="slot has-rare"><div class="slot-icon"></div><div class="slot-grade rare"></div></div>
+        <div class="slot has-rare"><div class="slot-icon"></div><div class="slot-grade rare"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 스탯 비교 -->
+  <div class="section">
+    <div class="section-title">4. Stats Comparison (animated bars)</div>
+    <div class="stats-card">
+      <div class="stats-header">
+        <span class="stats-title">스탯 비교</span>
+        <span class="stats-badge">템렙 +5</span>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 7l6 6"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-name">공격력</div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill" style="--fill-width: 75%;"></div>
+          </div>
+        </div>
+        <div class="stat-values">
+          <div class="stat-value-row">
+            <span class="stat-old">5,000</span>
+            <span class="stat-arrow">→</span>
+            <span class="stat-new">5,800</span>
+          </div>
+          <div class="stat-diff positive">+800</div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-name">방어력</div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill" style="--fill-width: 55%;"></div>
+          </div>
+        </div>
+        <div class="stat-values">
+          <div class="stat-value-row">
+            <span class="stat-old">3,000</span>
+            <span class="stat-arrow">→</span>
+            <span class="stat-new">3,200</span>
+          </div>
+          <div class="stat-diff positive">+200</div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-name">치명타</div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill" style="--fill-width: 58%;"></div>
+          </div>
+        </div>
+        <div class="stat-values">
+          <div class="stat-value-row">
+            <span class="stat-old">1,000</span>
+            <span class="stat-arrow">→</span>
+            <span class="stat-new">950</span>
+          </div>
+          <div class="stat-diff negative">-50</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 버튼 -->
+  <div class="section">
+    <div class="section-title">5. Buttons (ripple on click)</div>
+    <div class="btn-group">
+      <button class="btn btn-primary">장비 변경</button>
+      <button class="btn btn-primary">빌드 공유</button>
+      <button class="btn btn-secondary">초기화</button>
+      <button class="btn btn-ghost">취소</button>
+    </div>
+  </div>
+
+  <!-- 6. 아이템 선택 모달 -->
+  <div class="section">
+    <div class="section-title">6. Item Selection Modal (animated entrance)</div>
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">주무기 선택</span>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-search">
+        <input type="text" class="input" placeholder="아이템 검색...">
+      </div>
+      <div class="modal-filters">
+        <button class="filter-tag active">전체</button>
+        <button class="filter-tag">레어</button>
+        <button class="filter-tag">에픽</button>
+        <button class="filter-tag">전설</button>
+        <button class="filter-tag">신화</button>
+      </div>
+      <div class="modal-list">
+        <div class="list-item">
+          <div class="item-icon">
+            <div class="item-icon-inner"></div>
+            <div class="item-icon-grade" style="background: var(--grade-epic);"></div>
+          </div>
+          <div class="item-content">
+            <div class="item-name epic">타락한 용제의 대검</div>
+            <div class="item-desc">공격력 +1,800 · 치명타 +120</div>
+          </div>
+          <div class="item-value">+1,800</div>
+        </div>
+        <div class="list-item">
+          <div class="item-icon">
+            <div class="item-icon-inner"></div>
+            <div class="item-icon-grade" style="background: var(--grade-legendary);"></div>
+          </div>
+          <div class="item-content">
+            <div class="item-name legendary">에레슈키갈의 검</div>
+            <div class="item-desc">공격력 +1,500 · 명중 +80</div>
+          </div>
+          <div class="item-value">+1,500</div>
+        </div>
+        <div class="list-item">
+          <div class="item-icon">
+            <div class="item-icon-inner"></div>
+            <div class="item-icon-grade" style="background: var(--grade-legendary);"></div>
+          </div>
+          <div class="item-content">
+            <div class="item-name legendary">바이젤의 광휘검</div>
+            <div class="item-desc">공격력 +1,200 · 관통 +60</div>
+          </div>
+          <div class="item-value">+1,200</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost">취소</button>
+        <button class="btn btn-primary">선택</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 툴팁 -->
+  <div class="section">
+    <div class="section-title">7. Item Tooltip (fade-in animation)</div>
+    <div class="tooltip-demo">
+      <div class="tooltip-wrapper">
+        <div class="slot has-epic" style="width: 64px; height: 64px;">
+          <div class="slot-icon"></div>
+          <div class="slot-grade epic"></div>
+          <span class="slot-enhance">+15</span>
+        </div>
+        <div class="tooltip-content">
+          <div class="tooltip-name epic">타락한 용제의 대검</div>
+          <div class="tooltip-type">에픽 · 주무기 · +15 강화</div>
+          <div class="tooltip-stat">
+            <span class="tooltip-stat-label">공격력</span>
+            <span class="tooltip-stat-value">+1,800</span>
+          </div>
+          <div class="tooltip-stat">
+            <span class="tooltip-stat-label">치명타</span>
+            <span class="tooltip-stat-value">+120</span>
+          </div>
+          <div class="tooltip-stat">
+            <span class="tooltip-stat-label">명중</span>
+            <span class="tooltip-stat-value">+80</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 전체 레이아웃 -->
+  <div class="section">
+    <div class="section-title">8. Full Layout</div>
+    <div class="layout">
+      <div class="layout-header">
+        <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 6px;">캐릭터 <span style="color: var(--accent); text-shadow: 0 0 30px var(--accent-glow);">시뮬레이터</span></h1>
+        <p style="font-size: 13px; color: var(--text-muted);">장비를 변경하고 스탯 변화를 미리 확인하세요</p>
+      </div>
+
+      <div class="layout-body">
+        <div class="layout-card">
+          <span class="layout-card-label">현재</span>
+          <div class="card">
+            <div class="card-header">
+              <div class="avatar"><div class="avatar-placeholder"></div></div>
+              <div class="card-info">
+                <div class="card-name">도룡뇽</div>
+                <div class="card-meta">Lv.55 · 살성 · 지켈</div>
+                <div class="card-stats">
+                  <div class="card-stat">
+                    <span class="card-stat-label">템렙</span>
+                    <span class="card-stat-value">95</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-section-label">장착 장비</div>
+            <div class="equipment-grid">
+              <div class="slot has-legendary"><div class="slot-icon"></div><div class="slot-grade legendary"></div></div>
+              <div class="slot has-epic"><div class="slot-icon"></div><div class="slot-grade epic"></div></div>
+              <div class="slot has-epic"><div class="slot-icon"></div><div class="slot-grade epic"></div></div>
+              <div class="slot has-rare"><div class="slot-icon"></div><div class="slot-grade rare"></div></div>
+              <div class="slot has-rare"><div class="slot-icon"></div><div class="slot-grade rare"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layout-divider">
+          <div class="layout-divider-line"></div>
+          <span class="layout-divider-text">VS</span>
+          <div class="layout-divider-line"></div>
+        </div>
+
+        <div class="layout-card active">
+          <span class="layout-card-label active">시뮬레이션</span>
+          <div class="card">
+            <div class="card-header">
+              <div class="avatar"><div class="avatar-placeholder"></div></div>
+              <div class="card-info">
+                <div class="card-name">도룡뇽</div>
+                <div class="card-meta">Lv.55 · 살성 · 지켈</div>
+                <div class="card-stats">
+                  <div class="card-stat">
+                    <span class="card-stat-label">템렙</span>
+                    <span class="card-stat-value" style="color: var(--success); text-shadow: 0 0 10px var(--success-glow);">100 (+5)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-section-label">장비 클릭하여 변경</div>
+            <div class="equipment-grid">
+              <div class="slot has-mythic" style="cursor: pointer;"><div class="slot-icon"></div><div class="slot-grade mythic"></div><span class="slot-enhance">+20</span></div>
+              <div class="slot has-legendary" style="cursor: pointer;"><div class="slot-icon"></div><div class="slot-grade legendary"></div><span class="slot-enhance">+15</span></div>
+              <div class="slot has-epic" style="cursor: pointer;"><div class="slot-icon"></div><div class="slot-grade epic"></div></div>
+              <div class="slot has-rare" style="cursor: pointer;"><div class="slot-icon"></div><div class="slot-grade rare"></div></div>
+              <div class="slot has-rare" style="cursor: pointer;"><div class="slot-icon"></div><div class="slot-grade rare"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card" style="max-width: 100%; margin-bottom: 20px;">
+        <div class="stats-header">
+          <span class="stats-title">스탯 비교</span>
+          <span class="stats-badge">템렙 95 → 100</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 7l6 6"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-name">공격력</div>
+            <div class="stat-bar"><div class="stat-bar-fill" style="--fill-width: 75%;"></div></div>
+          </div>
+          <div class="stat-values">
+            <div class="stat-value-row">
+              <span class="stat-old">5,000</span>
+              <span class="stat-arrow">→</span>
+              <span class="stat-new">5,800</span>
+            </div>
+            <div class="stat-diff positive">+800</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layout-footer">
+        <button class="btn btn-secondary">초기화</button>
+        <button class="btn btn-primary">빌드 공유</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

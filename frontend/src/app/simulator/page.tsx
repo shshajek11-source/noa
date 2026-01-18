@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useMemo, CSSProperties } from 'react'
+import dynamic from 'next/dynamic'
 import SimulatorHeader from './components/SimulatorHeader'
 import CharacterPanel from './components/CharacterPanel'
 import StatsComparison from './components/StatsComparison'
-import ItemSelectModal from './components/ItemSelectModal'
+
+// 모달 지연 로딩 (장비 슬롯 클릭 시에만 로드)
+const ItemSelectModal = dynamic(() => import('./components/ItemSelectModal'), { ssr: false })
 
 // 디버그 패널 컴포넌트
 function DebugPanel({

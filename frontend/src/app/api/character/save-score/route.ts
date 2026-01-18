@@ -3,11 +3,11 @@ import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
     try {
-        const { characterId, noaScore } = await request.json()
+        const { characterId, noaScore, pveScore, pvpScore } = await request.json()
 
-        if (!characterId || typeof noaScore !== 'number') {
+        if (!characterId) {
             return NextResponse.json(
-                { error: 'Invalid request: characterId and noaScore are required' },
+                { error: 'Invalid request: characterId is required' },
                 { status: 400 }
             )
         }
@@ -24,9 +24,29 @@ export async function POST(request: NextRequest) {
 
         const supabase = createClient(supabaseUrl, supabaseKey)
 
+        // PVE/PVP 점수 저장 (noa_score는 pve_score와 동일하게 유지)
+        const updateData: Record<string, number> = {}
+        if (typeof pveScore === 'number') {
+            updateData.pve_score = pveScore
+            updateData.noa_score = pveScore // 호환성 유지
+        } else if (typeof noaScore === 'number') {
+            updateData.noa_score = noaScore
+            updateData.pve_score = noaScore
+        }
+        if (typeof pvpScore === 'number') {
+            updateData.pvp_score = pvpScore
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return NextResponse.json(
+                { error: 'No valid scores provided' },
+                { status: 400 }
+            )
+        }
+
         const { error } = await supabase
             .from('characters')
-            .update({ noa_score: noaScore })
+            .update(updateData)
             .eq('character_id', characterId)
 
         if (error) {
@@ -37,7 +57,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        return NextResponse.json({ success: true, noaScore })
+        return NextResponse.json({ success: true, ...updateData })
 
     } catch (err: any) {
         console.error('[save-score] Error:', err)

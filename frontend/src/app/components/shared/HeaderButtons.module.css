@@ -1,0 +1,188 @@
+/* Shared base styles (applied to each manually to avoid 'composes' issues) */
+.updateButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(245, 158, 11, 0.1);
+    /* Amber 500 at 10% */
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 9999px;
+    color: var(--primary, #F59E0B);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.updateButton:hover {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.6);
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+}
+
+.updateButton:active {
+    transform: translateY(1px);
+}
+
+.loginButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+    color: var(--text-secondary, #9CA3AF);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.loginButton:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--text-main, #E5E7EB);
+    color: var(--text-main, #E5E7EB);
+    box-shadow: none;
+}
+
+.loginButton:active {
+    transform: translateY(1px);
+}
+
+.mainCharButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px dashed rgba(245, 158, 11, 0.4);
+    border-radius: 9999px;
+    color: rgba(245, 158, 11, 0.8);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.mainCharButton:hover {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: var(--primary, #F59E0B);
+    color: var(--primary, #F59E0B);
+}
+
+.mainCharBadge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.6rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-main, #E5E7EB);
+}
+
+.mainCharBadge:hover {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.5);
+}
+
+.avatarWrapper {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    flex-shrink: 0;
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: transparent;
+    border: none;
+}
+
+.mainCharName {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary, #F59E0B);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.mainCharInfo {
+    font-size: 0.7rem;
+    color: var(--text-secondary, #9CA3AF);
+}
+
+.dropdownMenu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #111318;
+    /* Darker bg */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    min-width: 220px;
+    z-index: 50;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.dropdownItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary, #9CA3AF);
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.dropdownItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main, #E5E7EB);
+}
+
+.dropdownItem.logout:hover {
+    background: rgba(217, 43, 75, 0.1);
+    /* Red bg */
+    color: var(--brand-red-main, #D92B4B);
+}
+
+.dropdownHeader {
+    padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0.5rem;
+}
+
+.userDisplayName {
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.userEmail {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}

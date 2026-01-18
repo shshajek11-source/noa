@@ -1,9 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useAuth } from '@/context/AuthContext'
 import { LogIn, LogOut, User, Star } from 'lucide-react'
-import MainCharacterModal from './MainCharacterModal'
+import styles from '@/app/components/shared/HeaderButtons.module.css'
+
+// 모달 지연 로딩 (클릭 시에만 로드)
+const MainCharacterModal = dynamic(() => import('./MainCharacterModal'), { ssr: false })
 
 export default function LoginButton() {
   const { user, isLoading, nickname, mainCharacter, signInWithGoogle, signOut, setMainCharacter } = useAuth()
@@ -12,12 +16,7 @@ export default function LoginButton() {
 
   if (isLoading) {
     return (
-      <div style={{
-        width: '32px',
-        height: '32px',
-        borderRadius: '50%',
-        background: '#1f2937'
-      }} />
+      <div className="w-8 h-8 rounded-full bg-gray-800 animate-pulse" />
     )
   }
 
@@ -32,33 +31,10 @@ export default function LoginButton() {
     return (
       <button
         onClick={signInWithGoogle}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '6px 12px',
-          background: 'transparent',
-          border: '1px solid rgba(250, 204, 21, 0.4)',
-          borderRadius: '20px',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          color: 'rgba(250, 204, 21, 0.8)',
-          fontSize: '13px',
-          fontWeight: 500
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(250, 204, 21, 0.1)'
-          e.currentTarget.style.borderColor = '#FACC15'
-          e.currentTarget.style.color = '#FACC15'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.borderColor = 'rgba(250, 204, 21, 0.4)'
-          e.currentTarget.style.color = 'rgba(250, 204, 21, 0.8)'
-        }}
+        className={styles.loginButton}
       >
         <LogIn size={14} />
-        <span>로그인</span>
+        <span className="hidden md:inline">로그인</span>
       </button>
     )
   }
@@ -68,39 +44,21 @@ export default function LoginButton() {
     <div style={{ position: 'relative' }}>
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '4px',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          borderRadius: '20px'
-        }}
+        className="flex items-center gap-2 p-1 bg-transparent border-none cursor-pointer rounded-full hover:bg-white/5 transition-colors"
       >
         {user.user_metadata?.avatar_url ? (
-          <img
-            src={user.user_metadata.avatar_url}
-            alt="Profile"
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              border: '2px solid rgba(250, 204, 21, 0.5)'
-            }}
-          />
+          <div className={styles.avatarWrapper}>
+            <img
+              src={user.user_metadata.avatar_url}
+              alt="Profile"
+              className={styles.avatar}
+            />
+          </div>
         ) : (
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            background: '#FACC15',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <User size={16} color="#000" />
+          <div className={styles.avatarWrapper}>
+            <div className="w-full h-full flex items-center justify-center bg-primary text-black">
+              <User size={16} />
+            </div>
           </div>
         )}
       </button>
@@ -109,91 +67,33 @@ export default function LoginButton() {
         <>
           {/* Backdrop */}
           <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 999
-            }}
+            className="fixed inset-0 z-[999]"
             onClick={() => setShowDropdown(false)}
           />
           {/* Dropdown */}
-          <div style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: '8px',
-            background: '#1b1b1e',
-            border: '1px solid #2d2d30',
-            borderRadius: '8px',
-            padding: '8px',
-            minWidth: '200px',
-            zIndex: 1000,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.4)'
-          }}>
-            <div style={{
-              padding: '8px 12px',
-              borderBottom: '1px solid #2d2d30',
-              marginBottom: '8px'
-            }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>
+          <div className={styles.dropdownMenu}>
+            <div className={styles.dropdownHeader}>
+              <div className={styles.userDisplayName}>
                 {nickname || user.user_metadata?.full_name || 'User'}
               </div>
-              {nickname && (
-                <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
-                  {user.user_metadata?.full_name || user.email}
-                </div>
-              )}
-              {!nickname && (
-                <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
-                  {user.email}
-                </div>
-              )}
+              <div className={styles.userEmail}>
+                {user.user_metadata?.full_name || user.email}
+              </div>
+
               {mainCharacter && (
-                <div style={{
-                  fontSize: '11px',
-                  color: '#FACC15',
-                  marginTop: '6px',
-                  padding: '4px 8px',
-                  background: 'rgba(250, 204, 21, 0.1)',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}>
-                  <Star size={12} fill="#FACC15" />
+                <div className="text-[11px] text-primary mt-2 p-1.5 bg-primary/10 rounded flex items-center gap-1">
+                  <Star size={12} className="text-primary fill-primary" />
                   {mainCharacter.name} ({mainCharacter.server})
                 </div>
               )}
             </div>
+
             <button
               onClick={() => {
                 setShowDropdown(false)
                 setShowMainCharacterModal(true)
               }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                width: '100%',
-                padding: '8px 12px',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#FACC15',
-                fontSize: '13px',
-                borderRadius: '4px',
-                transition: 'background 0.2s',
-                marginBottom: '4px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(250, 204, 21, 0.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
-              }}
+              className={styles.dropdownItem}
             >
               <Star size={14} />
               {mainCharacter ? '대표 캐릭터 변경' : '대표 캐릭터 설정'}
@@ -203,26 +103,7 @@ export default function LoginButton() {
                 await signOut()
                 setShowDropdown(false)
               }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                width: '100%',
-                padding: '8px 12px',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#ef4444',
-                fontSize: '13px',
-                borderRadius: '4px',
-                transition: 'background 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
-              }}
+              className={`${styles.dropdownItem} ${styles.logout}`}
             >
               <LogOut size={14} />
               로그아웃

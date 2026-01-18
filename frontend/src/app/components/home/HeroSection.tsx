@@ -14,7 +14,7 @@ export default function HeroSection() {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    background: 'radial-gradient(circle at 50% 30%, rgba(251, 219, 81, 0.12) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle at center, rgba(245, 158, 11, 0.08) 0%, rgba(0, 0, 0, 0) 70%)',
                     zIndex: 0
                 }}></div>
             </div>

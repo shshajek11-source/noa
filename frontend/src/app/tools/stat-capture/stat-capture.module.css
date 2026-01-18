@@ -289,17 +289,11 @@
     overflow-y: auto;
 }
 
-/* Stat Grid - 3열 그리드 */
+/* Stat Grid - 2열 그리드 (사용자 요청) */
 .statGrid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
-}
-
-@media (max-width: 1024px) {
-    .statGrid {
-        grid-template-columns: repeat(2, 1fr);
-    }
 }
 
 @media (max-width: 600px) {
