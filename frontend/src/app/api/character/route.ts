@@ -130,37 +130,6 @@ function mergeOcrStats(
     })
 }
 
-function calculateNoaScore(stats: CharacterStats | null, className: string): number {
-    if (!stats) return 0;
-
-    // Basic mapping - logic can be refined based on class
-    // Currently using the general formula provided
-    const attack = stats.attack_phy || stats.attack || 0;
-    const magicBoost = stats.boost_mag || stats.magicBoost || 0;
-    const crit = stats.crit_phy || stats.crit || 0;
-    const accuracy = stats.accuracy_phy || stats.accuracy || 0;
-    const magicAccuracy = stats.accuracy_mag || 0;
-
-    // differentiate slightly by class type if needed, but for now using unified weighted sum
-    // prioritizing primary stats
-    let score = 0;
-
-    // Physical classes
-    if (['Gladiator', 'Templar', 'Ranger', 'Assassin', 'Chanter'].includes(className)) {
-        score = (attack * 1.5) + (crit * 1.0) + (accuracy * 0.8) + (magicBoost * 0.2);
-    }
-    // Magical classes
-    else if (['Sorcerer', 'Spiritmaster', 'Cleric'].includes(className)) {
-        score = (magicBoost * 1.4) + (magicAccuracy * 1.0) + (crit * 0.5) + (attack * 0.2);
-    }
-    // Fallback / Hybrid
-    else {
-        score = (attack * 1.0) + (magicBoost * 1.0) + (crit * 0.8) + (accuracy * 0.8);
-    }
-
-    return Math.floor(score);
-}
-
 export async function GET(request: NextRequest) {
     // Rate Limiting (외부 API 호출이므로 엄격하게)
     const rateLimit = checkRateLimit(request, RATE_LIMITS.external)
