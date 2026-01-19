@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Ledger Mockup</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        :root {
+            --primary: #F59E0B;
+            --secondary: #D97706;
+            --bg-main: #161618;
+            --bg-secondary: #1e1c26;
+            --border: rgba(150, 100, 200, 0.15);
+            --text-main: #FFFFFF;
+            --text-sub: #a5a8b4;
+            --text-disabled: #6B7280;
+            --danger: #ef4444;
+            --purple: #A78BFA;
+            --blue: #3b82f6;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding-bottom: 100px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* --- Interaction --- */
+        .btn-record, .btn-check, .tab-item, .char-header, .btn-2x, .date-nav span {
+            transition: transform 0.1s ease;
+        }
+        .btn-record:active, .btn-check:active, .tab-item:active, .char-header:active, .btn-2x:active, .date-nav span:active {
+            transform: scale(0.98);
+        }
+
+        /* --- Header --- */
+        .header {
+            padding: 16px;
+            background: rgba(22, 22, 24, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .date-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .date-nav span {
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* --- Dashboard: Item Summary --- */
+        .summary-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 0 16px 16px 16px;
+            scrollbar-width: none;
+        }
+
+        .item-card {
+            flex: 0 0 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .item-img-box {
+            width: 64px;
+            height: 64px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .item-badge {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-top-left-radius: 8px;
+            border-bottom-right-radius: 7px;
+        }
+
+        .item-name {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        /* --- Dashboard: Character List (New Flex Layout) --- */
+        .char-card {
+            margin: 0 16px 16px 16px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 16px;
+        }
+        
+
+
+
+        .char-header {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+            cursor: pointer;
+        }
+
+        /* Profile Image x2 Size */
+        .profile-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #555;
+            border: 2px solid #444;
+        }
+
+        .char-info {
+            flex: 1;
+        }
+
+        .char-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        
+
+
+
+        .char-lv {
+            font-size: 0.85rem;
+            color: var(--text-disabled);
+        }
+
+        .char-income {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* Flex Chip Layout */
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .status-chip {
+            background: #2a2832;
+            border: 1px solid #3a3842;
+            border-radius: 8px; /* 통일 */
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1 1 auto;
+        }
+
+        .chip-red { border-left: 3px solid var(--danger); }
+        .chip-purple { border-left: 3px solid var(--purple); }
+        .chip-blue { border-left: 3px solid var(--blue); }
+        .chip-orange { border-left: 3px solid var(--primary); }
+
+        .chip-dot { font-size: 0.6rem; }
+        .chip-txt { color: #ccc; }
+        .chip-val {
+            color: #fff;
+            font-weight: bold;
+            margin-left: auto;
+        }
+
+
+        /* --- Page 2: Individual Detail --- */
+        .page-title {
+            margin: 40px 16px 16px 16px;
+            padding-top: 20px;
+            border-top: 2px dashed #444;
+            color: #aaa;
+            text-align: center;
+        }
+
+        .detail-header-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-main);
+        }
+
+        .profile-img-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: #555;
+        }
+        
+
+
+
+        .nav-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            color: var(--text-sub);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .tab-item.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Complex Card */
+        .complex-card {
+            margin: 0 16px 20px 16px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .card-head {
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .card-body {
+            padding: 16px;
+        }
+
+        .preset-box {
+            background: #25232d;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            text-align: center;
+            color: #eee;
+            font-size: 0.95rem;
+            border: 1px solid #333;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .setting-item {
+            background: #25232d;
+            border-radius: 8px;
+            padding: 8px 12px;
+            border: 1px solid #333;
+        }
+
+        .setting-label {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+
+        .setting-value {
+            font-weight: bold;
+            color: #eee;
+            cursor: pointer;
+        }
+
+        .grid-col-span-2 {
+            grid-column: span 2;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .btn-2x {
+            width: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #2a2832;
+            color: var(--text-disabled);
+            font-weight: bold;
+            border: 1px solid #444;
+            cursor: pointer;
+        }
+
+        .btn-2x.active {
+            background: var(--purple);
+            color: #fff;
+            border-color: var(--purple);
+        }
+
+        .btn-record {
+            flex: 1;
+            background: var(--primary);
+            color: #000;
+            font-weight: 800;
+            border-radius: 8px;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+        }
+
+        .log-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 12px;
+        }
+
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            align-items: center;
+        }
+
+        .log-highlight {
+            color: #fff;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .btn-del {
+            color: #666;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* Simple Card */
+        .simple-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0 16px 12px 16px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px; /* 통일 */
+            border: 1px solid var(--border);
+        }
+
+        .btn-check {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: #2a2832;
+            border: 2px solid #444;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-check.checked {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================================== -->
+    <!-- VIEW 1: 통합 대시보드 (Integrated Dashboard) -->
+    <!-- ============================================== -->
+
+    <div class="header">
+        <div class="date-nav">
+            <span>&lt;</span>
+            <span>2024.01.19 (금)</span>
+            <span>&gt;</span>
+        </div>
+
+        <!-- Income Stats Row -->
+        <div
+            style="display: flex; justify-content: space-between; margin-top: 12px; background: rgba(0,0,0,0.3); padding: 8px 0; border-radius: 8px;">
+            <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 0.75rem; color: var(--text-sub);">일일</div>
+                <div style="color: #fff; font-weight: bold;">1,200만</div>
+            </div>
+            <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 0.75rem; color: var(--text-sub);">주간</div>
+                <div style="color: var(--primary); font-weight: bold;">4,500만</div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--text-sub);">월별</div>
+                <div style="color: #fff; font-weight: bold;">1.2억</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Item Filter & List (Collapsible) -->
+    <div
+        style="padding: 16px 16px 8px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+            아이템 현황 <span style="font-size: 0.8rem; color: #666;">▼</span>
+        </div>
+        <div style="display: flex; gap: 4px;">
+            <button
+                style="background: var(--primary); color: #000; border: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">미판매</button>
+            <button
+                style="background: #333; color: #aaa; border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">판매완료</button>
+        </div>
+    </div>
+
+    <div class="summary-scroll" style="margin-top: 12px;">
+        <!-- Item 1 -->
+        <div class="item-card">
+            <div class="item-img-box">
+                <div class="item-badge">x5</div>
+            </div>
+            <div class="item-name">키나 꾸러미</div>
+        </div>
+        <!-- Item 2 -->
+        <div class="item-card">
+            <div class="item-img-box" style="border-color: #ef4444;">
+                <div class="item-badge">x1</div>
+            </div>
+            <div class="item-name">전설 무기</div>
+        </div>
+        <!-- Item 3 -->
+        <div class="item-card">
+            <div class="item-img-box">
+                <div class="item-badge">x12</div>
+            </div>
+            <div class="item-name">강화석</div>
+        </div>
+        <!-- Item 4 -->
+        <div class="item-card">
+            <div class="item-img-box">
+                <div class="item-badge">x2</div>
+            </div>
+            <div class="item-name">마석</div>
+        </div>
+        <!-- Item 5 -->
+        <div class="item-card">
+            <div class="item-img-box">
+                <div class="item-badge">x1</div>
+            </div>
+            <div class="item-name">스티그마</div>
+        </div>
+    </div>
+
+    <div
+        style="height: 12px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 16px;">
+    </div>
+
+    <!-- Character List Cards (FLEX WRAP Layout) -->
+    <!-- Char 1: Asmodian -->
+    <div class="char-card">
+        <div class="char-header">
+            <!-- Profile x2 Size -->
+            <div class="profile-img"></div>
+
+            <div class="char-info">
+                <div class="char-name">[지켈] 포식자</div>
+                <div class="char-lv">Lv.58 / 검성</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="color: var(--text-disabled); font-size: 1.2rem; margin-bottom: 4px;">▲</div>
+                <div class="char-income">1,200만</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 8px; font-size: 0.8rem; color: var(--text-disabled); font-weight: bold;">진행 현황</div>
+
+        <!-- Flex Chips -->
+        <div class="chip-container">
+            <!-- Sanctuary (Red) -->
+            <div class="status-chip chip-red">
+                <span class="chip-dot" style="color: var(--danger)">●</span>
+                <span class="chip-txt">성역</span>
+                <span class="chip-val">1/4</span>
+            </div>
+            <!-- Transc (Purple) -->
+            <div class="status-chip chip-purple">
+                <span class="chip-dot" style="color: var(--asmodian)">●</span>
+                <span class="chip-txt">초월</span>
+                <span class="chip-val">2/2</span>
+            </div>
+            <!-- Expedition (Blue) -->
+            <div class="status-chip chip-blue">
+                <span class="chip-dot" style="color: var(--blue)">●</span>
+                <span class="chip-txt">원정</span>
+                <span class="chip-val">0/2</span>
+            </div>
+
+            <!-- Daily (Orange) -->
+            <div class="status-chip chip-orange">
+                <span class="chip-txt">파에</span>
+                <span class="chip-val">2/7</span>
+            </div>
+            <div class="status-chip chip-orange">
+                <span class="chip-txt">아라</span>
+                <span class="chip-val">1/7</span>
+            </div>
+            <div class="status-chip chip-orange">
+                <span class="chip-txt">우다</span>
+                <span class="chip-val">0/7</span>
+            </div>
+            <div class="status-chip chip-orange">
+                <span class="chip-txt">악몽</span>
+                <span class="chip-val">1/1</span>
+            </div>
+            <div class="status-chip chip-orange">
+                <span class="chip-txt">심연</span>
+                <span class="chip-val">0/2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Char 2: Elyos -->
+    <div class="char-card" style="opacity: 0.8">
+        <div class="char-header">
+            <div class="profile-img" style="border-color: #333"></div>
+            <div class="char-info">
+                <div class="char-name">[이스] 살성</div>
+                <div class="char-lv">Lv.50</div>
+            </div>
+            <div style="text-align: right;">
+            <div style="text-align: right;">
+                <div style="color: var(--text-disabled); font-weight: bold; font-size: 1.2rem; margin-bottom: 4px;">▼</div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+
+    <h3 class="page-title">▼ 화면 전환 시 (캐릭터 클릭) ▼</h3>
+
+
+    <!-- ============================================== -->
+    <!-- VIEW 2: 캐릭터 개별 숙제 (Contents Tab) -->
+    <!-- ============================================== -->
+
+    <div class="detail-header-row">
+        <div style="font-size: 1.2rem;">&lt;</div>
+        <div class="profile-img-small"></div>
+        <div style="flex: 1; font-weight: 700;">포식자 (지켈)</div>
+        <div style="font-size: 1.2rem;">⚙️</div>
+    </div>
+
+    <div class="nav-tabs">
+        <div class="tab-item active">컨텐츠</div>
+        <div class="tab-item">아이템</div>
+        <div class="tab-item">통계</div>
+    </div>
+
+    <!-- 1. Complex Card (Sanctuary) -->
+    <div class="complex-card">
+        <div class="card-head">
+            <span style="font-weight: 700; color: #fff;">성역의 안식처</span>
+            <span style="color: var(--primary);">3 / 4 회</span>
+        </div>
+        <div class="card-body">
+            <!-- Settings -->
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <div class="setting-label">단계</div>
+                    <div class="setting-value">5단계 ▼</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">보스</div>
+                    <div class="setting-value">타하바타 ▼</div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="action-row">
+                <div class="btn-2x">2x</div>
+                <button class="btn-record">+ 빠른 기록</button>
+            </div>
+
+            <!-- Logs -->
+            <div class="log-list">
+                <div class="log-item">
+                    <span>
+                        <span class="log-highlight">#1. 120만</span>
+                        (5단계 / 14:30)
+                    </span>
+                    <span class="btn-del">[x]</span>
+                </div>
+                <div class="log-item">
+                    <span>
+                        <span class="log-highlight">#2. 80만</span>
+                        (3단계 / 어제)
+                    </span>
+                    <span class="btn-del">[x]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Complex Card (Expedition) -->
+    <div class="complex-card">
+        <div class="card-head">
+            <span style="font-weight: 700; color: #fff;">즈룬의 성소 (원정)</span>
+            <span style="color: var(--text-sub);">0 / 2 회</span>
+        </div>
+        <div class="card-body">
+            <!-- Settings -->
+            <div class="settings-grid">
+                <div class="setting-item grid-col-span-2">
+                    <div class="setting-label">원정/탐험</div>
+                    <div class="setting-value">원정 ▼</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">단계</div>
+                    <div class="setting-value">3단계 ▼</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">보스</div>
+                    <div class="setting-value">즈룬 ▼</div>
+                </div>
+            </div>
+            <div class="action-row">
+                <div class="btn-2x active">2x</div>
+                <button class="btn-record">+ 빠른 기록</button>
+            </div>
+            <!-- Empty Log -->
+            <div style="text-align: center; font-size: 0.8rem; color: #555; padding-top: 8px;">
+                기록이 없습니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Simple Cards -->
+    <div class="simple-card">
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="width: 4px; height: 16px; background: var(--primary); border-radius: 2px;"></div>
+            <span style="font-weight: bold;">파에스 (1/7)</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <div class="btn-2x" style="height: 40px; font-size: 0.8rem;">2x</div>
+            <div class="btn-check">v</div>
+        </div>
+    </div>
+
+    <div class="simple-card" style="opacity: 0.6">
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="width: 4px; height: 16px; background: var(--primary); border-radius: 2px;"></div>
+            <span style="font-weight: bold; color: #777; text-decoration: line-through;">아라카 (0/7)</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <div class="btn-2x" style="height: 40px; font-size: 0.8rem;">2x</div>
+            <div class="btn-check checked">v</div>
+        </div>
+    </div>
+
+</body>
+
+</html>
