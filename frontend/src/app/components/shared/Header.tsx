@@ -15,7 +15,6 @@ export default function Header() {
         { name: '홈', path: '/' },
         { name: '랭킹', path: '/ranking' },
         { name: '아이템', path: '/item' },
-        { name: '스탯 추출기', path: '/tools/stat-capture' },
         { name: '숙제&가계부', path: '/ledger' }
     ]
 
