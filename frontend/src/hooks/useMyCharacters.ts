@@ -1,28 +1,35 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { PartyUserCharacter } from '@/types/party'
 import { CharacterSearchResult } from '@/lib/supabaseApi'
 
-export function useMyCharacters() {
+interface UseMyCharactersOptions {
+  accessToken?: string | null
+}
+
+export function useMyCharacters(options: UseMyCharactersOptions = {}) {
+  const { accessToken } = options
   const [characters, setCharacters] = useState<PartyUserCharacter[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const prevTokenRef = useRef<string | null | undefined>(undefined)
 
   const fetchCharacters = useCallback(async () => {
+    // 로그인 필수: accessToken이 없으면 빈 배열 반환
+    if (!accessToken) {
+      setCharacters([])
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      // ledger_device_id 키 사용 (useDeviceId 훅과 동일)
-      let deviceId = localStorage.getItem('ledger_device_id')
-      if (!deviceId) {
-        deviceId = crypto.randomUUID()
-        localStorage.setItem('ledger_device_id', deviceId)
-      }
       const response = await fetch('/api/party/my-characters', {
         headers: {
-          'X-Device-ID': deviceId
+          'Authorization': `Bearer ${accessToken}`
         }
       })
 
@@ -38,11 +45,15 @@ export function useMyCharacters() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [accessToken])
 
   useEffect(() => {
-    fetchCharacters()
-  }, [fetchCharacters])
+    // accessToken이 변경되면 다시 fetch
+    if (prevTokenRef.current !== accessToken) {
+      prevTokenRef.current = accessToken
+      fetchCharacters()
+    }
+  }, [accessToken, fetchCharacters])
 
   // 캐릭터 추가
   const addCharacter = useCallback(async (characterData: {
@@ -58,16 +69,14 @@ export function useMyCharacters() {
     character_pvp_score?: number
     profile_image?: string
   }) => {
-    let deviceId = localStorage.getItem('ledger_device_id')
-    if (!deviceId) {
-      deviceId = crypto.randomUUID()
-      localStorage.setItem('ledger_device_id', deviceId)
+    if (!accessToken) {
+      throw new Error('로그인이 필요합니다.')
     }
     const response = await fetch('/api/party/my-characters', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        'Authorization': `Bearer ${accessToken}`
       },
       body: JSON.stringify(characterData)
     })
@@ -87,23 +96,21 @@ export function useMyCharacters() {
 
     await fetchCharacters()
     return response.json()
-  }, [fetchCharacters])
+  }, [accessToken, fetchCharacters])
 
   // 캐릭터 수정
   const updateCharacter = useCallback(async (
     id: string,
     updateData: Partial<PartyUserCharacter>
   ) => {
-    let deviceId = localStorage.getItem('ledger_device_id')
-    if (!deviceId) {
-      deviceId = crypto.randomUUID()
-      localStorage.setItem('ledger_device_id', deviceId)
+    if (!accessToken) {
+      throw new Error('로그인이 필요합니다.')
     }
     const response = await fetch('/api/party/my-characters', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        'Authorization': `Bearer ${accessToken}`
       },
       body: JSON.stringify({ id, ...updateData })
     })
@@ -115,19 +122,17 @@ export function useMyCharacters() {
 
     await fetchCharacters()
     return response.json()
-  }, [fetchCharacters])
+  }, [accessToken, fetchCharacters])
 
   // 캐릭터 삭제
   const deleteCharacter = useCallback(async (id: string) => {
-    let deviceId = localStorage.getItem('ledger_device_id')
-    if (!deviceId) {
-      deviceId = crypto.randomUUID()
-      localStorage.setItem('ledger_device_id', deviceId)
+    if (!accessToken) {
+      throw new Error('로그인이 필요합니다.')
     }
     const response = await fetch(`/api/party/my-characters?id=${id}`, {
       method: 'DELETE',
       headers: {
-        'X-Device-ID': deviceId
+        'Authorization': `Bearer ${accessToken}`
       }
     })
 
@@ -138,7 +143,7 @@ export function useMyCharacters() {
 
     await fetchCharacters()
     return response.json()
-  }, [fetchCharacters])
+  }, [accessToken, fetchCharacters])
 
   // 검색 결과에서 캐릭터 등록 (상세 정보 가져와서 등록)
   const registerFromSearch = useCallback(async (character: CharacterSearchResult) => {

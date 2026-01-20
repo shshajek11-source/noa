@@ -3,20 +3,25 @@
 import { useState, useEffect, useRef } from 'react'
 import { useMyCharacters } from '@/hooks/useMyCharacters'
 import { useCharacterSearch } from '@/hooks/useCharacterSearch'
+import { useAuth } from '@/context/AuthContext'
 import { CharacterSearchResult } from '@/lib/supabaseApi'
 import { SERVERS } from '@/app/constants/servers'
 import styles from './MyCharacters.module.css'
+import PartyLoginRequired from './PartyLoginRequired'
 
 
 export default function MyCharacters() {
-  // CRUD 관련 (useMyCharacters)
+  // 인증 관련
+  const { session, isLoading: isAuthLoading, isAuthenticated, signInWithGoogle } = useAuth()
+
+  // CRUD 관련 (useMyCharacters) - accessToken 전달
   const {
     characters,
     loading,
     deleteCharacter,
     registerFromSearch,
     refreshCharacter
-  } = useMyCharacters()
+  } = useMyCharacters({ accessToken: session?.access_token })
 
   // 검색 관련 (useCharacterSearch - 상단 검색과 동일한 로직)
   const {
@@ -193,6 +198,18 @@ export default function MyCharacters() {
     if (race === 'Elyos' || race === '천족') return { text: '천족', color: '#60a5fa' }
     if (race === 'Asmodian' || race === '마족') return { text: '마족', color: '#f87171' }
     return { text: race, color: '#9ca3af' }
+  }
+
+  // 로그인 필요 화면
+  if (!isAuthenticated) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <span className={styles.title}>내 모집 캐릭터</span>
+        </div>
+        <PartyLoginRequired onLogin={signInWithGoogle} isLoading={isAuthLoading} />
+      </div>
+    )
   }
 
   return (
