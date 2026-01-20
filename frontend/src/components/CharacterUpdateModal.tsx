@@ -495,6 +495,8 @@ export default function CharacterUpdateModal({ isOpen, onClose }: CharacterUpdat
     setError(null)
 
     try {
+      console.log('[CharacterUpdateModal] Saving with token:', session.access_token ? 'exists' : 'missing')
+
       const res = await fetch('/api/character/ocr-stats', {
         method: 'POST',
         headers: {
@@ -510,7 +512,9 @@ export default function CharacterUpdateModal({ isOpen, onClose }: CharacterUpdat
       })
 
       if (!res.ok) {
-        throw new Error('저장에 실패했습니다.')
+        const errorData = await res.json().catch(() => ({}))
+        console.error('[CharacterUpdateModal] Save error:', res.status, errorData)
+        throw new Error(errorData.error || `저장 실패: ${res.status}`)
       }
 
       setSaveSuccess(true)

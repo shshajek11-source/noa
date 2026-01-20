@@ -68,7 +68,10 @@ export async function POST(request: NextRequest) {
   try {
     // Bearer 토큰 인증 (Google 로그인)
     const authHeader = request.headers.get('Authorization')
+    console.log('[ocr-stats] POST - authHeader:', authHeader ? `${authHeader.substring(0, 20)}...` : 'missing')
+
     if (!authHeader?.startsWith('Bearer ')) {
+      console.log('[ocr-stats] POST - Authorization header missing or invalid')
       return NextResponse.json(
         { error: 'Authorization required' },
         { status: 401 }
