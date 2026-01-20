@@ -11,11 +11,11 @@
         :root {
             --primary: #F59E0B;
             --secondary: #D97706;
-            --bg-main: #161618;
-            --bg-secondary: #1e1c26;
-            --border: rgba(150, 100, 200, 0.15);
+            --bg-main: #0C0C0D;
+            --bg-secondary: #141416;
+            --border: rgba(255, 255, 255, 0.1);
             --text-main: #FFFFFF;
-            --text-sub: #a5a8b4;
+            --text-sub: #9CA3AF;
             --text-disabled: #6B7280;
             --danger: #ef4444;
             --purple: #A78BFA;
@@ -36,10 +36,21 @@
         }
 
         /* --- Interaction --- */
-        .btn-record, .btn-check, .tab-item, .char-header, .btn-2x, .date-nav span {
+        .btn-record,
+        .btn-check,
+        .tab-item,
+        .char-header,
+        .btn-2x,
+        .date-nav span {
             transition: transform 0.1s ease;
         }
-        .btn-record:active, .btn-check:active, .tab-item:active, .char-header:active, .btn-2x:active, .date-nav span:active {
+
+        .btn-record:active,
+        .btn-check:active,
+        .tab-item:active,
+        .char-header:active,
+        .btn-2x:active,
+        .date-nav span:active {
             transform: scale(0.98);
         }
 
@@ -63,6 +74,7 @@
             font-size: 1.1rem;
             margin-bottom: 8px;
         }
+
         .date-nav span {
             cursor: pointer;
             padding: 4px;
@@ -70,15 +82,14 @@
 
         /* --- Dashboard: Item Summary --- */
         .summary-scroll {
-            display: flex;
-            gap: 12px;
-            overflow-x: auto;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
             padding: 0 16px 16px 16px;
-            scrollbar-width: none;
         }
 
         .item-card {
-            flex: 0 0 80px;
+            /* flex: 0 0 80px; Removed for grid */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -124,7 +135,7 @@
             border: 1px solid var(--border);
             padding: 16px;
         }
-        
+
 
 
 
@@ -157,7 +168,7 @@
             color: #fff;
             margin-bottom: 4px;
         }
-        
+
 
 
 
@@ -172,17 +183,18 @@
             font-size: 1.1rem;
         }
 
-        /* Flex Chip Layout */
+        /* Flex Chip Layout -> Vertical Stack */
         .chip-container {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 6px;
         }
 
         .status-chip {
-            background: #2a2832;
-            border: 1px solid #3a3842;
-            border-radius: 8px; /* 통일 */
+            background: #1f1f22;
+            border: 1px solid #333;
+            border-radius: 8px;
+            /* 통일 */
             padding: 8px 12px;
             font-size: 0.85rem;
             color: var(--text-sub);
@@ -192,13 +204,30 @@
             flex: 1 1 auto;
         }
 
-        .chip-red { border-left: 3px solid var(--danger); }
-        .chip-purple { border-left: 3px solid var(--purple); }
-        .chip-blue { border-left: 3px solid var(--blue); }
-        .chip-orange { border-left: 3px solid var(--primary); }
+        .chip-red {
+            border-left: 3px solid var(--danger);
+        }
 
-        .chip-dot { font-size: 0.6rem; }
-        .chip-txt { color: #ccc; }
+        .chip-purple {
+            border-left: 3px solid var(--purple);
+        }
+
+        .chip-blue {
+            border-left: 3px solid var(--blue);
+        }
+
+        .chip-orange {
+            border-left: 3px solid var(--primary);
+        }
+
+        .chip-dot {
+            font-size: 0.6rem;
+        }
+
+        .chip-txt {
+            color: #ccc;
+        }
+
         .chip-val {
             color: #fff;
             font-weight: bold;
@@ -215,21 +244,96 @@
             text-align: center;
         }
 
-        .detail-header-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .detail-header-container {
             padding: 16px;
             background: var(--bg-main);
         }
 
-        .profile-img-small {
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
-            background: #555;
+        .back-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #fff;
+            margin-bottom: 20px;
+            display: inline-block;
         }
-        
+
+        .detail-main-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .profile-area {
+            position: relative;
+            width: 64px;
+            height: 64px;
+        }
+
+        .profile-img-large {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #444;
+            border: 2px solid #555;
+        }
+
+        .settings-icon {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #1a1a1c;
+            border: 1px solid #333;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .char-info-area {
+            flex: 1;
+        }
+
+        .char-info-area #detail-char-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .char-info-area #detail-char-info {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+        }
+
+        .income-stats-area {
+            display: flex;
+            gap: 20px;
+            text-align: right;
+        }
+
+        .income-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .income-stat .label {
+            font-size: 0.7rem;
+            color: var(--text-sub);
+            font-weight: bold;
+        }
+
+        .income-stat .value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
 
 
 
@@ -271,12 +375,57 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        /* Background Image Container */
+        .card-head-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+            background-size: cover;
+            background-position: center;
+            /* Gradient Mask to fade image */
+            mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0.1) 100%);
+            -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0.1) 100%);
+        }
+
+        /* Ensure text is on top */
+        .card-head span {
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+        }
+
         .card-body {
             padding: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-body-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            opacity: 0.4;
+            /* Increased from 0.15 for visibility */
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            pointer-events: none;
+        }
+
+        .card-body>* {
+            position: relative;
+            z-index: 1;
         }
 
         .preset-box {
-            background: #25232d;
+            background: #1f1f22;
             padding: 10px;
             border-radius: 8px;
             margin-bottom: 12px;
@@ -294,22 +443,28 @@
         }
 
         .setting-item {
-            background: #25232d;
-            border-radius: 8px;
-            padding: 8px 12px;
+            background: #1f1f22;
+            border-radius: 6px;
+            padding: 6px 8px;
             border: 1px solid #333;
+            overflow: hidden;
         }
 
         .setting-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-sub);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
+            white-space: nowrap;
         }
 
         .setting-value {
             font-weight: bold;
             color: #eee;
             cursor: pointer;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .grid-col-span-2 {
@@ -323,33 +478,48 @@
         }
 
         .btn-2x {
-            width: 50px;
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
-            background: #2a2832;
+            gap: 4px;
+            border-radius: 6px;
+            background: #1f1f22;
             color: var(--text-disabled);
             font-weight: bold;
             border: 1px solid #444;
             cursor: pointer;
+            padding: 8px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .btn-2x img {
+            width: 16px;
+            height: 16px;
+            object-fit: contain;
         }
 
         .btn-2x.active {
-            background: var(--purple);
-            color: #fff;
+            background: rgba(167, 139, 250, 0.2);
+            color: var(--purple);
             border-color: var(--purple);
         }
 
         .btn-record {
             flex: 1;
-            background: var(--primary);
-            color: #000;
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--primary);
             font-weight: 800;
-            border-radius: 8px;
-            border: none;
-            padding: 12px;
-            font-size: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--primary);
+            padding: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .btn-record:hover {
+            background: rgba(245, 158, 11, 0.25);
         }
 
         .log-list {
@@ -389,7 +559,8 @@
             margin: 0 16px 12px 16px;
             padding: 12px 16px;
             background: var(--bg-secondary);
-            border-radius: 8px; /* 통일 */
+            border-radius: 8px;
+            /* 통일 */
             border: 1px solid var(--border);
         }
 
@@ -397,7 +568,7 @@
             width: 40px;
             height: 40px;
             border-radius: 20px;
-            background: #2a2832;
+            background: #1f1f22;
             border: 2px solid #444;
             color: #444;
             display: flex;
@@ -410,298 +581,1169 @@
             border-color: var(--primary);
             color: #000;
         }
+
+        /* --- Weekly Mission Card --- */
+        .wm-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin: 0 16px 8px 16px;
+        }
+
+        .wm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .wm-title-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #fff;
+
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .wm-title {
+            font-weight: bold;
+        }
+
+        .wm-timer {
+            color: #666;
+            /* Red timer for urgency or brand style */
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            white-space: nowrap;
+        }
+
+        .wm-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-complete-all {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .wm-count {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #fff;
+            min-width: 24px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .btn-step {
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wm-progress-track {
+            display: flex;
+            gap: 2px;
+            margin-top: 6px;
+        }
+
+        .wm-block {
+            flex: 1;
+            height: 6px;
+            border: 1px solid #444;
+            border-radius: 2px;
+            background: transparent;
+        }
+
+        .wm-block.filled {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 2px rgba(245, 158, 11, 0.5);
+        }
+
+        /* --- Log List Styles --- */
+        .log-list {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .log-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .log-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .log-time {
+            color: var(--text-sub);
+            font-size: 0.8rem;
+        }
+
+        .log-value {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .btn-log-delete {
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        /* --- Character Detail Sub-tabs --- */
+        .char-sub-tabs {
+            display: flex;
+            background: #141416;
+            margin: 0 16px 16px 16px;
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .char-sub-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .char-sub-tab.active {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* --- Instagram Story Style Character List --- */
+        .story-container {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE/Edge */
+        }
+
+        .story-container::-webkit-scrollbar {
+            display: none;
+            /* Chrome/Safari */
+        }
+
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .story-avatar-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(45deg, #f59e0b, #d92b4b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .story-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid var(--bg-main);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .story-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fff;
+            max-width: 70px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .story-job {
+            font-size: 0.65rem;
+            color: var(--text-sub);
+        }
+
+        /* --- Favorite Star --- */
+        .favorite-star {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            color: #444;
+            font-size: 0.8rem;
+            cursor: pointer;
+            z-index: 5;
+            transition: color 0.2s;
+        }
+
+        .favorite-star.active {
+            color: var(--primary);
+            text-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
+        }
+
+        /* --- Utility --- */
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- ============================================== -->
-    <!-- VIEW 1: 통합 대시보드 (Integrated Dashboard) -->
-    <!-- ============================================== -->
+    <div id="view-container">
+        <!-- 메인 탭 뷰 -->
+        <div id="view-main" class="view">
 
-    <div class="header">
-        <div class="date-nav">
-            <span>&lt;</span>
-            <span>2024.01.19 (금)</span>
-            <span>&gt;</span>
-        </div>
-
-        <!-- Income Stats Row -->
-        <div
-            style="display: flex; justify-content: space-between; margin-top: 12px; background: rgba(0,0,0,0.3); padding: 8px 0; border-radius: 8px;">
-            <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255,255,255,0.1);">
-                <div style="font-size: 0.75rem; color: var(--text-sub);">일일</div>
-                <div style="color: #fff; font-weight: bold;">1,200만</div>
-            </div>
-            <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255,255,255,0.1);">
-                <div style="font-size: 0.75rem; color: var(--text-sub);">주간</div>
-                <div style="color: var(--primary); font-weight: bold;">4,500만</div>
-            </div>
-            <div style="flex: 1; text-align: center;">
-                <div style="font-size: 0.75rem; color: var(--text-sub);">월별</div>
-                <div style="color: #fff; font-weight: bold;">1.2억</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Item Filter & List (Collapsible) -->
-    <div
-        style="padding: 16px 16px 8px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <div style="font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-            아이템 현황 <span style="font-size: 0.8rem; color: #666;">▼</span>
-        </div>
-        <div style="display: flex; gap: 4px;">
-            <button
-                style="background: var(--primary); color: #000; border: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">미판매</button>
-            <button
-                style="background: #333; color: #aaa; border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">판매완료</button>
-        </div>
-    </div>
-
-    <div class="summary-scroll" style="margin-top: 12px;">
-        <!-- Item 1 -->
-        <div class="item-card">
-            <div class="item-img-box">
-                <div class="item-badge">x5</div>
-            </div>
-            <div class="item-name">키나 꾸러미</div>
-        </div>
-        <!-- Item 2 -->
-        <div class="item-card">
-            <div class="item-img-box" style="border-color: #ef4444;">
-                <div class="item-badge">x1</div>
-            </div>
-            <div class="item-name">전설 무기</div>
-        </div>
-        <!-- Item 3 -->
-        <div class="item-card">
-            <div class="item-img-box">
-                <div class="item-badge">x12</div>
-            </div>
-            <div class="item-name">강화석</div>
-        </div>
-        <!-- Item 4 -->
-        <div class="item-card">
-            <div class="item-img-box">
-                <div class="item-badge">x2</div>
-            </div>
-            <div class="item-name">마석</div>
-        </div>
-        <!-- Item 5 -->
-        <div class="item-card">
-            <div class="item-img-box">
-                <div class="item-badge">x1</div>
-            </div>
-            <div class="item-name">스티그마</div>
-        </div>
-    </div>
-
-    <div
-        style="height: 12px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 16px;">
-    </div>
-
-    <!-- Character List Cards (FLEX WRAP Layout) -->
-    <!-- Char 1: Asmodian -->
-    <div class="char-card">
-        <div class="char-header">
-            <!-- Profile x2 Size -->
-            <div class="profile-img"></div>
-
-            <div class="char-info">
-                <div class="char-name">[지켈] 포식자</div>
-                <div class="char-lv">Lv.58 / 검성</div>
-            </div>
-            <div style="text-align: right;">
-                <div style="color: var(--text-disabled); font-size: 1.2rem; margin-bottom: 4px;">▲</div>
-                <div class="char-income">1,200만</div>
-            </div>
-        </div>
-
-        <div style="margin-bottom: 8px; font-size: 0.8rem; color: var(--text-disabled); font-weight: bold;">진행 현황</div>
-
-        <!-- Flex Chips -->
-        <div class="chip-container">
-            <!-- Sanctuary (Red) -->
-            <div class="status-chip chip-red">
-                <span class="chip-dot" style="color: var(--danger)">●</span>
-                <span class="chip-txt">성역</span>
-                <span class="chip-val">1/4</span>
-            </div>
-            <!-- Transc (Purple) -->
-            <div class="status-chip chip-purple">
-                <span class="chip-dot" style="color: var(--asmodian)">●</span>
-                <span class="chip-txt">초월</span>
-                <span class="chip-val">2/2</span>
-            </div>
-            <!-- Expedition (Blue) -->
-            <div class="status-chip chip-blue">
-                <span class="chip-dot" style="color: var(--blue)">●</span>
-                <span class="chip-txt">원정</span>
-                <span class="chip-val">0/2</span>
-            </div>
-
-            <!-- Daily (Orange) -->
-            <div class="status-chip chip-orange">
-                <span class="chip-txt">파에</span>
-                <span class="chip-val">2/7</span>
-            </div>
-            <div class="status-chip chip-orange">
-                <span class="chip-txt">아라</span>
-                <span class="chip-val">1/7</span>
-            </div>
-            <div class="status-chip chip-orange">
-                <span class="chip-txt">우다</span>
-                <span class="chip-val">0/7</span>
-            </div>
-            <div class="status-chip chip-orange">
-                <span class="chip-txt">악몽</span>
-                <span class="chip-val">1/1</span>
-            </div>
-            <div class="status-chip chip-orange">
-                <span class="chip-txt">심연</span>
-                <span class="chip-val">0/2</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Char 2: Elyos -->
-    <div class="char-card" style="opacity: 0.8">
-        <div class="char-header">
-            <div class="profile-img" style="border-color: #333"></div>
-            <div class="char-info">
-                <div class="char-name">[이스] 살성</div>
-                <div class="char-lv">Lv.50</div>
-            </div>
-            <div style="text-align: right;">
-            <div style="text-align: right;">
-                <div style="color: var(--text-disabled); font-weight: bold; font-size: 1.2rem; margin-bottom: 4px;">▼</div>
-            </div>
-            </div>
-        </div>
-    </div>
-
-
-    <h3 class="page-title">▼ 화면 전환 시 (캐릭터 클릭) ▼</h3>
-
-
-    <!-- ============================================== -->
-    <!-- VIEW 2: 캐릭터 개별 숙제 (Contents Tab) -->
-    <!-- ============================================== -->
-
-    <div class="detail-header-row">
-        <div style="font-size: 1.2rem;">&lt;</div>
-        <div class="profile-img-small"></div>
-        <div style="flex: 1; font-weight: 700;">포식자 (지켈)</div>
-        <div style="font-size: 1.2rem;">⚙️</div>
-    </div>
-
-    <div class="nav-tabs">
-        <div class="tab-item active">컨텐츠</div>
-        <div class="tab-item">아이템</div>
-        <div class="tab-item">통계</div>
-    </div>
-
-    <!-- 1. Complex Card (Sanctuary) -->
-    <div class="complex-card">
-        <div class="card-head">
-            <span style="font-weight: 700; color: #fff;">성역의 안식처</span>
-            <span style="color: var(--primary);">3 / 4 회</span>
-        </div>
-        <div class="card-body">
-            <!-- Settings -->
-            <div class="settings-grid">
-                <div class="setting-item">
-                    <div class="setting-label">단계</div>
-                    <div class="setting-value">5단계 ▼</div>
+            <div class="header">
+                <div class="date-nav">
+                    <span>&lt;</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="color: #fff;">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span>2024.01.19 (금)</span>
+                    </div>
+                    <span>&gt;</span>
                 </div>
-                <div class="setting-item">
-                    <div class="setting-label">보스</div>
-                    <div class="setting-value">타하바타 ▼</div>
+
+                <!-- Income Stats Row -->
+                <div
+                    style="display: flex; justify-content: space-between; margin-top: 12px; background: rgba(0,0,0,0.3); padding: 8px 0; border-radius: 8px;">
+                    <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 0.75rem; color: var(--text-sub);">일일</div>
+                        <div style="color: #fff; font-weight: bold;">1,200만</div>
+                    </div>
+                    <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 0.75rem; color: var(--text-sub);">주간</div>
+                        <div style="color: var(--primary); font-weight: bold;">4,500만</div>
+                    </div>
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 0.75rem; color: var(--text-sub);">월별</div>
+                        <div style="color: #fff; font-weight: bold;">1.2억</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Actions -->
-            <div class="action-row">
-                <div class="btn-2x">2x</div>
-                <button class="btn-record">+ 빠른 기록</button>
-            </div>
-
-            <!-- Logs -->
-            <div class="log-list">
-                <div class="log-item">
-                    <span>
-                        <span class="log-highlight">#1. 120만</span>
-                        (5단계 / 14:30)
-                    </span>
-                    <span class="btn-del">[x]</span>
+            <!-- Item Filter & List (Collapsible) -->
+            <div
+                style="padding: 16px 16px 8px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                    아이템 현황 <span style="font-size: 0.8rem; color: #666;">▼</span>
                 </div>
-                <div class="log-item">
-                    <span>
-                        <span class="log-highlight">#2. 80만</span>
-                        (3단계 / 어제)
-                    </span>
-                    <span class="btn-del">[x]</span>
+                <div style="display: flex; gap: 4px;">
+                    <button
+                        style="background: var(--primary); color: #000; border: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">미판매</button>
+                    <button
+                        style="background: #333; color: #aaa; border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">판매완료</button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- 2. Complex Card (Expedition) -->
-    <div class="complex-card">
-        <div class="card-head">
-            <span style="font-weight: 700; color: #fff;">즈룬의 성소 (원정)</span>
-            <span style="color: var(--text-sub);">0 / 2 회</span>
-        </div>
-        <div class="card-body">
-            <!-- Settings -->
-            <div class="settings-grid">
-                <div class="setting-item grid-col-span-2">
-                    <div class="setting-label">원정/탐험</div>
-                    <div class="setting-value">원정 ▼</div>
+            <div class="summary-scroll" style="margin-top: 12px;">
+                <!-- Item 1 -->
+                <div class="item-card">
+                    <div class="item-img-box">
+                        <div class="item-badge">x5</div>
+                    </div>
+                    <div class="item-name">키나 꾸러미</div>
                 </div>
-                <div class="setting-item">
-                    <div class="setting-label">단계</div>
-                    <div class="setting-value">3단계 ▼</div>
+                <!-- Item 2 -->
+                <div class="item-card">
+                    <div class="item-img-box" style="border-color: #ef4444;">
+                        <div class="item-badge">x1</div>
+                    </div>
+                    <div class="item-name">전설 무기</div>
                 </div>
-                <div class="setting-item">
-                    <div class="setting-label">보스</div>
-                    <div class="setting-value">즈룬 ▼</div>
+                <!-- Item 3 -->
+                <div class="item-card">
+                    <div class="item-img-box">
+                        <div class="item-badge">x12</div>
+                    </div>
+                    <div class="item-name">강화석</div>
+                </div>
+                <!-- Item 4 -->
+                <div class="item-card">
+                    <div class="item-img-box">
+                        <div class="item-badge">x2</div>
+                    </div>
+                    <div class="item-name">마석</div>
+                </div>
+                <!-- Item 5 -->
+                <div class="item-card">
+                    <div class="item-img-box">
+                        <div class="item-badge">x1</div>
+                    </div>
+                    <div class="item-name">스티그마</div>
                 </div>
             </div>
-            <div class="action-row">
-                <div class="btn-2x active">2x</div>
-                <button class="btn-record">+ 빠른 기록</button>
+
+            <!-- Instagram Story Style Character Shortcuts -->
+            <div class="story-container">
+                <div class="story-item" onclick="openCharacterDetail('포식자', '지켈', '검성')">
+                    <div class="story-avatar-wrapper">
+                        <div class="story-avatar">
+                            <img src="" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    </div>
+                    <div class="story-name">포식자</div>
+                    <div class="story-job">검성</div>
+                </div>
+                <div class="story-item" onclick="openCharacterDetail('이스', '이스', '살성')">
+                    <div class="story-avatar-wrapper" style="background: #444;">
+                        <div class="story-avatar">
+                            <img src="" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    </div>
+                    <div class="story-name">이스</div>
+                    <div class="story-job">살성</div>
+                </div>
+                <div class="story-item">
+                    <div class="story-avatar-wrapper" style="background: #444;">
+                        <div class="story-avatar"></div>
+                    </div>
+                    <div class="story-name">부캐1</div>
+                    <div class="story-job">치유성</div>
+                </div>
+                <div class="story-item">
+                    <div class="story-avatar-wrapper" style="background: #444;">
+                        <div class="story-avatar"></div>
+                    </div>
+                    <div class="story-name">부캐2</div>
+                    <div class="story-job">마도성</div>
+                </div>
+                <div class="story-item">
+                    <div class="story-avatar-wrapper" style="background: #444;">
+                        <div class="story-avatar"></div>
+                    </div>
+                    <div class="story-name">부캐3</div>
+                    <div class="story-job">정령성</div>
+                </div>
             </div>
-            <!-- Empty Log -->
-            <div style="text-align: center; font-size: 0.8rem; color: #555; padding-top: 8px;">
-                기록이 없습니다.
+
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 0 16px 16px 16px;">
+            </div>
+
+            <!-- Character List Cards (FLEX WRAP Layout) -->
+            <!-- Char 1: Asmodian -->
+            <!-- Char 1: Asmodian -->
+            <div class="char-card" onclick="openCharacterDetail('포식자', '지켈', '검성')">
+                <div class="char-header">
+                    <!-- Profile x2 Size -->
+                    <div class="profile-img"></div>
+
+                    <div class="char-info">
+                        <div class="char-name">[지켈] 포식자</div>
+                        <div class="char-lv">Lv.58 / 검성</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: var(--text-disabled); font-size: 0.9rem; margin-bottom: 4px;">▲</div>
+                        <div class="char-income">1,200만</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 0.8rem; color: var(--text-disabled); font-weight: bold;">진행
+                    현황</div>
+
+                <!-- Flex Chips -->
+                <div class="chip-container">
+                    <!-- Sanctuary (Red) -->
+                    <div class="status-chip chip-red">
+                        <span class="chip-dot" style="color: var(--danger)">●</span>
+                        <span class="chip-txt">성역</span>
+                        <span class="chip-val"><span
+                                style="color: #666; font-size: 0.8rem; margin-right: 8px;">00:00:00</span>
+                            <span style="color: #888; font-size: 0.75rem; margin-right: 4px;">잔여량</span>1/4</span>
+                    </div>
+                    <!-- Transc (Purple) -->
+                    <div class="status-chip chip-purple">
+                        <span class="chip-dot" style="color: var(--asmodian)">●</span>
+                        <span class="chip-txt">초월</span>
+                        <span class="chip-val"><span
+                                style="color: #666; font-size: 0.8rem; margin-right: 8px;">00:00:00</span>
+                            <span style="color: #888; font-size: 0.75rem; margin-right: 4px;">잔여량</span>2/2</span>
+                    </div>
+                    <!-- Expedition (Blue) -->
+                    <div class="status-chip chip-blue">
+                        <span class="chip-dot" style="color: var(--blue)">●</span>
+                        <span class="chip-txt">원정</span>
+                        <span class="chip-val"><span
+                                style="color: #666; font-size: 0.8rem; margin-right: 8px;">00:00:00</span>
+                            <span style="color: #888; font-size: 0.75rem; margin-right: 4px;">잔여량</span>0/2</span>
+                    </div>
+
+                    <!-- Daily (Orange) -->
+                    <div class="status-chip chip-orange">
+                        <span class="chip-txt">파에</span>
+                        <span class="chip-val"><span
+                                style="color: #666; font-size: 0.8rem; margin-right: 8px;">00:00:00</span>
+                            <span style="color: #888; font-size: 0.75rem; margin-right: 4px;">잔여량</span>2/7</span>
+                    </div>
+                    <div class="status-chip chip-orange">
+                        <span class="chip-txt">아라</span>
+                        <span class="chip-val"><span
+                                style="color: #666; font-size: 0.8rem; margin-right: 8px;">00:00:00</span>
+                            <span style="color: #888; font-size: 0.75rem; margin-right: 4px;">잔여량</span>1/7</span>
+                    </div>
+                    <div class="status-chip chip-orange">
+                        <span class="chip-txt">우다</span>
+                        <span class="chip-val"><span
+                                style="color: #666; font-size: 0.8rem; margin-right: 8px;">00:00:00</span>
+                            <span style="color: #888; font-size: 0.75rem; margin-right: 4px;">잔여량</span>0/7</span>
+                    </div>
+                    <div class="status-chip chip-orange">
+                        <span class="chip-txt">악몽</span>
+                        <span class="chip-val"><span
+                                style="color: #666; font-size: 0.8rem; margin-right: 8px;">00:00:00</span>
+                            <span style="color: #888; font-size: 0.75rem; margin-right: 4px;">잔여량</span>1/1</span>
+                    </div>
+                    <div class="status-chip chip-orange">
+                        <span class="chip-txt">심연</span>
+                        <span class="chip-val"><span
+                                style="color: #666; font-size: 0.8rem; margin-right: 8px;">00:00:00</span>
+                            <span style="color: #888; font-size: 0.75rem; margin-right: 4px;">잔여량</span>0/2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Char 2: Elyos -->
+            <!-- Char 2: Elyos -->
+            <div class="char-card" style="opacity: 0.8" onclick="openCharacterDetail('이스', '이스', '살성')">
+                <div class="char-header">
+                    <div class="profile-img" style="border-color: #333"></div>
+                    <div class="char-info">
+                        <div class="char-name">[이스] 살성</div>
+                        <div class="char-lv">Lv.50</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="text-align: right;">
+                            <div
+                                style="color: var(--text-disabled); font-weight: bold; font-size: 0.9rem; margin-bottom: 4px;">
+                                ▼</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+        <!-- /.view-main -->
 
-    <!-- 3. Simple Cards -->
-    <div class="simple-card">
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <div style="width: 4px; height: 16px; background: var(--primary); border-radius: 2px;"></div>
-            <span style="font-weight: bold;">파에스 (1/7)</span>
-        </div>
-        <div style="display: flex; gap: 8px;">
-            <div class="btn-2x" style="height: 40px; font-size: 0.8rem;">2x</div>
-            <div class="btn-check">v</div>
-        </div>
-    </div>
+        <!-- 아이템 탭 뷰 (Item Tab View) -->
+        <div id="view-items" class="view hidden">
+            <div class="header">
+                <!-- Section Title (Summary) -->
+                <div style="padding: 16px 16px 8px 16px; font-weight: 700; font-size: 1rem; color: var(--primary);">
+                    아이템 통합 현황 (전체 캐릭터)
+                </div>
+                <div class="summary-scroll">
+                    <!-- Item Status Grid (Only Summary, moved detail tools to char-detail) -->
+                    <div class="item-card">
+                        <div class="item-img-box">
+                            <div class="item-badge">x24</div>
+                        </div>
+                        <div class="item-name">전설 무기</div>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-img-box">
+                            <div class="item-badge">x152</div>
+                        </div>
+                        <div class="item-name">강화석</div>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-img-box">
+                            <div class="item-badge">x42</div>
+                        </div>
+                        <div class="item-name">마석</div>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-img-box">
+                            <div class="item-badge">x8</div>
+                        </div>
+                        <div class="item-name">스티그마</div>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-img-box">
+                            <div class="item-badge">x12</div>
+                        </div>
+                        <div class="item-name">키나 꾸러미</div>
+                    </div>
+                </div>
 
-    <div class="simple-card" style="opacity: 0.6">
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <div style="width: 4px; height: 16px; background: var(--primary); border-radius: 2px;"></div>
-            <span style="font-weight: bold; color: #777; text-decoration: line-through;">아라카 (0/7)</span>
-        </div>
-        <div style="display: flex; gap: 8px;">
-            <div class="btn-2x" style="height: 40px; font-size: 0.8rem;">2x</div>
-            <div class="btn-check checked">v</div>
-        </div>
-    </div>
+            </div> <!-- /.view-header -->
+        </div> <!-- /#view-items -->
 
+        <!-- 정산 탭 뷰 (Settlement View) -->
+        <div id="view-settlement" class="view hidden">
+            <div style="padding: 40px 20px; text-align: center; color: #666;">
+                <div style="font-size: 3rem; margin-bottom: 16px;">📊</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #888;">정산 리스트 준비 중</div>
+                <p style="font-size: 0.9rem; margin-top: 8px;">파티 정산 및 배분 내역이 표시될 예정입니다.</p>
+            </div>
+        </div>
+
+
+        <!-- ============================================== -->
+        <!-- VIEW 2: 캐릭터 상세 숙제 (Detail View) -->
+        <!-- ============================================== -->
+        <div id="view-character-detail" class="view hidden" style="padding-bottom: 40px;">
+            <!-- Header -->
+            <div class="detail-header-container">
+                <div class="back-btn" onclick="closeCharacterDetail()">&lt;</div>
+                <div class="detail-main-header">
+                    <div class="profile-area">
+                        <div class="profile-img-large"></div>
+                        <div class="settings-icon">⚙️</div>
+                    </div>
+                    <div class="char-info-area">
+                        <div id="detail-char-name">포식자</div>
+                        <div id="detail-char-info">지켈 | 검성</div>
+                    </div>
+                    <div class="income-stats-area">
+                        <div class="income-stat">
+                            <span class="label">일일수입</span>
+                            <span class="value">4,500만</span>
+                        </div>
+                        <div class="income-stat">
+                            <span class="label">템판매수입</span>
+                            <span class="value">1.2억</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub Tab Navigation -->
+            <div class="char-sub-tabs">
+                <div id="subtab-homework" class="char-sub-tab active" onclick="switchCharacterSubTab('homework')">
+                    컨텐츠
+                </div>
+                <div id="subtab-items" class="char-sub-tab" onclick="switchCharacterSubTab('items')">아이템</div>
+                <div id="subtab-stats" class="char-sub-tab" onclick="switchCharacterSubTab('stats')">통계</div>
+            </div>
+
+            <!-- Sub View: Homework -->
+            <div id="char-subview-homework" class="char-subview">
+                <!-- Existing Daily Content Section -->
+                <div
+                    style="padding: 0 16px 16px 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; font-size: 1.1rem;">일일 컨텐츠</span>
+                    <span style="color: var(--text-sub); font-size: 0.85rem;">잔여: 4건</span>
+                </div>
+
+                <!-- Mission Card -->
+                <div class="wm-card">
+                    <div class="wm-header">
+                        <div class="wm-title-group">
+                            <span class="wm-title">사명</span>
+                            <span class="wm-timer">08:44:40</span>
+                        </div>
+                        <div class="wm-controls">
+                            <button class="btn-complete-all">전체 완료 하기</button>
+                            <span class="wm-count">0/5</span>
+                            <button class="btn-step">+</button>
+                            <button class="btn-step">-</button>
+                        </div>
+                    </div>
+                    <div class="wm-progress-track">
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                    </div>
+                </div>
+
+                <!-- Weekly Order Card -->
+                <div class="wm-card">
+                    <div class="wm-header">
+                        <div class="wm-title-group">
+                            <span class="wm-title">주간 지령서</span>
+                            <span class="wm-timer">1일 08:44:40</span>
+                        </div>
+                        <div class="wm-controls">
+                            <button class="btn-complete-all">전체 완료 하기</button>
+                            <span class="wm-count">2/12</span>
+                            <button class="btn-step">+</button>
+                            <button class="btn-step">-</button>
+                        </div>
+                    </div>
+                    <div class="wm-progress-track">
+                        <!-- 2 filled, 10 empty items -->
+                        <div class="wm-block filled"></div>
+                        <div class="wm-block filled"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                    </div>
+                </div>
+
+                <!-- Abyss Weekly Order Card -->
+                <div class="wm-card">
+                    <div class="wm-header">
+                        <div class="wm-title-group">
+                            <span class="wm-title">어비스 주간 지령서</span>
+                            <span class="wm-timer">1일 08:44:40</span>
+                        </div>
+                        <div class="wm-controls">
+                            <button class="btn-complete-all">전체 완료 하기</button>
+                            <span class="wm-count">0/20</span>
+                            <button class="btn-step">+</button>
+                            <button class="btn-step">-</button>
+                        </div>
+                    </div>
+                    <div class="wm-progress-track">
+                        <!-- 20 empty blocks (simplified visualization with fewer blocks for mockup or using repeat logic if real) -->
+                        <!-- Using 10 visual blocks to represent 20 slots for compactness or full 20? Let's use 10 for visual balance or 20 small ones? Let's try 10 blocks representing 2 steps each for visual simplicity in mockup or just 20 small ones. I will stick to 20 but style might need adjustment if they get too thin. Let's do 10 visual blocks for now to keep it clean. -->
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                        <div class="wm-block"></div>
+                    </div>
+                </div>
+
+                <!-- Shugo & Abyss Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 16px 12px 16px;">
+                    <!-- Shugo Festa -->
+                    <div
+                        style="background: var(--bg-secondary); padding: 12px 12px 36px 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center; position: relative;">
+                        <div
+                            style="position: absolute; bottom: 12px; left: 12px; font-size: 0.75rem; color: #888; font-weight: 500;">
+                            02:59:00</div>
+                        <div style="font-size: 0.85rem; color: var(--text-sub); margin-top: 4px; margin-bottom: 4px;">
+                            슈고 페스타
+                        </div>
+                        <div style="font-size: 1.1rem; font-weight: bold; color: #fff;">14 <span
+                                style="font-size: 0.8rem; color: #666;">/ 14</span> <span
+                                style="color: var(--blue); font-size: 0.8rem; margin-left: 2px;">(+1)</span></div>
+
+                        <div style="position: absolute; bottom: 8px; right: 8px; display: flex; gap: 4px;">
+                            <button class="btn-step" style="background: #252528; border-color: #333;">-</button>
+                            <button class="btn-step" style="background: #252528; border-color: #333;">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Abyss Hallway -->
+                    <div
+                        style="background: var(--bg-secondary); padding: 12px 12px 36px 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center; position: relative;">
+                        <div
+                            style="position: absolute; bottom: 12px; left: 12px; font-size: 0.75rem; color: #888; font-weight: 500;">
+                            00:00:00</div>
+                        <div style="font-size: 0.85rem; color: var(--text-sub); margin-top: 4px; margin-bottom: 4px;">
+                            어비스 회랑
+                        </div>
+                        <div style="font-size: 1.1rem; font-weight: bold; color: #fff;">3 <span
+                                style="font-size: 0.8rem; color: #666;">/ 3</span></div>
+
+                        <div style="position: absolute; bottom: 8px; right: 8px; display: flex; gap: 4px;">
+                            <button class="btn-step" style="background: #252528; border-color: #333;">-</button>
+                            <button class="btn-step" style="background: #252528; border-color: #333;">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Od Energy Status -->
+                <div style="padding: 0 16px 16px 16px;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: center; gap: 16px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 12px; box-shadow: 0 0 15px rgba(245, 158, 11, 0.15), inset 0 0 20px rgba(245, 158, 11, 0.05);">
+                        <!-- Icon -->
+                        <img src="./public/메달/오드.png" alt="Od" style="width: 24px; height: 24px;">
+                        <!-- Value -->
+                        <span style="font-size: 1.2rem; font-weight: bold; color: var(--primary);">840</span>
+                        <!-- Timer -->
+                        <span style="color: #fff; font-size: 0.9rem;">
+                            주기충전: <span style="color: #666;">1:59:08</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 1. Complex Card (Transcendence) -->
+                <div class="complex-card">
+                    <div class="card-head" style="cursor: pointer;">
+                        <!-- Placeholder for Deus -->
+                        <span style="font-weight: 700; color: #fff;">초월</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: var(--primary);">0/14회 <span
+                                    style="color: var(--blue); font-size: 0.8rem; margin-left: 2px;">(+1)</span></span>
+                            <span style="font-size: 0.8rem; color: #888;">▼</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Controls Wrapper with specific BG -->
+                        <div
+                            style="position: relative; overflow: hidden; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); padding: 12px; margin-bottom: 12px;">
+                            <div style="
+                position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+                background-image: url('./public/메달/초월/데우스 연구기지.png');
+                background-size: cover; background-position: center; opacity: 0.5;
+                mask-image: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.2));
+                -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.2));
+            "></div>
+
+                            <!-- Settings -->
+                            <div class="settings-grid" style="position: relative; z-index: 1;">
+                                <div class="setting-item">
+                                    <div class="setting-label">보스</div>
+                                    <div class="setting-value">데우스의 연구기지 ▼</div>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-label">단계</div>
+                                    <div class="setting-value">5단계 ▼</div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="action-row" style="position: relative; z-index: 1; margin-bottom: 0;">
+                                <div class="btn-2x">
+                                    <img src="./public/메달/오드.png" alt="Od">
+                                    오드에너지 2배사용
+                                </div>
+                                <button class="btn-record">진행완료</button>
+                            </div>
+                        </div>
+
+                        <!-- Log List -->
+                        <div class="log-list">
+                            <div class="log-item">
+                                <div class="log-left">
+                                    <span>데우스</span>
+                                    <span class="log-badge">5단계</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span style="color: #666; font-size: 0.8rem;">1회</span>
+                                    <span class="log-value" style="color: #fff;">1,000,000</span>
+                                    <button class="btn-log-delete">×</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Complex Card (Expedition) -->
+                <div class="complex-card">
+                    <div class="card-head" style="cursor: pointer;">
+                        <!-- Placeholder for Krao -->
+                        <span style="font-weight: 700; color: #fff;">원정</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: var(--primary);">0/21회 <span
+                                    style="color: var(--blue); font-size: 0.8rem; margin-left: 2px;">(+1)</span></span>
+                            <span style="font-size: 0.8rem; color: #888;">▼</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Controls Wrapper with specific BG -->
+                        <div
+                            style="position: relative; overflow: hidden; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); padding: 12px; margin-bottom: 12px;">
+                            <div style="
+                position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+                background-image: url('./public/메달/원정/크라오동굴.png');
+                background-size: cover; background-position: center; opacity: 0.5;
+                mask-image: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.2));
+                -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.2));
+            "></div>
+
+                            <!-- Settings -->
+                            <div class="settings-grid"
+                                style="position: relative; z-index: 1; grid-template-columns: 1fr 1fr 1fr;">
+                                <div class="setting-item">
+                                    <div class="setting-label">보스</div>
+                                    <div class="setting-value">크라오 동굴 ▼</div>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-label">구분</div>
+                                    <div class="setting-value">탐험/정복 ▼</div>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-label">단계</div>
+                                    <div class="setting-value">1단계 ▼</div>
+                                </div>
+                            </div>
+
+                            <div class="action-row" style="position: relative; z-index: 1; margin-bottom: 0;">
+                                <div class="btn-2x active">
+                                    <img src="./public/메달/오드.png" alt="Od">
+                                    오드에너지 2배사용
+                                </div>
+                                <button class="btn-record">진행완료</button>
+                            </div>
+                        </div>
+                        <!-- Empty Log -->
+                        <!-- Log List -->
+                        <div class="log-list">
+                            <div class="log-item">
+                                <div class="log-left">
+                                    <span>크라오</span>
+                                    <span class="log-badge">1단계</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span style="color: #666; font-size: 0.8rem;">1회</span>
+                                    <span class="log-value" style="color: #fff;">1,500,000</span>
+                                    <button class="btn-log-delete">×</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Complex Card (Sanctuary) -->
+                <!-- 3. Complex Card (Sanctuary) -->
+                <div class="complex-card">
+                    <div class="card-head" style="cursor: pointer;">
+                        <!-- Placeholder for Rudra -->
+                        <span style="font-weight: 700; color: #fff;">성역</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: var(--text-sub);">0/4회 <span
+                                    style="color: var(--blue); font-size: 0.8rem; margin-left: 2px;">(+1)</span></span>
+                            <span style="font-size: 0.8rem; color: #888;">▼</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Controls Wrapper with specific BG -->
+                        <div
+                            style="position: relative; overflow: hidden; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); padding: 12px; margin-bottom: 12px;">
+                            <div style="
+                position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+                background-image: url('./public/메달/성역/심연의 재련 루드라.png');
+                background-size: cover; background-position: center; opacity: 0.5;
+                mask-image: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.2));
+                -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.2));
+            "></div>
+
+                            <!-- Settings -->
+                            <div class="settings-grid" style="position: relative; z-index: 1;">
+                                <div class="setting-item">
+                                    <div class="setting-label">보스</div>
+                                    <div class="setting-value">심연의 재련 : 루드라 ▼</div>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-label">단계</div>
+                                    <div class="setting-value">1단계 ▼</div>
+                                </div>
+                            </div>
+
+                            <div class="action-row" style="position: relative; z-index: 1; margin-bottom: 0;">
+                                <div class="btn-2x">
+                                    <img src="./public/메달/오드.png" alt="Od">
+                                    오드에너지 2배사용
+                                </div>
+                                <button class="btn-record">진행완료</button>
+                            </div>
+                        </div>
+                        <!-- Empty Log -->
+                        <!-- Log List -->
+                        <div class="log-list">
+                            <div class="log-item">
+                                <div class="log-left">
+                                    <span>루드라</span>
+                                    <span class="log-badge">1단계</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span style="color: #666; font-size: 0.8rem;">1회</span>
+                                    <span class="log-value" style="color: #fff;">10,000,000</span>
+                                    <button class="btn-log-delete">×</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Daily Content Cards -->
+                <div class="simple-card">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="width: 4px; height: 16px; background: var(--primary); border-radius: 2px;">
+                        </div>
+                        <span style="font-weight: bold;">일일던전 (3/3)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                        <span style="color: #666;">00:00:00</span>
+                        <span style="color: #444;">|</span>
+                        <span style="color: var(--text-main); font-weight: bold;">3/3</span>
+                    </div>
+                </div>
+
+                <div class="simple-card">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="width: 4px; height: 16px; background: var(--primary); border-radius: 2px;">
+                        </div>
+                        <span style="font-weight: bold;">각성전 (1/1)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                        <span style="color: #666;">00:00:00</span>
+                        <span style="color: #444;">|</span>
+                        <span style="color: var(--text-main); font-weight: bold;">1/1</span>
+                    </div>
+                </div>
+
+                <div class="simple-card">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="width: 4px; height: 16px; background: var(--primary); border-radius: 2px;">
+                        </div>
+                        <span style="font-weight: bold;">악몽 (1/1)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                        <span style="color: #666;">00:00:00</span>
+                        <span style="color: #444;">|</span>
+                        <span style="color: var(--text-main); font-weight: bold;">1/1</span>
+                    </div>
+                </div>
+
+                <div class="simple-card">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="width: 4px; height: 16px; background: var(--primary); border-radius: 2px;">
+                        </div>
+                        <span style="font-weight: bold;">차원침공 (1/1)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                        <span style="color: #666;">00:00:00</span>
+                        <span style="color: #444;">|</span>
+                        <span style="color: var(--text-main); font-weight: bold;">1/1</span>
+                    </div>
+                </div>
+
+                <div class="simple-card">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="width: 4px; height: 16px; background: var(--primary); border-radius: 2px;">
+                        </div>
+                        <span style="font-weight: bold;">토벌전 (1/1)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
+                        <span style="color: #666;">00:00:00</span>
+                        <span style="color: #444;">|</span>
+                        <span style="color: var(--text-main); font-weight: bold;">1/1</span>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /#char-subview-homework -->
+
+            <!-- Sub View: Items (Relocated Management UI) -->
+            <div id="char-subview-items" class="char-subview hidden">
+                <!-- Item Header Summary (Character Specific) -->
+                <div style="padding: 0 16px 16px 16px;">
+                    <div
+                        style="background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border); padding: 16px; display: flex; gap: 16px;">
+                        <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 0.75rem; color: var(--text-sub);">아이템 판매</div>
+                            <div style="color: var(--primary); font-weight: bold;">520만</div>
+                        </div>
+                        <div style="flex: 1; text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-sub);">판매 완료</div>
+                            <div style="color: #fff; font-weight: bold;">12건</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Favorites Section -->
+                <div style="padding: 0 16px 8px 16px; font-weight: 700; font-size: 1rem; color: var(--primary);">
+                    ★ 이 캐릭터의 즐겨찾기
+                </div>
+                <div class="summary-scroll" style="margin-top: 12px; min-height: 80px;">
+                    <div class="item-card">
+                        <div class="item-img-box" style="border-color: var(--primary);">
+                            <div class="favorite-star active" onclick="toggleFavorite(this)">★</div>
+                            <div class="item-badge">x5</div>
+                        </div>
+                        <div class="item-name">키나 꾸러미</div>
+                    </div>
+                </div>
+
+                <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 8px 16px;"></div>
+
+                <!-- Item List Search & Filter -->
+                <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="position: relative;">
+                        <input type="text" placeholder="아이템 검색..."
+                            style="width: 100%; background: #1f1f22; border: 1px solid #333; border-radius: 8px; padding: 10px 12px 10px 36px; color: #fff; font-size: 0.9rem;">
+                        <span style="position: absolute; left: 12px; top: 10px; color: #666;">🔍</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button
+                            style="flex: 1; background: var(--primary); color: #000; border: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 0.85rem;">전체</button>
+                        <button
+                            style="flex: 1; background: #1f1f22; color: #aaa; border: 1px solid #333; padding: 8px; border-radius: 6px; font-size: 0.85rem;">판매중</button>
+                        <button
+                            style="flex: 1; background: #1f1f22; color: #aaa; border: 1px solid #333; padding: 8px; border-radius: 6px; font-size: 0.85rem;">판매완료</button>
+                    </div>
+                </div>
+
+                <div class="summary-scroll">
+                    <!-- Sample Items -->
+                    <div class="item-card">
+                        <div class="item-img-box">
+                            <div class="favorite-star" onclick="toggleFavorite(this)">★</div>
+                            <div class="item-badge">x1</div>
+                        </div>
+                        <div class="item-name">전설 무기</div>
+                    </div>
+                    <div class="item-card">
+                        <div class="item-img-box">
+                            <div class="favorite-star" onclick="toggleFavorite(this)">★</div>
+                            <div class="item-badge">x2</div>
+                        </div>
+                        <div class="item-name">마석</div>
+                    </div>
+                </div>
+
+                <!-- Sales Log -->
+                <div style="padding: 24px 16px 8px 16px; font-weight: 700; font-size: 1rem;">최근 판매 내역</div>
+                <div class="log-list" style="padding: 0 16px 24px 16px;">
+                    <div class="log-item">
+                        <div class="log-left">
+                            <span class="log-badge"
+                                style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">판매</span>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="color: #eee; font-weight: 500;">강화석 x10</span>
+                                <span class="log-time">14:20:12</span>
+                            </div>
+                        </div>
+                        <div class="log-value">+ 5,000,000</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub View: Stats -->
+            <div id="char-subview-stats" class="char-subview hidden">
+                <div style="padding: 40px 16px; text-align: center; color: var(--text-disabled);">
+                    통계 고도화 준비 중입니다.
+                </div>
+            </div>
+        </div> <!-- /#view-character-detail -->
+    </div> <!-- /#view-container -->
+
+    <script>
+        function switchCharacterSubTab(subTabId) {
+            // 모든 서브 뷰 숨기기
+            const subviews = document.querySelectorAll('.char-subview');
+            subviews.forEach(v => v.classList.add('hidden'));
+
+            // 선택된 서브 뷰 표시
+            const targetSubview = document.getElementById('char-subview-' + subTabId);
+            if (targetSubview) targetSubview.classList.remove('hidden');
+
+            // 서브 탭 활성화 상태 업데이트
+            const tabs = document.querySelectorAll('.char-sub-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            const activeTab = document.getElementById('subtab-' + subTabId);
+            if (activeTab) activeTab.classList.add('active');
+        }
+
+        function openCharacterDetail(name, server, job) {
+            // 모든 메인 뷰 숨기기 (사실상 view-main 하나만 숨기면 됨)
+            const views = document.querySelectorAll('.view');
+            views.forEach(v => v.classList.add('hidden'));
+
+            // 캐릭터 이름/정보 업데이트
+            document.getElementById('detail-char-name').innerText = name;
+            document.getElementById('detail-char-info').innerText = server + ' | ' + job;
+
+            // 상세 뷰 보이기
+            const detailView = document.getElementById('view-character-detail');
+            detailView.classList.remove('hidden');
+
+            // 기본 서브 탭으로 초기화 (숙제)
+            switchCharacterSubTab('homework');
+
+            window.scrollTo(0, 0);
+        }
+
+        function closeCharacterDetail() {
+            // 모든 뷰 숨기기
+            const views = document.querySelectorAll('.view');
+            views.forEach(v => v.classList.add('hidden'));
+
+            // 메인 뷰 보이기
+            document.getElementById('view-main').classList.remove('hidden');
+
+            window.scrollTo(0, 0);
+        }
+
+        function toggleFavorite(star) {
+            star.classList.toggle('active');
+            // 실제 구현 시 여기서 favorites 리스트 동기화 로직 추가
+            // star.parentElement.parentElement ...
+        }
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            // 초기화 시 필요한 로직
+        });
+    </script>
 </body>
 
 </html>

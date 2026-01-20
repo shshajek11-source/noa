@@ -1,350 +1,391 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> 이 파일은 Claude Code가 이 프로젝트에서 작업할 때 참고하는 지침서입니다.
+> 마지막 업데이트: 2026-01-20
 
-## Project Overview
+---
 
-AION 2 character search and ranking service. A web application providing character information, rankings, equipment data, and stats for the AION 2 game.
+## 1. 프로젝트 개요
 
-**Tech Stack:**
-- Frontend: Next.js 14 (App Router), TypeScript, CSS Variables (Dark + Yellow theme)
-- Backend: Supabase Edge Functions (Deno)
-- Database: Supabase PostgreSQL
-- Deployment: Vercel (Frontend), Supabase (Backend)
+**HITON2** - AION 2 게임의 캐릭터 정보, 랭킹, 장비 데이터, 스탯을 제공하는 웹 서비스
 
-## Commands
+| 항목 | 값 |
+|------|---|
+| **프레임워크** | Next.js 14 (App Router) |
+| **언어** | TypeScript (Strict) |
+| **백엔드** | Supabase PostgreSQL + Edge Functions |
+| **배포** | Vercel (Frontend) |
+| **테마** | Dark + Yellow accent |
 
-```bash
-# From project root
-cd frontend && npm run dev      # Dev server at http://localhost:3000
-cd frontend && npm run build    # Production build
-cd frontend && npm run lint     # ESLint check
-cd frontend && npm run test:e2e # E2E health check
+---
 
-# Supabase Edge Functions (from supabase/)
-supabase functions serve        # Local function testing
-supabase functions deploy <fn>  # Deploy: get-character, search-character, etc.
-```
-
-## Architecture
+## 2. 프로젝트 구조
 
 ```
 hiton2/
 ├── frontend/src/
-│   ├── app/                    # Next.js App Router pages
-│   │   ├── api/                # API routes (Next.js)
-│   │   ├── c/[server]/[name]/  # Character detail page
-│   │   ├── ranking/            # Ranking page
-│   │   ├── admin/              # Admin tools
-│   │   └── components/         # Page-specific components
-│   ├── components/             # Shared React components
-│   ├── lib/                    # Core utilities
-│   │   ├── supabaseApi.ts      # Supabase client wrapper
-│   │   ├── statsAggregator.ts  # Character stats calculation
-│   │   ├── chzzk.ts            # Live streaming integration
-│   │   └── theme.ts            # Theme configuration
-│   ├── types/                  # TypeScript type definitions
-│   ├── hooks/                  # Custom React hooks
-│   └── data/                   # Static data files
-│
+│   ├── app/                    # 페이지 및 API (32개 페이지, 64개 API)
+│   │   ├── api/                # API 라우트
+│   │   │   ├── character/      # 캐릭터 상세/검색
+│   │   │   ├── ledger/         # 가계부 시스템 (11개 API)
+│   │   │   ├── ranking/        # 랭킹
+│   │   │   ├── party/          # 파티 시스템
+│   │   │   ├── item/           # 아이템 검색
+│   │   │   └── admin/          # 관리자 기능
+│   │   ├── c/[server]/[name]/  # 캐릭터 상세 페이지
+│   │   ├── ranking/            # 랭킹 페이지
+│   │   ├── ledger/             # 가계부 페이지
+│   │   ├── party/              # 파티 페이지
+│   │   └── admin/              # 관리자 페이지
+│   ├── lib/                    # 핵심 유틸리티 (5,179줄)
+│   │   ├── auth.ts             # API 인증 (device_id + Bearer)
+│   │   ├── supabaseApi.ts      # Supabase 클라이언트
+│   │   ├── combatPower.ts      # 전투력 계산
+│   │   ├── statsAggregator.ts  # 스탯 집계
+│   │   └── rateLimit.ts        # Rate Limiting
+│   ├── components/             # 공유 컴포넌트
+│   ├── hooks/                  # 커스텀 훅 (16개)
+│   ├── types/                  # TypeScript 타입 (9개)
+│   └── data/                   # 정적 게임 데이터
 └── supabase/
-    ├── functions/              # Edge Functions (Deno)
-    │   ├── get-character/      # Character detail fetch
-    │   ├── search-character/   # External API search
-    │   ├── search-local-character/  # Local DB search
-    │   └── refresh-character/  # Force data refresh
-    └── migrations/             # Database schema
+    └── migrations/             # DB 마이그레이션 (20+)
 ```
 
-## Key Patterns
+---
 
-**Hybrid Search:** Searches combine local DB (fast) + external API (fresh) in parallel:
-```typescript
-// Local search first, then live API
-supabaseApi.searchLocalCharacter(term).then(...)
-supabaseApi.searchCharacter(term, serverId, race, 1).then(...)
+## 3. 주요 기능별 파일
+
+### 3.1 캐릭터 검색/상세
+| 기능 | 파일 |
+|------|------|
+| 검색 API | `src/app/api/search/live/route.ts` |
+| 상세 API | `src/app/api/character/route.ts` |
+| 상세 페이지 | `src/app/c/[server]/[name]/page.tsx` |
+| 검색 컴포넌트 | `src/app/components/SearchAutocomplete.tsx` |
+
+### 3.2 가계부 (Ledger)
+| 기능 | 파일 |
+|------|------|
+| 메인 페이지 | `src/app/ledger/page.tsx` (40KB) |
+| 던전 컨텐츠 | `src/app/ledger/components/DungeonContentSection.tsx` |
+| 주간 컨텐츠 | `src/app/ledger/components/WeeklyContentSection.tsx` |
+| 일일 컨텐츠 | `src/app/ledger/components/DailyContentSection.tsx` |
+| 대시보드 | `src/app/ledger/components/DashboardSummary.tsx` |
+| 아이템 관리 | `src/app/ledger/components/ItemManagementTab.tsx` |
+
+### 3.3 가계부 API
+| API | 경로 |
+|-----|------|
+| 캐릭터 목록 | `/api/ledger/characters` |
+| 캐릭터 상태 | `/api/ledger/character-state` |
+| 던전 기록 | `/api/ledger/dungeon-records` |
+| 주간 컨텐츠 | `/api/ledger/weekly-content` |
+| 아이템 | `/api/ledger/items` |
+| 컨텐츠 기록 | `/api/ledger/content-records` |
+
+### 3.4 전투력 계산
+| 기능 | 파일 |
+|------|------|
+| 전투력 계산 | `src/lib/combatPower.ts` |
+| 스탯 집계 | `src/lib/statsAggregator.ts` |
+| 스탯 검증 | `src/lib/statsValidator.ts` |
+
+---
+
+## 4. 개발 명령어
+
+```bash
+# 개발 서버 (Turbo)
+cd frontend && npm run dev
+
+# 프로덕션 빌드
+cd frontend && npm run build
+
+# ESLint 검사
+cd frontend && npm run lint
+
+# Git 커밋 & 푸시 (상위 폴더에서)
+cd .. && git add . && git commit -m "메시지" && git push
 ```
 
-**API Routes:** Use Next.js route handlers with proper error handling:
-```typescript
-export async function GET(request: NextRequest) {
-    try {
-        const [data1, data2] = await Promise.all([fetch(url1), fetch(url2)])
-        return NextResponse.json(transformedData)
-    } catch (err) {
-        return NextResponse.json({ error: err.message }, { status: 500 })
-    }
-}
-```
+---
 
-**Client Components:** Mark with `'use client'` at top when using hooks/interactivity.
+## 5. Supabase 설정
 
-## API Usage Principles
-
-**CRITICAL: Always prioritize self-hosted APIs over external APIs to maximize speed and minimize costs.**
-
-### 1. **Self-Hosted API First (자체 API 우선)**
-
-When implementing features, always check these in order:
-
-1. **Check existing self-hosted APIs** in `frontend/src/app/api/`
-2. **Check Supabase Edge Functions** in `supabase/functions/`
-3. **Check database cache** - most data is already cached in Supabase
-4. **Only if absolutely necessary**, call external AION2 API
-
-### 2. **When to Use External API (공식 API 사용 조건)**
-
-Call external AION2 API (`https://aion2.plaync.com/api/*`) ONLY when:
-
-- ✅ Data doesn't exist in cache (first-time search)
-- ✅ User explicitly requests refresh (force refresh button)
-- ✅ Cache is expired (>5 minutes old)
-- ❌ **NEVER** call on every request
-- ❌ **NEVER** call without checking cache first
-
-### 3. **Caching Strategy (캐싱 전략)**
-
-All external API responses must be cached in Supabase:
-
-```typescript
-// ✅ GOOD: Check cache first
-const { data: cached } = await supabase
-  .from('characters')
-  .select('*')
-  .eq('character_id', characterId)
-  .single()
-
-// Return cached if fresh (< 5 minutes)
-if (cached && isFresh(cached.scraped_at)) {
-  return cached
-}
-
-// ❌ BAD: Call external API directly
-const response = await fetch('https://aion2.plaync.com/api/...')
-```
-
-**Cache TTL:**
-- Character info: 5 minutes (`CACHE_TTL_SECONDS = 300`)
-- Search results: Immediate (background update)
-- Rankings: 10 minutes
-
-### 4. **Existing Self-Hosted APIs**
-
-Use these instead of external API:
-
-| Feature | Self-Hosted API | External API (Avoid) |
-|---------|----------------|----------------------|
-| 캐릭터 검색 | `/api/search/live` | ❌ |
-| 캐릭터 상세 | `/api/character?id=...` | ❌ |
-| 랭킹 조회 | `/api/ranking?...` | ❌ |
-| 아이템 검색 | `/api/item/search` | ❌ |
-| 파티 스캔 | `/api/party/scan` | ❌ |
-
-### 5. **Creating New APIs**
-
-When creating new features requiring external data:
-
-```typescript
-// 1. Create Next.js API route: frontend/src/app/api/[feature]/route.ts
-export async function GET(request: NextRequest) {
-  // Step 1: Check cache
-  const cached = await getCachedData(params)
-  if (cached && isFresh(cached)) return cached
-
-  // Step 2: Call external API (only if needed)
-  const fresh = await fetchExternalAPI(params)
-
-  // Step 3: Save to cache
-  await saveToCache(fresh)
-
-  return fresh
-}
-
-// 2. Add rate limiting
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit'
-const rateLimit = checkRateLimit(request, RATE_LIMITS.external)
-if (!rateLimit.success) return rateLimit.error
-
-// 3. Add error handling
-try {
-  // ... API logic
-} catch (error) {
-  console.error('[API Name] Error:', error)
-  return NextResponse.json({ error: 'User-friendly message' }, { status: 500 })
-}
-```
-
-### 6. **Performance Best Practices**
-
-- **Parallel Requests**: Use `Promise.all()` for independent queries
-- **Batch Updates**: Group DB writes when possible
-- **Lazy Loading**: Load data only when needed
-- **Background Updates**: Use cache-first, update-background pattern
-
-```typescript
-// ✅ GOOD: Parallel queries
-const [char, equipment, stats] = await Promise.all([
-  getCharacter(id),
-  getEquipment(id),
-  getStats(id)
-])
-
-// ❌ BAD: Sequential queries
-const char = await getCharacter(id)
-const equipment = await getEquipment(id)
-const stats = await getStats(id)
-```
-
-### 7. **Cost & Speed Reference**
-
-| Method | Speed | Cost | When to Use |
-|--------|-------|------|-------------|
-| Supabase Query | 10-50ms | Free (unlimited) | ✅ Always first |
-| Self-hosted API | 50-200ms | Free (500k/month) | ✅ Second choice |
-| External API | 500-2000ms | Rate limited | ⚠️ Last resort only |
-
-## Project Guidelines
-
-1. **Compact UI**: Keep fonts, cards, buttons reasonably sized to minimize scrolling
-2. **Korean Language**: All explanations and reports in Korean
-3. **Error Handling**: Display user-friendly error messages with copy button for debugging
-4. **TypeScript Strict**: Maintain type safety throughout
-5. **AION2 Data**: Apply game-specific race/class board ID rules accurately
-6. **Data Persistence**: **CRITICAL - ALWAYS use Supabase for data storage, NEVER use localStorage**
-   - All user data, settings, and application state MUST be stored in Supabase PostgreSQL
-   - Create proper database tables with migrations in `supabase/migrations/`
-   - Implement API routes in `frontend/src/app/api/` for data access
-   - Use RLS (Row Level Security) policies to protect user data
-   - localStorage is only acceptable for temporary UI state (e.g., collapsed panels, theme preference)
-   - When implementing new features with data persistence:
-     1. Design the database schema and create migration SQL
-     2. Create API routes (GET/POST/DELETE) with proper authentication
-     3. Implement frontend logic using the API routes
-   - Example pattern:
-     ```typescript
-     // ✅ GOOD: Supabase persistence
-     const res = await fetch('/api/ledger/character-state', {
-       method: 'POST',
-       body: JSON.stringify(data)
-     })
-
-     // ❌ BAD: localStorage persistence
-     localStorage.setItem('user-data', JSON.stringify(data))
-     ```
-
-## Supabase Project Configuration
-
-**CRITICAL: 반드시 `mnbngmdjiszyowfvnzhk` Supabase 프로젝트만 사용**
-
-이 프로젝트는 단일 Supabase 인스턴스를 사용합니다:
-
+### 필수 프로젝트 정보
 | 항목 | 값 |
 |------|---|
 | Project ID | `mnbngmdjiszyowfvnzhk` |
 | URL | `https://mnbngmdjiszyowfvnzhk.supabase.co` |
-| Dashboard | Supabase Dashboard에서 해당 프로젝트 선택 |
 
-### 주의사항
+**주의:** 다른 Supabase 프로젝트 ID 사용 금지!
 
-1. **다른 Supabase 프로젝트 사용 금지**
-   - `edwtbiujwjprydmahwhh` 등 다른 프로젝트 ID 사용 절대 금지
-   - API 라우트 생성 시 반드시 올바른 URL/Key 확인
+### 인증 방식 (우선순위)
+```typescript
+// src/lib/auth.ts 사용
+import { getSupabase, getUserFromRequest } from '@/lib/auth'
 
-2. **API 라우트 작성 시 필수 패턴**
-   ```typescript
-   // ✅ GOOD: 올바른 프로젝트 (mnbngmdjiszyowfvnzhk)
-   const SUPABASE_URL = 'https://mnbngmdjiszyowfvnzhk.supabase.co'
-   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uYm5nbWRqaXN6eW93ZnZuemhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTY0ODAsImV4cCI6MjA4MjU3MjQ4MH0.AIvvGxd_iQKpQDbmOBoe4yAmii1IpB92Pp7Scs8Lz7U'
-
-   // ❌ BAD: 잘못된 프로젝트 (다른 ID)
-   const SUPABASE_URL = 'https://edwtbiujwjprydmahwhh.supabase.co'  // 절대 사용 금지
-   ```
-
-3. **Ledger API 인증 방식**
-   - Google 로그인은 현재 비활성화 (다른 Supabase 프로젝트 사용 중)
-   - 모든 ledger API는 `device_id`를 우선 사용
-   - `X-Device-ID` 헤더를 Bearer 토큰보다 먼저 확인
-
-   ```typescript
-   // API 라우트에서 인증 처리 패턴
-   async function getUserFromRequest(request: Request) {
-     // 1. device_id 우선 확인
-     const device_id = request.headers.get('X-Device-ID') || request.headers.get('x-device-id')
-     if (device_id) {
-       return getOrCreateUserByDeviceId(device_id)
-     }
-
-     // 2. Bearer 토큰은 폴백으로만 사용
-     // ...
-   }
-   ```
-
-## Environment Variables
-
-Frontend `.env.local`:
-```
-NEXT_PUBLIC_SUPABASE_URL=https://mnbngmdjiszyowfvnzhk.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uYm5nbWRqaXN6eW93ZnZuemhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTY0ODAsImV4cCI6MjA4MjU3MjQ4MH0.AIvvGxd_iQKpQDbmOBoe4yAmii1IpB92Pp7Scs8Lz7U
+// 1순위: device_id (X-Device-ID 헤더)
+// 2순위: Bearer 토큰 (폴백)
 ```
 
-## Windows Development Environment
+### API 라우트 작성 패턴
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { getSupabase, getUserFromRequest } from '@/lib/auth'
 
-**CRITICAL: 이 프로젝트는 Windows 환경에서 개발됩니다.**
+export async function GET(request: NextRequest) {
+  // 1. 인증
+  const user = await getUserFromRequest(request)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-### Claude Code 작업 규칙
+  // 2. 파라미터 검증
+  const { searchParams } = new URL(request.url)
+  const characterId = searchParams.get('characterId')
+  if (!characterId) {
+    return NextResponse.json({ error: 'Missing characterId' }, { status: 400 })
+  }
 
-1. **Bash 도구 사용 허용 (npm 명령어)**
-   - `npm run build`, `npm run dev` 등 npm 명령어는 Bash 도구로 실행 가능
-   - `/npp` 스킬로 빌드 + 개발 서버 자동 실행
-   - 단, 위험한 시스템 명령어(rm -rf, 환경 변수 수정 등)는 금지
+  try {
+    // 3. 데이터 처리
+    const supabase = getSupabase()
+    const { data, error } = await supabase
+      .from('table_name')
+      .select('*')
+      .eq('character_id', characterId)
 
-2. **Claude가 해야 할 작업**
-   - ✅ 코드 읽기 (Read 도구)
-   - ✅ 코드 수정 (Edit 도구)
-   - ✅ 파일 생성 (Write 도구)
-   - ✅ 파일 검색 (Glob, Grep 도구)
-   - ✅ npm 명령어 실행 (Bash 도구) - build, dev, lint 등
+    if (error) throw error
+    return NextResponse.json(data)
+  } catch (e: any) {
+    console.error('[API Name] Error:', e)
+    return NextResponse.json({ error: e.message }, { status: 500 })
+  }
+}
+```
 
-3. **에러 발생 시**
-   - 빌드 오류 발생 시 Claude가 자동으로 분석 및 수정
-   - 수정 후 다시 빌드 실행
+---
 
-5. **문제 해결 후 보고**
-   - 문제 해결 시 어떤 문제가 해결되었는지 간결하게 알려줄 것
-   - 예: "✅ `useWeeklyStats.ts`에 인증 헤더 누락 → 401 에러 해결"
+## 6. 주요 데이터베이스 테이블
 
-6. **작업 전 컨펌 필수**
-   - 간단한 수정(오타, 한 줄 변경 등)이 아닌 이상 작업 전 사용자에게 컨펌 받을 것
-   - 무엇을 수정할지, 어떤 파일을 변경할지 간결하게 설명 후 진행
+### 캐릭터 관련
+- `characters` - 캐릭터 기본 정보, 장비, 스탯
 
-7. **비개발자 친화적 설명**
-   - 사용자는 비개발자이므로 전문 용어 사용 시 쉽게 풀어서 설명
-   - 코드 변경 내용은 "무엇이 바뀌는지" 결과 중심으로 설명
-   - 기술적 세부사항보다 "어떤 문제가 해결되는지"에 초점
+### 가계부 관련
+- `ledger_users` - 사용자 (device_id 기반)
+- `ledger_characters` - 사용자 캐릭터 목록
+- `ledger_items` - 보유 아이템
+- `ledger_dungeon_records` - 던전 기록
+- `ledger_weekly_content` - 주간 컨텐츠
+- `ledger_daily_mission` - 일일 사명
+- `ledger_character_state` - 캐릭터 상태 (티켓 등)
+- `ledger_content_records` - 컨텐츠 기록
 
-8. **새 기능 개발 시 디버그 패널 활용**
-   - 처음 작업하는 기능은 디버그 패널을 먼저 만들어 개발 진행
-   - 디버그 패널로 데이터 흐름, API 응답, 상태 변화를 시각적으로 확인
-   - 기능 완성 후 디버그 패널은 제거하거나 admin 페이지로 이동
+---
 
-## 배포 및 데이터 저장 규칙
+## 7. API 호출 원칙
 
-**CRITICAL: 반드시 준수**
+### 우선순위
+1. **Supabase DB** 직접 조회 (10-50ms) ✅
+2. **자체 API** 사용 (50-200ms) ✅
+3. **외부 API** 호출 (500-2000ms) ⚠️ 필요시만
 
-1. **데이터 저장: Supabase만 사용**
-   - 모든 데이터베이스 저장 작업은 Supabase(`mnbngmdjiszyowfvnzhk`) 통해서만 수행
-   - localStorage 사용 금지 (임시 UI 상태 제외)
-   - 새로운 기능 추가 시 반드시 Supabase 테이블 설계부터
+### 캐릭터 데이터 조회 원칙
+**캐릭터 상세 페이지 외의 다른 페이지에서 캐릭터 정보가 필요한 경우:**
 
-2. **배포: Vercel만 사용**
-   - 프론트엔드 배포는 Vercel 프로젝트로만 진행
-   - Netlify, 기타 플랫폼 사용 금지
+1. **1순위: 캐릭터 상세 페이지 데이터 활용** ✅
+   - `characters` 테이블에 이미 저장된 정보 우선 사용
+   - 장비, 스탯, 클래스, 서버 등 기본 정보 활용
+   ```typescript
+   // ✅ GOOD: DB에 저장된 캐릭터 정보 사용
+   const { data } = await supabase
+     .from('characters')
+     .select('name, server_name, class_name, item_level')
+     .eq('character_id', characterId)
+   ```
 
-## CSS Theme
+2. **2순위: 공식 페이지 연동** ⚠️
+   - DB에 없는 정보만 공식 API에서 조회
+   - 조회 후 반드시 캐싱하여 재사용
+   ```typescript
+   // ⚠️ 필요시만: 공식 API 호출 후 캐싱
+   const fresh = await fetchFromOfficialAPI(characterId)
+   await saveToCache(fresh)  // 다음 요청 시 DB에서 조회
+   ```
 
-Uses CSS Variables for Dark + Yellow accent theme:
+3. **❌ 금지: 매 요청마다 공식 API 직접 호출**
+   - 불필요한 외부 API 호출은 속도 저하 원인
+   - Rate Limit 초과 위험
+
+### 병렬 처리 필수
+```typescript
+// ✅ GOOD: 병렬 처리
+const [stats, items] = await Promise.all([
+  fetch('/api/stats'),
+  fetch('/api/items')
+])
+
+// ❌ BAD: 순차 처리
+const stats = await fetch('/api/stats')
+const items = await fetch('/api/items')
+```
+
+### 캐싱 전략
+- 캐릭터 정보: 5분 TTL
+- 검색 결과: 즉시 + 백그라운드 업데이트
+- 랭킹 데이터: 10분 TTL
+
+---
+
+## 8. 데이터 저장 규칙
+
+### 반드시 Supabase 사용
+```typescript
+// ✅ GOOD: Supabase 저장
+await fetch('/api/ledger/character-state', {
+  method: 'POST',
+  body: JSON.stringify(data)
+})
+
+// ❌ BAD: localStorage 저장 (금지)
+localStorage.setItem('user-data', JSON.stringify(data))
+```
+
+### localStorage 허용 범위
+- UI 접기/펼치기 상태
+- 테마 설정
+- 임시 캐시 (최근 검색어 등)
+
+---
+
+## 9. Claude Code 작업 규칙
+
+### 허용 작업
+- ✅ 코드 읽기/수정/생성
+- ✅ npm 명령어 실행 (build, dev, lint)
+- ✅ git 명령어 실행 (add, commit, push)
+- ✅ 파일 검색 (Glob, Grep)
+
+### 작업 절차
+1. **작업 전 컨펌** - 수정 내용 간단히 설명 후 진행
+2. **비개발자 친화적 설명** - 전문 용어 쉽게 풀어서
+3. **결과 중심 보고** - "어떤 문제가 해결되는지" 초점
+
+### 에러 발생 시
+1. 빌드 오류 → 자동 분석 및 수정 시도
+2. 수정 후 다시 빌드
+3. 해결 내용 간결하게 보고
+
+### 기능 수정 시 주의
+- **기존 작동하는 기능 건드리지 않기**
+- 수정 범위를 최소화
+- 변경 파일 명확히 안내
+
+---
+
+## 10. 코드 스타일
+
+### React 컴포넌트
+```typescript
+'use client'
+
+import { useState, useEffect, useCallback, memo } from 'react'
+import styles from './Component.module.css'
+
+interface ComponentProps {
+  // props 정의
+}
+
+function Component({ prop1, prop2 }: ComponentProps) {
+  // 훅, 상태, 핸들러
+  return (
+    <div className={styles.container}>
+      {/* JSX */}
+    </div>
+  )
+}
+
+// 성능 최적화 필요시 memo 적용
+export default memo(Component)
+```
+
+### CSS 테마 변수
 ```css
---bg-main: #0B0D12
---primary: #FACC15
---text-main: #E5E7EB
+--bg-main: #0B0D12      /* 메인 배경 */
+--bg-card: #151921      /* 카드 배경 */
+--primary: #FACC15      /* 노란 액센트 */
+--text-main: #E5E7EB    /* 기본 텍스트 */
+--text-secondary: #9CA3AF /* 보조 텍스트 */
 ```
+
+---
+
+## 11. 가계부 날짜 로직
+
+### 게임 날짜 기준
+- **일일 리셋**: 매일 새벽 5시
+- **주간 리셋**: 수요일 새벽 5시
+
+### 날짜 유틸리티
+```typescript
+import { getGameDate, getWeekKey, isEditable } from '../utils/dateUtils'
+
+// 게임 날짜 (5시 기준)
+const today = getGameDate(new Date())  // "2026-01-20"
+
+// 주간 키 (수요일 기준)
+const weekKey = getWeekKey(new Date())  // "2026-W04"
+
+// 수정 가능 여부 (당일만)
+const canEdit = isEditable(selectedDate)
+```
+
+---
+
+## 12. 자주 발생하는 이슈
+
+### 빌드 에러
+| 에러 | 원인 | 해결 |
+|------|------|------|
+| `Type error: Property 'X' does not exist` | 타입 정의 누락 | interface에 속성 추가 |
+| `Module not found` | import 경로 오류 | 경로 확인 및 수정 |
+| `Unauthorized 401` | 인증 헤더 누락 | `getAuthHeader()` 사용 |
+
+### 데이터 동기화
+| 문제 | 원인 | 해결 |
+|------|------|------|
+| 저장 안 됨 | 잘못된 테이블명 | API 라우트 확인 |
+| 불러오기 안 됨 | 날짜 형식 불일치 | `getGameDate()` 사용 |
+| 합산 표시 | 잔여/충전권 구분 누락 | `baseTickets` 분리 |
+
+---
+
+## 13. 배포 체크리스트
+
+### 커밋 전
+- [ ] `npm run build` 성공 확인
+- [ ] TypeScript 에러 없음
+- [ ] 기존 기능 정상 작동
+
+### 커밋 & 푸시
+```bash
+cd C:\projects\hiton2
+git add .
+git commit -m "fix: 설명"
+git push
+```
+
+### 배포 후
+- [ ] Vercel 빌드 성공 확인
+- [ ] 프로덕션 사이트 테스트
+
+---
+
+## 14. 연락처 및 참고
+
+- **GitHub**: `shshajek-cpu/hiton-1-12`
+- **배포**: Vercel (자동 배포)
+- **DB 관리**: Supabase Dashboard
+
+---
+
+*이 문서는 프로젝트 변경 시 업데이트가 필요합니다.*
