@@ -176,10 +176,10 @@ export default function RankingTable({ type }: RankingTableProps) {
             const json = await res.json()
 
             if (json.data) {
-                // noa_score를 hiton_score로 매핑
+                // pve_score를 hiton_score로 매핑
                 const mappedData = json.data.map((char: any) => ({
                     ...char,
-                    hiton_score: char.noa_score || char.hiton_score,
+                    hiton_score: char.pve_score || char.hiton_score,
                 }))
 
                 if (isReset) {
@@ -241,7 +241,8 @@ export default function RankingTable({ type }: RankingTableProps) {
 
     return (
         <div style={{ paddingBottom: '2rem' }}>
-            <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
+            {/* Desktop Table: Hidden on Mobile via CSS */}
+            <div style={{ overflowX: 'auto', marginBottom: '1rem' }} className={styles.rankingTableWrapper}>
                 <table className={styles.rankingTable}>
                     <thead>
                         <tr>
@@ -263,8 +264,6 @@ export default function RankingTable({ type }: RankingTableProps) {
                         {data.map((char, idx) => {
                             const currentRank = idx + 1
                             const rankChange = getRankChange(currentRank, char.prev_rank)
-                            // 1등 전투력 기준으로 티어 계산 (상대 평가)
-                            const topPower = data[0]?.hiton_score || char.hiton_score || 1
 
                             return (
                                 <tr
@@ -272,7 +271,6 @@ export default function RankingTable({ type }: RankingTableProps) {
                                     className={`
                                         ${idx === 0 ? styles.rankRow1 : ''}
                                         ${idx === 1 ? styles.rankRow2 : ''}
-                                        ${idx === 2 ? styles.rankRow3 : ''}
                                         ${idx === 2 ? styles.rankRow3 : ''}
                                     `}
                                 >
@@ -363,17 +361,87 @@ export default function RankingTable({ type }: RankingTableProps) {
                 </table>
             </div>
 
-            {hasMore && (
-                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                    <button
-                        onClick={handleLoadMore}
-                        disabled={isLoadingMore}
-                        className={styles.loadMoreButton}
-                    >
-                        {isLoadingMore ? '불러오는 중...' : '더보기 (Next 50)'}
-                    </button>
-                </div>
-            )}
-        </div>
+            {/* Mobile List: Hidden on Desktop via CSS */}
+            <div className={styles.mobileRankingList}>
+                {data.map((char, idx) => {
+                    const currentRank = idx + 1
+                    const rankClass = currentRank === 1 ? styles.rank1 : currentRank === 2 ? styles.rank2 : currentRank === 3 ? styles.rank3 : ''
+                    const raceClass = char.race_name === 'Elyos' ? styles.elyos : styles.asmodian
+
+                    return (
+                        <div key={`m-${char.character_id}_${idx}`} className={styles.mobileRankingCard}>
+                            <div className={styles.cardHeader}>
+                                <div className={styles.rankBadge}>
+                                    <span className={`${styles.rankNumberMobile} ${rankClass}`}>#{currentRank}</span>
+                                    {/* Rank Change could go here */}
+                                </div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-disabled)' }}>
+                                    {/* Optional: Add badge or extra info */}
+                                </div>
+                            </div>
+
+                            <Link
+                                href={`/c/${encodeURIComponent(SERVER_MAP[char.server_id] || char.server_id)}/${encodeURIComponent(char.name)}`}
+                                className={styles.cardBody}
+                            >
+                                <div className={styles.avatarMobile}>
+                                    {char.profile_image ? (
+                                        <Image src={char.profile_image} alt={char.name} width={56} height={56} style={{ objectFit: 'cover' }} />
+                                    ) : (
+                                        <div className={styles.charImagePlaceholder} style={{ fontSize: '1.5rem' }}>
+                                            {char.name.substring(0, 1)}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className={styles.infoMobile}>
+                                    <div className={styles.nameMobile}>{char.name}</div>
+                                    <div className={styles.metaMobile}>
+                                        <span>{SERVER_MAP[char.server_id] || char.server_id}</span>
+                                        <span className={styles.separator}>|</span>
+                                        <span className={raceClass}>{char.race_name === 'Elyos' ? '천족' : '마족'}</span>
+                                        <span className={styles.separator}>|</span>
+                                        <span style={{ marginRight: '8px' }}>{char.class_name}</span>
+
+                                        <div className={styles.inlineStats}>
+                                            <span className={styles.statTag} style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)' }}>
+                                                Lv.{char.item_level || '-'}
+                                            </span>
+                                            {isHitonTab ? (
+                                                <>
+                                                    <span className={styles.statTag} style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)' }}>
+                                                        P {char.pvp_score?.toLocaleString() ?? '-'}
+                                                    </span>
+                                                    <span className={styles.statTag} style={{ color: '#3b82f6', background: 'rgba(59, 130, 246, 0.1)' }}>
+                                                        E {(char.pve_score || char.hiton_score || 0).toLocaleString()}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <span className={styles.statTag} style={{ color: '#FACC15', background: 'rgba(250, 204, 21, 0.1)' }}>
+                                                    {type === 'cp' ? 'CP' : 'AP'} {getScoreValue(char)}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        </div>
+                    )
+                })}
+            </div>
+
+            {
+                hasMore && (
+                    <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                        <button
+                            onClick={handleLoadMore}
+                            disabled={isLoadingMore}
+                            className={styles.loadMoreButton}
+                        >
+                            {isLoadingMore ? '불러오는 중...' : '더보기 (Next 50)'}
+                        </button>
+                    </div>
+                )
+            }
+        </div >
     )
 }

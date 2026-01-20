@@ -2508,76 +2508,164 @@
         font-size: 0.8rem;
     }
 
-    /* Table Mobile Adjustments */
-    .rankingTable {
-        font-size: 0.85rem;
+    /* Hide Desktop Table on Mobile */
+    .rankingTableWrapper {
+        display: none !important;
     }
 
-    .rankingTable th,
-    .rankingTable td {
-        padding: 0.6rem 0.4rem;
+    /* Show Mobile List on Mobile */
+    .mobileRankingList {
+        display: flex !important;
+        flex-direction: column;
+        gap: 12px;
     }
 
-    .rankingTable th {
-        font-size: 0.7rem;
+    .mobileRankingCard {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s ease;
     }
 
-    .charImageWrapper {
-        width: 32px;
-        height: 32px;
+    .mobileRankingCard:active {
+        background: rgba(255, 255, 255, 0.06);
+        transform: scale(0.995);
     }
 
-    .charLink {
-        gap: 0.5rem;
+    .cardHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
     }
 
-    .charName {
-        font-size: 0.9rem;
+    .rankBadge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .charDetail {
-        font-size: 0.7rem;
-    }
-
-    .scoreValue {
-        font-size: 1rem;
+    .rankNumberMobile {
+        font-size: 1.25rem;
         font-weight: 800;
+        font-style: italic;
+        font-family: 'Rajdhani', sans-serif;
+        color: var(--text-secondary);
     }
 
-    .rankChange {
-        min-width: 32px;
-        font-size: 0.65rem;
-        padding: 0.2rem 0.3rem;
+    .rank1 {
+        color: #FFD700;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
     }
 
-    .tierBadge {
-        padding: 0.2rem 0.4rem;
-        font-size: 0.6rem;
+    .rank2 {
+        color: #C0C0C0;
+        text-shadow: 0 0 10px rgba(192, 192, 192, 0.4);
+    }
+
+    .rank3 {
+        color: #CD7F32;
+        text-shadow: 0 0 10px rgba(205, 127, 50, 0.4);
+    }
+
+    .cardBody {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .avatarMobile {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--bg-hover);
+        border: 2px solid var(--border);
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .infoMobile {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .nameMobile {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .metaMobile {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        row-gap: 8px;
+        /* Gap when wrapped */
+    }
+
+    .separator {
+        color: #444;
+        font-size: 0.7rem;
+    }
+
+    .inlineStats {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .statTag {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-family: 'Pretendard', monospace;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .loadMoreButton {
-        padding: 0.7rem 1.5rem;
-        font-size: 0.85rem;
-        max-width: 100%;
+        width: 100%;
+        font-size: 0.9rem;
+        padding: 1rem;
     }
 
-    /* Hide less important columns on mobile */
-    .mobileHide {
-        display: none !important;
+    .valPvp {
+        color: #ef4444;
+    }
+
+    .valPve {
+        color: #3b82f6;
+    }
+
+    /* Consistent with blueprint */
+    .valItem {
+        color: #10b981;
+    }
+
+    .loadMoreButton {
+        width: 100%;
+        font-size: 0.9rem;
+        padding: 1rem;
     }
 }
 
-/* Table Scroll Container for Mobile */
-.tableScroll {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-@media (max-width: 768px) {
-    .tableScroll {
-        margin: 0 -1rem;
-        padding: 0 1rem;
-        width: calc(100% + 2rem);
-    }
+/* Default Desktop: Hide Mobile List */
+.mobileRankingList {
+    display: none;
 }

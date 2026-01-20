@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { useParams, useSearchParams } from 'next/navigation'
 import ProfileSection from '../../../components/ProfileSection'
@@ -8,24 +8,37 @@ import TitleCard from '../../../components/TitleCard'
 import DaevanionCard from '../../../components/DaevanionCard'
 import EquipmentGrid from '../../../components/EquipmentGrid'
 import AccordionCard from '../../../components/AccordionCard'
-import { supabaseApi, CharacterDetail, SERVER_NAME_TO_ID, getApiBaseUrl } from '../../../../lib/supabaseApi'
+import { supabaseApi, CharacterDetail, SERVER_NAME_TO_ID, SERVER_ID_TO_NAME, getApiBaseUrl } from '../../../../lib/supabaseApi'
 import { normalizeCharacterId } from '../../../../lib/characterId'
 import RankingCard from '../../../components/RankingCard'
 import EquipmentDetailList from '../../../components/EquipmentDetailList'
-import SkillSection from '../../../components/SkillSection'
+
+// 지연 로딩 컴포넌트 (탭 전환 시에만 로드)
+const SkillSection = dynamic(() => import('../../../components/SkillSection'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>스킬 정보 로딩 중...</div>
+})
+const StatsSummaryView = dynamic(() => import('../../../components/StatsSummaryView'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>능력치 로딩 중...</div>
+})
+const DetailedViewSection = dynamic(() => import('../../../components/DetailedViewSection'), {
+  ssr: false,
+  loading: () => <div style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>상세 정보 로딩 중...</div>
+})
 
 // 모달 지연 로딩 (아이템 클릭 시에만 로드)
 const ItemDetailModal = dynamic(() => import('../../../components/ItemDetailModal'), { ssr: false })
-import DetailedViewSection from '../../../components/DetailedViewSection'
-import StatsSummaryView from '../../../components/StatsSummaryView'
 import { RecentCharacter } from '../../../../types/character'
 import type { OcrStat } from '../../../../types/stats'
 import DSTabs from '@/app/components/design-system/DSTabs'
 import { MAIN_CHARACTER_KEY, MainCharacter } from '../../../components/SearchBar'
+import CharacterDetailMobile from '../../../components/CharacterDetailMobile'
 
 // --- Types mapping to UI components ---
-type CharacterData = {
+export type CharacterData = {
   id: number
+  characterId?: string  // v2.2: 전투력 DB 저장용
   name: string
   server: string
   class: string
@@ -48,6 +61,8 @@ type CharacterData = {
   title_name?: string
   title_grade?: string
   title_id?: number
+  pvp_score?: number
+  pve_score?: number
 }
 
 // --- Helper Functions for Data Mapping ---
@@ -437,7 +452,9 @@ export default function CharacterDetailPage() {
   const isMock = searchParams.get('mock') === 'true'
 
   // URL params are usually encoded so we decode them
-  const serverName = decodeURIComponent(params.server as string)
+  const rawServerParam = decodeURIComponent(params.server as string)
+  // 서버 ID가 URL에 들어온 경우 서버 이름으로 변환 (예: "2017" -> "콰이링")
+  const serverName = SERVER_ID_TO_NAME[parseInt(rawServerParam)] || rawServerParam
   const charName = decodeURIComponent(params.name as string)
 
   const [data, setData] = useState<CharacterData | null>(null)
@@ -445,13 +462,12 @@ export default function CharacterDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // 디버그 로그
+  // 디버그 로그 (상태에만 저장, 콘솔 출력 없음)
   const [debugLogs, setDebugLogs] = useState<string[]>([])
   const [showDebugPanel, setShowDebugPanel] = useState(false)
   const addDebugLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString()
     setDebugLogs(prev => [...prev, `[${timestamp}] ${msg}`])
-    console.log(`[Debug] ${msg}`)
   }
 
   // Mapped Data States
@@ -495,12 +511,73 @@ export default function CharacterDetailPage() {
   // API params for DevanionBoard
   const [apiCharacterId, setApiCharacterId] = useState<string | undefined>(undefined)
   const [apiServerId, setApiServerId] = useState<string | undefined>(undefined)
-
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
-  const handleItemClick = (item: any) => {
+  // --- Main Character for Comparison ---
+  const [mainCharacter, setMainCharacter] = useState<MainCharacter | null>(null)
+  const [mainCharacterData, setMainCharacterData] = useState<any>(null)
+
+  useEffect(() => {
+    const saved = localStorage.getItem(MAIN_CHARACTER_KEY)
+    if (saved) {
+      setMainCharacter(JSON.parse(saved))
+    }
+
+    const handleMainCharChange = () => {
+      const updated = localStorage.getItem(MAIN_CHARACTER_KEY)
+      setMainCharacter(updated ? JSON.parse(updated) : null)
+    }
+    window.addEventListener('mainCharacterChanged', handleMainCharChange)
+    return () => window.removeEventListener('mainCharacterChanged', handleMainCharChange)
+  }, [])
+
+  useEffect(() => {
+    if (mainCharacter && mainCharacter.characterId) {
+      const fetchMainDetail = async () => {
+        try {
+          const serverId = mainCharacter.server_id || 1
+          const apiUrl = `${getApiBaseUrl()}/api/character?id=${encodeURIComponent(mainCharacter.characterId)}&server=${serverId}`
+
+          const res = await fetch(apiUrl)
+          if (res.ok) {
+            const detail = await res.json()
+            // current character와 동일한 mapEquipment 로직 사용
+            const mapped = mapEquipment(detail.equipment, detail.petwing, detail.appearance || detail.costume)
+            setMainCharacterData({
+              ...mainCharacter,
+              mappedEquipment: mapped,
+              pvp_score: detail.profile?.pvp_score || 0,
+              pve_score: detail.profile?.pve_score || detail.profile?.pve_score || mainCharacter.pve_score || mainCharacter.hit_score,
+              character_image_url: detail.profile?.profileImage || mainCharacter.imageUrl
+            })
+          }
+        } catch (e) {
+          console.error("Failed to fetch main character detail", e)
+        }
+      }
+      fetchMainDetail()
+    } else {
+      setMainCharacterData(null)
+    }
+  }, [mainCharacter])
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024) // Tablet & Mobile
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  const handleItemClick = useCallback((item: any) => {
     setSelectedItem(item)
-  }
+  }, [])
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedItem(null)
+  }, [])
 
   // Helper to save history
   const saveToHistory = (charData: CharacterData, serverId: number) => {
@@ -716,6 +793,7 @@ export default function CharacterDetailPage() {
       // Update State
       setData({
         id: 0,
+        characterId: detail.profile.characterId,  // v2.2: 전투력 저장용
         name: detail.profile.characterName,
         server: detail.profile.serverName,
         class: detail.profile.className,
@@ -745,10 +823,10 @@ export default function CharacterDetailPage() {
       setApiCharacterId(detail.profile.characterId)
       setApiServerId(String(serverId))
 
-      // Supabase DB에서 item_level, noa_score 가져오기
+      // Supabase DB에서 item_level, pve_score 가져오기
       try {
         const dbRes = await fetch(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/characters?character_id=eq.${encodeURIComponent(detail.profile.characterId)}&select=item_level,noa_score`,
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/characters?character_id=eq.${encodeURIComponent(detail.profile.characterId)}&select=item_level,pve_score,pvp_score,pve_score`,
           {
             headers: {
               'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
@@ -760,14 +838,18 @@ export default function CharacterDetailPage() {
           const dbData = await dbRes.json()
           if (dbData && dbData.length > 0) {
             const dbItemLevel = dbData[0].item_level
-            const dbNoaScore = dbData[0].noa_score
-            addDebugLog(`DB에서 item_level=${dbItemLevel}, noa_score=${dbNoaScore} 로드`)
+            const dbNoaScore = dbData[0].pve_score
+            const dbPvpScore = dbData[0].pvp_score
+            const dbPveScore = dbData[0].pve_score
+            addDebugLog(`DB에서 item_level=${dbItemLevel}, pve_score=${dbNoaScore}, pvp=${dbPvpScore}, pve=${dbPveScore} 로드`)
 
             // Update data with DB values
             setData(prev => prev ? {
               ...prev,
               item_level: dbItemLevel || prev.item_level,
-              power: dbNoaScore || prev.power
+              power: dbNoaScore || prev.power,
+              pvp_score: dbPvpScore,
+              pve_score: dbPveScore
             } : prev)
           }
         }
@@ -802,18 +884,23 @@ export default function CharacterDetailPage() {
   }
 
   useEffect(() => {
-    if (serverName && charName) {
-      fetchData()
-    }
-  }, [serverName, charName, raceParam])
+    fetchData()
+  }, [serverName, charName, isMock])
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     if (loading) return
     const confirmRefresh = window.confirm('최신 데이터를 강제로 불러오시겠습니까? 시간이 소요될 수 있습니다.')
     if (confirmRefresh) {
       fetchData(true)
     }
-  }
+  }, [loading])
+
+  // 메모이제이션: 장비 + 악세서리 배열 (렌더링마다 새 배열 생성 방지)
+  // 주의: hooks는 모든 조건문 전에 호출해야 함
+  const combinedEquipment: any[] = useMemo(() =>
+    [...mappedEquipment.equipment, ...mappedEquipment.accessories],
+    [mappedEquipment.equipment, mappedEquipment.accessories]
+  )
 
   // 대표 캐릭터 설정
   const handleSetMainCharacter = async () => {
@@ -821,14 +908,14 @@ export default function CharacterDetailPage() {
 
     const currentServerId = SERVER_NAME_TO_ID[data.server] || parseInt(apiServerId || '0')
 
-    // 로컬 DB에서 hit_score(noa_score) 가져오기
+    // 로컬 DB에서 hit_score(pve_score) 가져오기
     let hitScore: number | undefined = undefined
     let itemLevel: number | undefined = data.item_level
 
     if (apiCharacterId) {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/characters?character_id=eq.${encodeURIComponent(apiCharacterId)}&select=noa_score,item_level`,
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/characters?character_id=eq.${encodeURIComponent(apiCharacterId)}&select=pve_score,item_level`,
           {
             headers: {
               'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
@@ -839,7 +926,7 @@ export default function CharacterDetailPage() {
         if (res.ok) {
           const dbData = await res.json()
           if (dbData && dbData.length > 0) {
-            hitScore = dbData[0].noa_score // DB 필드명은 noa_score
+            hitScore = dbData[0].pve_score // DB 필드명은 pve_score
             if (!itemLevel && dbData[0].item_level) {
               itemLevel = dbData[0].item_level
             }
@@ -874,49 +961,194 @@ export default function CharacterDetailPage() {
     }
   }
 
+  // Skeleton Loading UI
   if (loading) {
     return (
-      <div className="container" style={{ padding: '4rem 1rem', textAlign: 'center', color: '#9CA3AF' }}>
-        <div style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>캐릭터 정보를 불러오는 중...</div>
-        <div style={{ fontSize: '0.875rem' }}>AION2 서버와 통신하고 있습니다.</div>
+      <div style={{ background: 'var(--bg-main)', minHeight: '100vh', padding: '2rem' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          {/* Skeleton Header */}
+          <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem' }}>
+            {/* Profile Skeleton */}
+            <div style={{ width: '280px' }}>
+              <div style={{
+                background: 'linear-gradient(90deg, #1F2937 25%, #374151 50%, #1F2937 75%)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s infinite',
+                borderRadius: '12px',
+                height: '320px'
+              }} />
+            </div>
+            {/* Center Skeleton */}
+            <div style={{ flex: 1 }}>
+              <div style={{
+                background: 'linear-gradient(90deg, #1F2937 25%, #374151 50%, #1F2937 75%)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s infinite',
+                borderRadius: '12px',
+                height: '400px'
+              }} />
+            </div>
+          </div>
+          {/* Loading text */}
+          <div style={{ textAlign: 'center', color: 'var(--primary)', fontSize: '1rem', fontWeight: 600 }}>
+            캐릭터 정보를 불러오는 중...
+          </div>
+        </div>
+        <style jsx>{`
+          @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+        `}</style>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="container" style={{ padding: '4rem 1rem', textAlign: 'center' }}>
+      <div style={{
+        background: 'var(--bg-main)',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }}>
         <div style={{
-          padding: '2rem',
-          background: '#111318',
-          border: '1px solid #ef4444',
+          background: '#1F2937',
+          border: '1px solid #EF4444',
           borderRadius: '12px',
-          color: '#E5E7EB',
-          display: 'inline-block',
-          maxWidth: '100%'
+          padding: '2rem',
+          maxWidth: '500px',
+          width: '100%',
+          textAlign: 'center'
         }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#ef4444' }}>오류 발생</h3>
-          <p style={{ color: '#9CA3AF', wordBreak: 'break-word' }}>{error}</p>
+          {/* Error Icon */}
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+
+          {/* Error Message */}
+          <div style={{ color: '#EF4444', fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 600 }}>
+            {error}
+          </div>
+
+          {/* Debug Logs (collapsible) */}
+          {debugLogs.length > 0 && (
+            <details style={{ marginBottom: '1rem', textAlign: 'left' }}>
+              <summary style={{ color: '#9CA3AF', cursor: 'pointer', marginBottom: '0.5rem' }}>
+                디버그 로그 보기
+              </summary>
+              <div style={{
+                background: '#111318',
+                padding: '0.75rem',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                color: '#9CA3AF',
+                maxHeight: '150px',
+                overflowY: 'auto'
+              }}>
+                {debugLogs.map((log, i) => (
+                  <div key={i}>{log}</div>
+                ))}
+              </div>
+            </details>
+          )}
+
+          {/* Copy Error Button */}
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              const errorInfo = {
+                error,
+                url: window.location.href,
+                logs: debugLogs,
+                timestamp: new Date().toISOString()
+              }
+              navigator.clipboard.writeText(JSON.stringify(errorInfo, null, 2))
+              alert('에러 정보가 복사되었습니다.')
+            }}
             style={{
-              marginTop: '1.5rem',
-              padding: '0.5rem 1.5rem',
-              background: '#ef4444',
-              color: 'white',
-              border: 'none',
+              background: '#374151',
+              color: '#E5E7EB',
+              padding: '8px 16px',
               borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              marginRight: '8px',
+              fontSize: '0.875rem'
+            }}
+          >
+            📋 에러 정보 복사
+          </button>
+
+          {/* Retry Button */}
+          <button
+            onClick={() => fetchData(true)}
+            style={{
+              background: 'var(--primary)',
+              color: '#000',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              fontWeight: 700,
               cursor: 'pointer'
             }}
           >
-            페이지 새로고침
+            다시 시도
           </button>
         </div>
       </div>
     )
   }
 
+  // 모바일 뷰 렌더링
+  if (isMobile) {
+    return (
+      <div style={{ background: 'var(--bg-main)', minHeight: '100vh' }}>
+        <CharacterDetailMobile
+          data={data}
+          mappedEquipment={mappedEquipment}
+          mappedStats={mappedStats}
+          mappedSkills={mappedSkills}
+          mainCharacterData={mainCharacterData}
+          onItemClick={handleItemClick}
+          onRegisterMainCharacter={(char) => {
+            const mainChar: MainCharacter = {
+              characterId: char.characterId,
+              name: char.name,
+              server: char.server,
+              server_id: char.server_id || SERVER_NAME_TO_ID[char.server] || 1,
+              race: char.race || '',
+              className: char.className,
+              level: char.level,
+              hit_score: char.pve_score || char.pve_score,
+              pve_score: char.pve_score,
+              pvp_score: char.pvp_score,
+              item_level: char.item_level,
+              imageUrl: char.imageUrl,
+              setAt: Date.now()
+            }
+            localStorage.setItem(MAIN_CHARACTER_KEY, JSON.stringify(mainChar))
+            window.dispatchEvent(new Event('mainCharacterChanged'))
+            alert(`${char.name} 캐릭터가 실시간 비교 대상으로 등록되었습니다.`)
+          }}
+        />
+        {selectedItem && (
+          <ItemDetailModal
+            item={selectedItem}
+            onClose={handleCloseModal}
+            isMobile={isMobile}
+          />
+        )}
+      </div>
+    )
+  }
+
   if (!data) return null
+
+  // 데이터 부분 누락 경고 확인
+  const hasStatsWarning = !mappedStats?.statList || mappedStats.statList.length === 0
+  const hasEquipmentWarning = mappedEquipment.equipment.length === 0 && mappedEquipment.accessories.length === 0
+  const showDataWarning = hasStatsWarning || hasEquipmentWarning
 
   // --- Dummy Components Data (REMOVED/REPLACED) ---
   const dummyDevanionData = {
@@ -927,6 +1159,47 @@ export default function CharacterDetailPage() {
 
   return (
     <div className="char-detail-page">
+      {/* 데이터 부분 누락 경고 배너 */}
+      {showDataWarning && (
+        <div style={{
+          background: 'linear-gradient(90deg, #92400E 0%, #78350F 100%)',
+          border: '1px solid #F59E0B',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          marginBottom: '1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ color: '#FEF3C7', fontWeight: 600, marginBottom: '2px' }}>
+              일부 데이터가 로드되지 않았습니다
+            </div>
+            <div style={{ color: '#FDE68A', fontSize: '0.85rem' }}>
+              {hasStatsWarning && '능력치 정보가 없습니다. '}
+              {hasEquipmentWarning && '장비 정보가 없습니다. '}
+              새로고침 버튼을 눌러 다시 시도해보세요.
+            </div>
+          </div>
+          <button
+            onClick={() => fetchData(true)}
+            style={{
+              background: '#F59E0B',
+              color: '#000',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontSize: '0.875rem'
+            }}
+          >
+            새로고침
+          </button>
+        </div>
+      )}
+
       {/* Adaptive Styles */}
       <style jsx>{`
         .char-detail-page {
@@ -1259,10 +1532,11 @@ export default function CharacterDetailPage() {
               arcana={mappedEquipment.arcana}
               onArcanaClick={handleItemClick}
               stats={mappedStats}
-              equipment={[...mappedEquipment.equipment, ...mappedEquipment.accessories]}
+              equipment={combinedEquipment}
               titles={mappedTitles}
               daevanion={mappedDaevanion}
               equippedTitleId={data.title_id}
+              ocrStats={ocrStats || undefined}
             />
           </div>
 
@@ -1329,7 +1603,7 @@ export default function CharacterDetailPage() {
                       <div style={{ marginTop: '1.5rem' }}>
                         <StatsSummaryView
                           stats={mappedStats}
-                          equipment={[...mappedEquipment.equipment, ...mappedEquipment.accessories]}
+                          equipment={combinedEquipment}
                           daevanion={mappedDaevanion}
                           titles={mappedTitles}
                           equippedTitleId={data.title_id}
@@ -1361,7 +1635,8 @@ export default function CharacterDetailPage() {
           {selectedItem && (
             <ItemDetailModal
               item={selectedItem}
-              onClose={() => setSelectedItem(null)}
+              onClose={handleCloseModal}
+              isMobile={isMobile}
             />
           )}
 
