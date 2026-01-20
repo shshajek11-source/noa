@@ -1,5 +1,6 @@
 .card {
   display: block;
+  position: relative;
   background: var(--bg-card, #1a1d24);
   border-radius: 8px;
   padding: 16px;
@@ -7,6 +8,24 @@
   color: inherit;
   transition: transform 0.2s, box-shadow 0.2s;
   border: 2px solid transparent;
+  overflow: hidden;
+}
+
+/* 배경 이미지를 옅게 만드는 오버레이 */
+.bgOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    rgba(26, 29, 36, 0.97) 0%,
+    rgba(26, 29, 36, 0.85) 50%,
+    rgba(26, 29, 36, 0.7) 100%
+  );
+  z-index: 0;
+  pointer-events: none;
 }
 
 .card:hover {
@@ -24,6 +43,8 @@
 }
 
 .header {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -41,6 +62,8 @@
 }
 
 .title {
+  position: relative;
+  z-index: 1;
   font-size: 0.875rem;
   color: var(--text-secondary, #9CA3AF);
   margin-bottom: 8px;
@@ -50,6 +73,8 @@
 }
 
 .timeBox {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -84,12 +109,16 @@
 }
 
 .specs {
+  position: relative;
+  z-index: 1;
   font-size: 0.8rem;
   color: var(--text-secondary, #9CA3AF);
   margin-bottom: 8px;
 }
 
 .slots {
+  position: relative;
+  z-index: 1;
   font-size: 0.85rem;
   color: var(--text-main, #E5E7EB);
   margin-bottom: 8px;
@@ -112,6 +141,8 @@
 }
 
 .footer {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -36,6 +36,15 @@ const DUNGEON_TYPE_ICONS: Record<string, string> = {
   pvp: '🎮'
 }
 
+// 던전 타입별 보스 배경 이미지
+const DUNGEON_BOSS_IMAGES: Record<string, string> = {
+  transcend: '/boss/1.png',
+  expedition: '/boss/2.png',
+  sanctuary: '/boss/3.png',
+  subjugation: '/boss/4.png',
+  pvp: '/boss/5.png'
+}
+
 export default function PartyCard({
   party,
   showPendingBadge = false,
@@ -98,8 +107,21 @@ export default function PartyCard({
     })
   }, [party.slots, party.members])
 
+  const bossImage = DUNGEON_BOSS_IMAGES[party.dungeon_type] || '/boss/1.png'
+
   return (
-    <Link href={`/party/${party.id}`} className={`${styles.card} ${isPvp ? styles.pvp : styles.pve}`}>
+    <Link
+      href={`/party/${party.id}`}
+      className={`${styles.card} ${isPvp ? styles.pvp : styles.pve}`}
+      style={{
+        backgroundImage: `url(${bossImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center right',
+      }}
+    >
+      {/* 배경 오버레이 */}
+      <div className={styles.bgOverlay} />
+
       <div className={styles.header}>
         <span className={styles.dungeonType}>
           {DUNGEON_TYPE_ICONS[party.dungeon_type]} {party.dungeon_name}
