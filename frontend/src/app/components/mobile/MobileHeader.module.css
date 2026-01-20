@@ -1,29 +1,56 @@
 /* MobileHeader Styles */
 
 .headerContainer {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 1000;
     background: #000;
 }
 
-/* Header - 일반 배치 */
+/* Header - 로고 중앙, 구글 로그인 오른쪽 */
 .header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px;
+    justify-content: space-between;
+    padding: 12px 16px;
     background: #000;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.headerLeft {
+    width: 70px;
 }
 
 .logo {
     font-weight: 800;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     letter-spacing: -0.5px;
     font-family: 'Rajdhani', sans-serif;
-    flex-shrink: 0;
     text-decoration: none;
+}
+
+.googleLoginBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    color: #E5E7EB;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.googleLoginBtn:hover {
+    background: #1a1a1a;
+    border-color: #333;
+}
+
+/* 검색창 별도 줄 */
+.searchRow {
+    padding: 0 16px 12px;
+    background: #000;
 }
 
 .logoSu {
@@ -62,7 +89,8 @@
     color: #E5E7EB;
     font-size: 0.9rem;
     outline: none;
-    min-width: 0; /* Flex item input fix */
+    min-width: 0;
+    /* Flex item input fix */
 }
 
 .searchInput::placeholder {
