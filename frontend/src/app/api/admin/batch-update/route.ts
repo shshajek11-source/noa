@@ -1,11 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { calculatePvEScore, calculatePvPScore } from '../../../../lib/combatPower'
+import { aggregateStats, AggregatedStats } from '../../../../lib/statsAggregator'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // Vercel serverless timeout (최대 60초)
 
-const BATCH_SIZE = 5 // 한 번에 조회할 캐릭터 수
-const DELAY_MS = 3000 // 조회 간격 (3초)
+const BATCH_SIZE = 10 // 한 번에 조회할 캐릭터 수
+
+// 공식 API에서 캐릭터 상세 정보 가져오기
+async function fetchCharacterDetail(characterId: string, serverId: number) {
+    const infoUrl = `https://aion2.plaync.com/api/character/info?lang=ko&characterId=${encodeURIComponent(characterId)}&serverId=${serverId}`
+
+    const res = await fetch(infoUrl, {
+        headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+    })
+
+    if (!res.ok) {
+        throw new Error(`API returned ${res.status}`)
+    }
+
+    const contentType = res.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) {
+        throw new Error('Non-JSON response (API maintenance)')
+    }
+
+    return res.json()
+}
 
 export async function GET(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -18,11 +42,12 @@ export async function GET(request: NextRequest) {
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     try {
-        // item_level이 0이거나 null인 캐릭터 조회
+        // stats가 null이거나 pve_score가 null인 캐릭터 조회 (상세 정보 미수집)
         const { data: characters, error } = await supabase
             .from('characters')
             .select('character_id, server_id, name')
-            .or('item_level.is.null,item_level.eq.0')
+            .or('stats.is.null,pve_score.is.null')
+            .order('updated_at', { ascending: true, nullsFirst: true })
             .limit(BATCH_SIZE)
 
         if (error) {
@@ -32,79 +57,80 @@ export async function GET(request: NextRequest) {
         if (!characters || characters.length === 0) {
             return NextResponse.json({
                 message: 'No characters to update',
+                results: [],
                 remaining: 0
             })
         }
 
-        const results: { name: string; success: boolean; item_level?: number }[] = []
+        const results: { name: string; success: boolean; pve_score?: number; pvp_score?: number; error?: string }[] = []
 
-        // 순차적으로 상세 조회
+        // 순차 처리 (Rate Limit 방지)
         for (const char of characters) {
             try {
-                // 외부 API에서 상세 정보 조회
-                const infoUrl = `https://aion2.plaync.com/api/character/info?lang=ko&characterId=${encodeURIComponent(char.character_id)}&serverId=${char.server_id}`
+                // 공식 API에서 상세 정보 가져오기
+                const data = await fetchCharacterDetail(char.character_id, char.server_id)
 
-                const res = await fetch(infoUrl, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'User-Agent': 'Mozilla/5.0'
-                    }
-                })
-
-                if (!res.ok) {
-                    results.push({ name: char.name, success: false })
+                if (!data || !data.stat) {
+                    results.push({ name: char.name, success: false, error: 'No stat data' })
                     continue
                 }
 
-                const infoData = await res.json()
+                // 스탯 집계
+                const statList = data.stat?.statList || []
+                const equipmentList = data.equipment?.equipmentList || []
 
-                // item_level 추출
-                const statList = infoData.stat?.statList || []
+                // 아이템레벨 추출
                 const itemLevelStat = statList.find((s: any) =>
                     s.name === '아이템레벨' || s.type === 'ItemLevel'
                 )
                 const itemLevel = itemLevelStat?.value || 0
 
-                // combat_power (전투력) 추출
-                const combatPowerStat = statList.find((s: any) =>
-                    s.name === '전투력' || s.type === 'CombatPower'
-                )
-                const combatPower = combatPowerStat?.value || 0
+                // 스탯 집계 및 전투력 계산
+                let pveScore = 0
+                let pvpScore = 0
 
-                // noa_score 계산 (HITON 전투력)
-                const noaScore = Math.round(combatPower * 0.8 + itemLevel * 100)
+                try {
+                    const aggregated: AggregatedStats = aggregateStats(statList, equipmentList)
+                    pveScore = calculatePvEScore(aggregated)
+                    pvpScore = calculatePvPScore(aggregated)
+                } catch (calcErr) {
+                    // 계산 실패 시 기본값 사용
+                    console.warn(`[Batch] Combat power calc failed for ${char.name}:`, calcErr)
+                }
 
                 // DB 업데이트
                 const { error: updateError } = await supabase
                     .from('characters')
                     .update({
+                        stats: data.stat,
+                        equipment: data.equipment,
                         item_level: itemLevel,
-                        combat_power: combatPower,
-                        noa_score: noaScore,
-                        scraped_at: new Date().toISOString()
+                        pve_score: pveScore,
+                        pvp_score: pvpScore,
+                        updated_at: new Date().toISOString()
                     })
                     .eq('character_id', char.character_id)
 
                 if (updateError) {
-                    results.push({ name: char.name, success: false })
+                    results.push({ name: char.name, success: false, error: updateError.message })
                 } else {
-                    results.push({ name: char.name, success: true, item_level: itemLevel })
-                    console.log(`[Batch] Updated ${char.name}: IL=${itemLevel}, NOA=${noaScore}`)
+                    results.push({ name: char.name, success: true, pve_score: pveScore, pvp_score: pvpScore })
+                    console.log(`[Batch] Updated ${char.name}: PVE=${pveScore}, PVP=${pvpScore}`)
                 }
 
-            } catch (e) {
-                results.push({ name: char.name, success: false })
+            } catch (e: any) {
+                results.push({ name: char.name, success: false, error: e.message })
             }
 
-            // Rate Limit 방지 딜레이
-            await new Promise(resolve => setTimeout(resolve, DELAY_MS))
+            // Rate Limit 방지 딜레이 (200ms)
+            await new Promise(resolve => setTimeout(resolve, 200))
         }
 
         // 남은 캐릭터 수 확인
         const { count } = await supabase
             .from('characters')
             .select('*', { count: 'exact', head: true })
-            .or('item_level.is.null,item_level.eq.0')
+            .or('stats.is.null,pve_score.is.null')
 
         return NextResponse.json({
             message: `Updated ${results.filter(r => r.success).length}/${characters.length} characters`,

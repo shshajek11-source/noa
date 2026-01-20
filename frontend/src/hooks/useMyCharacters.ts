@@ -54,6 +54,8 @@ export function useMyCharacters() {
     character_item_level?: number
     character_breakthrough?: number
     character_combat_power?: number
+    character_pve_score?: number
+    character_pvp_score?: number
     profile_image?: string
   }) => {
     let deviceId = localStorage.getItem('ledger_device_id')
@@ -154,6 +156,8 @@ export function useMyCharacters() {
     let breakthrough = 0
     let itemLevel = character.item_level
     let combatPower: number | undefined
+    let pveScore: number | undefined
+    let pvpScore: number | undefined
     let level = character.level
 
     // 1. 캐릭터 상세 정보 가져오기 (돌파 정보 포함)
@@ -177,9 +181,13 @@ export function useMyCharacters() {
           }, 0)
         }
 
-        // 전투력: profile.noa_score 사용 (HITON 계산 전투력)
-        if (detailData.profile?.noa_score) {
-          combatPower = detailData.profile.noa_score
+        // 전투력: pve_score, pvp_score 사용
+        if (detailData.profile?.pve_score) {
+          pveScore = detailData.profile.pve_score
+          combatPower = pveScore // 기존 호환성을 위해 PVE를 기본값으로
+        }
+        if (detailData.profile?.pvp_score) {
+          pvpScore = detailData.profile.pvp_score
         }
 
         // 아이템레벨: statList에서 가져오기
@@ -217,6 +225,8 @@ export function useMyCharacters() {
       character_item_level: itemLevel,
       character_breakthrough: breakthrough,
       character_combat_power: combatPower,
+      character_pve_score: pveScore,
+      character_pvp_score: pvpScore,
       profile_image: profileImage
     })
   }, [addCharacter])
@@ -245,10 +255,16 @@ export function useMyCharacters() {
     // 3. 아이템레벨, 전투력 가져오기
     let itemLevel: number | undefined
     let combatPower: number | undefined
+    let pveScore: number | undefined
+    let pvpScore: number | undefined
 
-    // 전투력: profile.noa_score 사용 (HITON 계산 전투력)
-    if (detailData.profile?.noa_score) {
-      combatPower = detailData.profile.noa_score
+    // 전투력: pve_score, pvp_score 사용
+    if (detailData.profile?.pve_score) {
+      pveScore = detailData.profile.pve_score
+      combatPower = pveScore // 기존 호환성을 위해 PVE를 기본값으로
+    }
+    if (detailData.profile?.pvp_score) {
+      pvpScore = detailData.profile.pvp_score
     }
 
     // 아이템레벨: statList에서 가져오기
@@ -266,7 +282,9 @@ export function useMyCharacters() {
       character_level: detailData.profile?.characterLevel,
       character_item_level: itemLevel,
       character_breakthrough: breakthrough,
-      character_combat_power: combatPower
+      character_combat_power: combatPower,
+      character_pve_score: pveScore,
+      character_pvp_score: pvpScore
     })
 
     return { success: true }

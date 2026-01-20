@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import styles from '../../Home.module.css'
 import { supabaseApi, CharacterSearchResult } from '../../../lib/supabaseApi'
 import SearchAutocomplete from '../SearchAutocomplete'
+import styles from './HomeMobile.module.css'
 
 export default function HomeMobile() {
     const router = useRouter()
@@ -22,7 +22,6 @@ export default function HomeMobile() {
 
     // --- Effects ---
     useEffect(() => {
-        // Load Recent & Main Character
         const recent = localStorage.getItem('recent_characters')
         if (recent) setRecentCharacters(JSON.parse(recent))
 
@@ -49,7 +48,6 @@ export default function HomeMobile() {
         setSearchWarning(undefined)
 
         try {
-            // 외부 API 검색
             const res = await supabaseApi.searchCharacter(term)
             setResults(res.list)
             if (res.warning) setSearchWarning(res.warning)
@@ -72,46 +70,32 @@ export default function HomeMobile() {
     }
 
     return (
-        <div style={{ paddingBottom: '80px', background: 'var(--bg-main)', minHeight: '100vh' }}>
-
-            {/* 1. Sticky Header & Search */}
-            <header className={styles.categoryHeader} style={{
-                position: 'sticky', top: 0, zIndex: 100,
-                padding: '12px 16px', background: 'rgba(22, 22, 24, 0.95)', backdropFilter: 'blur(10px)',
-                display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid var(--border)'
-            }}>
-                {/* Logo */}
-                <div style={{ fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.5px', fontFamily: 'Rajdhani, sans-serif' }}>
-                    <span style={{ color: 'var(--brand-orange)' }}>SU</span>
-                    <span style={{ color: '#fff' }}>GO</span>
-                    <span style={{ fontSize: '0.9rem', color: 'var(--text-disabled)', marginLeft: '1px' }}>.gg</span>
+        <div className={styles.container}>
+            {/* Header - 일반 배치 (스크롤과 함께 움직임) */}
+            <header className={styles.header}>
+                <div className={styles.logo}>
+                    <span className={styles.logoSu}>SU</span>
+                    <span className={styles.logoGo}>GO</span>
+                    <span className={styles.logoGg}>.gg</span>
                 </div>
-                {/* Search Bar (Compact) */}
-                <div style={{ flex: 1 }}>
-                    <div style={{
-                        background: 'var(--bg-secondary)', borderRadius: '20px', padding: '8px 16px',
-                        display: 'flex', alignItems: 'center', border: '1px solid var(--border)'
-                    }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-disabled)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <div className={styles.searchWrapper}>
+                    <div className={styles.searchBar}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-disabled)" strokeWidth="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
                         <input
                             type="text"
                             value={searchValue}
                             onChange={(e) => setSearchValue(e.target.value)}
                             placeholder="캐릭터 검색..."
-                            style={{
-                                background: 'transparent', border: 'none', marginLeft: '8px',
-                                color: 'var(--text-main)', width: '100%', fontSize: '0.9rem', outline: 'none'
-                            }}
+                            className={styles.searchInput}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchValue)}
                             onFocus={() => searchValue.length > 0 && setShowResults(true)}
                         />
                     </div>
-
-                    {/* Autocomplete Dropdown */}
                     {showResults && (
-                        <div style={{ position: 'absolute', top: '100%', left: '16px', right: '16px', zIndex: 1000 }}>
+                        <div className={styles.autocompleteWrapper}>
                             <SearchAutocomplete
                                 results={results}
                                 isLoading={isSearching}
@@ -122,192 +106,172 @@ export default function HomeMobile() {
                         </div>
                     )}
                 </div>
-                {/* My Profile Icon */}
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </div>
             </header>
 
-            {/* 2. Main Character Card (1/5 Height) */}
-            <section style={{
-                height: '20vh', minHeight: '160px', position: 'relative',
-                margin: '16px', borderRadius: '16px', overflow: 'hidden',
-                border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
-            }}>
+            {/* 메뉴 탭 - 일반 배치 */}
+            <nav className={styles.menuTabs}>
+                <Link href="/" className={`${styles.menuTab} ${styles.menuTabActive}`}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    </svg>
+                    <span>홈</span>
+                </Link>
+                <Link href="/ranking" className={styles.menuTab}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 20V10M12 20V4M6 20v-6" />
+                    </svg>
+                    <span>랭킹</span>
+                </Link>
+                <Link href="/party" className={styles.menuTab}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    <span>파티</span>
+                </Link>
+                <Link href="/ledger/mobile" className={styles.menuTab}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                    </svg>
+                    <span>가계부</span>
+                </Link>
+            </nav>
+
+            {/* 대표 캐릭터 카드 */}
+            <section className={styles.mainCharSection}>
                 {mainCharacter ? (
-                    <div style={{ height: '100%', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: 'linear-gradient(135deg, rgba(30,28,38,0.95), rgba(20,18,28,0.95))' }}>
-                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{mainCharacter.server}</div>
-                        <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', margin: '4px 0' }}>{mainCharacter.name}</div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <span className={styles.badge} style={{ background: 'var(--bg-hover)' }}>Lv.{mainCharacter.level}</span>
-                            <span className={styles.badge} style={{ color: 'var(--brand-orange)' }}>PVP {mainCharacter.pvp || '0'}</span>
+                    <div
+                        className={styles.mainCharCard}
+                        onClick={() => router.push(`/c/${mainCharacter.server}/${mainCharacter.name}`)}
+                    >
+                        <div className={styles.mainCharInfo}>
+                            <span className={styles.mainCharServer}>{mainCharacter.server}</span>
+                            <h2 className={styles.mainCharName}>{mainCharacter.name}</h2>
+                            <div className={styles.mainCharBadges}>
+                                <span className={styles.badge}>Lv.{mainCharacter.level}</span>
+                                <span className={styles.badgeHighlight}>{mainCharacter.className}</span>
+                            </div>
+                        </div>
+                        <div className={styles.mainCharStats}>
+                            <div className={styles.statItem}>
+                                <span className={styles.statLabel}>PVE</span>
+                                <span className={styles.statValue}>{mainCharacter.pve_score?.toLocaleString() || '-'}</span>
+                            </div>
+                            <div className={styles.statItem}>
+                                <span className={styles.statLabel}>PVP</span>
+                                <span className={styles.statValue}>{mainCharacter.pvp_score?.toLocaleString() || '-'}</span>
+                            </div>
                         </div>
                     </div>
                 ) : (
-                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>아직 대표 캐릭터가 없습니다</div>
-                        <button style={{ padding: '8px 16px', borderRadius: '20px', background: 'var(--primary)', color: '#000', border: 'none', fontWeight: 700, fontSize: '0.85rem' }}>
-                            설정하기
-                        </button>
+                    <div className={styles.mainCharEmpty}>
+                        <p>대표 캐릭터를 설정해보세요</p>
+                        <span>캐릭터 검색 후 별 아이콘을 눌러 등록</span>
                     </div>
                 )}
             </section>
 
-            {/* 3. My Characters (Horizontal Scroll) */}
-            <section style={{ padding: '0 16px', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 700 }}>내 캐릭터</div>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-disabled)' }}>편집</span>
-                </div>
-                <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
-                    {/* Add Button */}
-                    <div style={{ flexShrink: 0, width: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                        <div style={{ width: '50px', height: '50px', borderRadius: '25px', border: '1px dashed var(--text-disabled)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-disabled)" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        </div>
-                    </div>
-
-                    {recentCharacters.map((char: any, i: number) => (
-                        <div key={i} style={{ flexShrink: 0, width: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                            <div style={{ width: '50px', height: '50px', borderRadius: '25px', background: '#333', overflow: 'hidden' }}>
-                            </div>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {char.name}
-                            </span>
-                        </div>
-                    ))}
-
-                    {/* Dummy Data for Visual Test */}
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <div key={`d-${i}`} style={{ flexShrink: 0, width: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                            <div style={{ width: '50px', height: '50px', borderRadius: '25px', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}></div>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-disabled)' }}>User{i}</span>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* 4. Live Stream Slider */}
-            <section style={{ padding: '0 16px', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>치지직 라이브 <span style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>●</span></h3>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-disabled)' }}>더보기</span>
-                </div>
-                <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
-                    {[1, 2, 3].map(i => (
-                        <div key={i} style={{ flexShrink: 0, width: '160px', height: '90px', borderRadius: '8px', background: '#222', position: 'relative', border: '1px solid var(--border)', overflow: 'hidden' }}>
-                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                            </div>
-                            <span style={{ position: 'absolute', bottom: '8px', left: '8px', fontSize: '0.75rem', fontWeight: 600, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>방송 제목 {i}</span>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* 5. Live Ranking (Slider) */}
-            <section style={{ padding: '0 16px', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>실시간 랭킹</h3>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-disabled)' }}>전체보기</span>
-                </div>
-                <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
-                    {[1, 2, 3].map(rank => (
-                        <div key={rank} style={{
-                            minWidth: '280px', flex: '0 0 auto',
-                            background: 'var(--bg-secondary)', borderRadius: '12px', padding: '16px',
-                            border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '12px'
-                        }}>
-                            <div style={{ width: '48px', height: '48px', borderRadius: '24px', background: rank === 1 ? 'var(--brand-orange)' : '#444', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 'bold' }}>
-                                {rank}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--brand-orange)' }}>#{rank} 전체 랭킹</div>
-                                <div style={{ fontWeight: 700, fontSize: '1rem' }}>지켈 / 포식자 / 닉네임</div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>전투력 5,420</div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* 6. Server Stats Dashboard */}
-            <section style={{ padding: '0 16px', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>서버 현황</h3>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div style={{ background: 'rgba(45, 212, 191, 0.1)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(45, 212, 191, 0.2)' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#2DD4BF', marginBottom: '4px' }}>천족 우세</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>이스라펠</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>세금 2.4%</div>
-                    </div>
-                    <div style={{ background: 'rgba(167, 139, 250, 0.1)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(167, 139, 250, 0.2)' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#A78BFA', marginBottom: '4px' }}>마족 우세</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>지켈</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>세금 5.0%</div>
-                    </div>
-                    {/* More compact stats */}
-                    <div style={{ gridColumn: 'span 2', background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>총 누적 접속자</span>
-                        <span style={{ fontWeight: 700, fontFamily: 'Rajdhani', fontSize: '1.1rem' }}>12,402</span>
-                    </div>
-                </div>
-            </section>
-
-            {/* 7. Official Notices */}
-            <section style={{ padding: '0 16px', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>공식 공지사항</h3>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {/* Dummy Notices */}
-                    {['[점검] 1월 22일 정기 점검 안내', '[이벤트] 오픈 기념 쿠폰 지급 안내', '[공지] 서버 안정화 작업 진행'].map((notice, i) => (
-                        <div key={i} style={{
-                            background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: '8px',
-                            border: '1px solid var(--border)', fontSize: '0.9rem', color: 'var(--text-main)',
-                            display: 'flex', alignItems: 'center', gap: '8px'
-                        }}>
-                            <span style={{
-                                display: 'inline-block', width: '4px', height: '4px', borderRadius: '50%',
-                                background: i === 0 ? 'var(--brand-orange)' : 'var(--text-disabled)'
-                            }}></span>
-                            {notice}
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* 8. Bottom Navigation */}
-            <nav style={{
-                position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
-                background: 'rgba(22, 22, 24, 0.98)', borderTop: '1px solid var(--border)',
-                display: 'flex', justifyContent: 'space-around', alignItems: 'center', zIndex: 999,
-                paddingBottom: 'env(safe-area-inset-bottom)'
-            }}>
-                {['홈', '랭킹', '가계부', '숙제', '더보기'].map((item, i) => {
-                    const isActive = i === 0
-                    const isRanking = item === '랭킹'
-                    return (
-                        <div
-                            key={item}
+            {/* 최근 검색 캐릭터 */}
+            {recentCharacters.length > 0 && (
+                <section className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                        <h3 className={styles.sectionTitle}>최근 검색</h3>
+                        <button
+                            className={styles.clearBtn}
                             onClick={() => {
-                                if (item === '홈') router.push('/')
-                                if (item === '랭킹') router.push('/ranking')
-                            }}
-                            style={{
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                                opacity: isActive ? 1 : 0.5, cursor: 'pointer'
+                                setRecentCharacters([])
+                                localStorage.removeItem('recent_characters')
                             }}
                         >
-                            <div style={{ width: '20px', height: '20px', background: isActive ? 'var(--brand-orange)' : '#888', borderRadius: '4px' }}></div>
-                            <span style={{ fontSize: '0.7rem', color: isActive ? 'var(--brand-orange)' : 'var(--text-secondary)' }}>{item}</span>
+                            전체 삭제
+                        </button>
+                    </div>
+                    <div className={styles.recentList}>
+                        {recentCharacters.slice(0, 5).map((char: any, i: number) => (
+                            <div
+                                key={i}
+                                className={styles.recentItem}
+                                onClick={() => router.push(`/c/${char.server}/${char.name}`)}
+                            >
+                                <div className={styles.recentAvatar}>
+                                    {char.name?.charAt(0) || '?'}
+                                </div>
+                                <div className={styles.recentInfo}>
+                                    <span className={styles.recentName}>{char.name}</span>
+                                    <span className={styles.recentMeta}>{char.server} · Lv.{char.level}</span>
+                                </div>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-disabled)" strokeWidth="2">
+                                    <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {/* 실시간 랭킹 */}
+            <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <h3 className={styles.sectionTitle}>실시간 랭킹</h3>
+                    <Link href="/ranking" className={styles.moreLink}>전체보기</Link>
+                </div>
+                <div className={styles.rankingList}>
+                    {[1, 2, 3].map(rank => (
+                        <div key={rank} className={styles.rankingItem}>
+                            <div className={`${styles.rankBadge} ${rank === 1 ? styles.rankFirst : ''}`}>
+                                {rank}
+                            </div>
+                            <div className={styles.rankingInfo}>
+                                <span className={styles.rankingName}>캐릭터명</span>
+                                <span className={styles.rankingMeta}>지켈 · 포식자</span>
+                            </div>
+                            <div className={styles.rankingScore}>
+                                <span className={styles.scoreLabel}>PVE</span>
+                                <span className={styles.scoreNum}>5,420</span>
+                            </div>
                         </div>
-                    )
-                })}
-            </nav>
+                    ))}
+                </div>
+            </section>
+
+            {/* 서버 현황 */}
+            <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <h3 className={styles.sectionTitle}>서버 현황</h3>
+                </div>
+                <div className={styles.serverGrid}>
+                    <div className={`${styles.serverCard} ${styles.serverElyos}`}>
+                        <span className={styles.serverLabel}>천족 우세</span>
+                        <span className={styles.serverName}>이스라펠</span>
+                        <span className={styles.serverTax}>세금 2.4%</span>
+                    </div>
+                    <div className={`${styles.serverCard} ${styles.serverAsmo}`}>
+                        <span className={styles.serverLabel}>마족 우세</span>
+                        <span className={styles.serverName}>지켈</span>
+                        <span className={styles.serverTax}>세금 5.0%</span>
+                    </div>
+                </div>
+            </section>
+
+            {/* 공지사항 */}
+            <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <h3 className={styles.sectionTitle}>공식 공지</h3>
+                </div>
+                <div className={styles.noticeList}>
+                    {['[점검] 1월 22일 정기 점검 안내', '[이벤트] 오픈 기념 쿠폰 지급', '[공지] 서버 안정화 작업'].map((notice, i) => (
+                        <div key={i} className={styles.noticeItem}>
+                            <span className={`${styles.noticeDot} ${i === 0 ? styles.noticeDotNew : ''}`} />
+                            <span className={styles.noticeText}>{notice}</span>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* 하단 여백 (광고 영역용) */}
+            <div className={styles.bottomSpacer} />
         </div>
     )
 }

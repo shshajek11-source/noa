@@ -1,0 +1,523 @@
+/* CharacterDetailMobile Styles - Black Theme */
+
+.container {
+  min-height: 100vh;
+  background: #000;
+  color: #E5E7EB;
+}
+
+/* Header - 일반 배치 */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #000;
+}
+
+.backButton {
+  background: transparent;
+  border: none;
+  color: #E5E7EB;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headerTitle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.headerName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.headerServer {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+}
+
+.starButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 메뉴 탭 - 일반 배치 */
+.menuTabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px 16px;
+  background: #000;
+}
+
+.menuTab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 10px;
+  color: #9CA3AF;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.menuTab:hover {
+  background: #1a1a1a;
+}
+
+/* Profile Section */
+.profileSection {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.profileImageWrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.profileImage {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f59e0b;
+}
+
+.profilePlaceholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #111;
+  border: 3px solid #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B7280;
+}
+
+.levelBadge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #f59e0b;
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.profileInfo {
+  text-align: center;
+}
+
+.charName {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.charMeta {
+  font-size: 0.9rem;
+  color: #9CA3AF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.separator {
+  color: #6B7280;
+}
+
+.titleBadge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 12px;
+  border: 1px solid;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Score Cards */
+.scoreCards {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.scoreCard {
+  flex: 1;
+  background: #111;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.scoreLabel {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scoreValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f59e0b;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* Tab Navigation - 장비/능력치/스킬 */
+.tabNav {
+  display: flex;
+  background: #111;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.tab {
+  flex: 1;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  color: #9CA3AF;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.tabActive {
+  color: #f59e0b;
+  border-bottom-color: #f59e0b;
+}
+
+/* Tab Content */
+.tabContent {
+  padding: 16px;
+}
+
+/* Equipment Tab */
+.equipmentTab {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.equipSection {
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #9CA3AF;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionTitle::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 14px;
+  background: #f59e0b;
+  border-radius: 2px;
+}
+
+.equipGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.equipItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.equipIconWrapper {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  background: #111;
+  border: 2px solid #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.equipIconWrapper img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.equipPlaceholder {
+  font-size: 1rem;
+  color: #6B7280;
+  font-weight: 600;
+}
+
+.enhancement {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #f59e0b;
+  color: #000;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px 0 0 0;
+}
+
+.equipSlot {
+  font-size: 0.65rem;
+  color: #9CA3AF;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 52px;
+}
+
+/* Stats Tab */
+.statsTab {
+  padding: 0;
+}
+
+.statsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #111;
+}
+
+.statRow:nth-child(even) {
+  background: #0a0a0a;
+}
+
+.statName {
+  font-size: 0.85rem;
+  color: #9CA3AF;
+}
+
+.statValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #E5E7EB;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ocrBadge {
+  background: #10B981;
+  color: #000;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+/* Skills Tab */
+.skillsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.skillSection {
+  margin-bottom: 8px;
+}
+
+.skillGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.skillItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.skillIconWrapper {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #111;
+  border: 2px solid #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.skillIconWrapper img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.skillPlaceholder {
+  font-size: 1.2rem;
+}
+
+.skillLevel {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #000;
+  color: #f59e0b;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px 0 0 0;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  color: #6B7280;
+  gap: 12px;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+/* Comparison Section */
+.comparisonSection {
+  padding: 16px;
+  margin: 0 16px;
+  background: #111;
+  border-radius: 12px;
+  border: 1px solid #1a1a1a;
+}
+
+.comparisonGrid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.comparisonItem {
+  flex: 1;
+  text-align: center;
+}
+
+.comparisonLabel {
+  font-size: 0.7rem;
+  color: #6B7280;
+  margin-bottom: 4px;
+}
+
+.comparisonName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #E5E7EB;
+  margin-bottom: 4px;
+}
+
+.comparisonValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f59e0b;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.comparisonVs {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #6B7280;
+  padding: 8px;
+}
+
+/* 하단 여백 */
+.bottomSpacer {
+  height: 40px;
+}
+
+/* Race Colors - Purple accent */
+.elyos {
+  color: #2DD4BF;
+}
+
+.asmodian {
+  color: #A78BFA;
+}
+
+/* Responsive */
+@media (max-width: 360px) {
+  .equipGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .skillGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .scoreCard {
+    padding: 10px;
+  }
+
+  .scoreValue {
+    font-size: 0.9rem;
+  }
+}

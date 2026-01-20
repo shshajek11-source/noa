@@ -1,13 +1,13 @@
 # CLAUDE.md
 
 > 이 파일은 Claude Code가 이 프로젝트에서 작업할 때 참고하는 지침서입니다.
-> 마지막 업데이트: 2026-01-20
+> 마지막 업데이트: 2026-01-20 (모바일 디자인 가이드 추가)
 
 ---
 
 ## 1. 프로젝트 개요
 
-**HITON2** - AION 2 게임의 캐릭터 정보, 랭킹, 장비 데이터, 스탯을 제공하는 웹 서비스
+**SUGO.gg** - AION 2 게임의 캐릭터 정보, 랭킹, 장비 데이터, 스탯을 제공하는 웹 서비스
 
 | 항목 | 값 |
 |------|---|
@@ -15,14 +15,14 @@
 | **언어** | TypeScript (Strict) |
 | **백엔드** | Supabase PostgreSQL + Edge Functions |
 | **배포** | Vercel (Frontend) |
-| **테마** | Dark + Yellow accent |
+| **테마** | Black + Orange accent (#f59e0b) |
 
 ---
 
 ## 2. 프로젝트 구조
 
 ```
-hiton2/
+sugo-project/
 ├── frontend/src/
 │   ├── app/                    # 페이지 및 API (32개 페이지, 64개 API)
 │   │   ├── api/                # API 라우트
@@ -308,18 +308,177 @@ function Component({ prop1, prop2 }: ComponentProps) {
 export default memo(Component)
 ```
 
-### CSS 테마 변수
+---
+
+## 11. 디자인 시스템 (Black Theme)
+
+### 11.1 개요
+PC와 모바일 모두 동일한 검은색 기반 테마를 사용합니다.
+
+### 11.2 테마 색상 (PC & Mobile 공통)
 ```css
---bg-main: #0B0D12      /* 메인 배경 */
---bg-card: #151921      /* 카드 배경 */
---primary: #FACC15      /* 노란 액센트 */
---text-main: #E5E7EB    /* 기본 텍스트 */
---text-secondary: #9CA3AF /* 보조 텍스트 */
+/* 배경 */
+#000        /* 메인 배경 (순수 검정) */
+#0a0a0a     /* 서브 배경 */
+#111        /* 카드/컴포넌트 배경 */
+#1a1a1a     /* 호버/구분선 배경 */
+
+/* 테두리 */
+#222        /* 기본 테두리 */
+#333        /* 강조 테두리 */
+
+/* 포인트 색상 */
+#f59e0b     /* 주황 (Primary) - 메인 포인트 */
+#A78BFA     /* 보라 (Purple) - 포인트 소량 사용 */
+
+/* 텍스트 */
+#E5E7EB     /* 메인 텍스트 */
+#9CA3AF     /* 보조 텍스트 */
+#6B7280     /* 비활성 텍스트 */
+#fff        /* 강조 텍스트 */
+
+/* 종족 색상 */
+#2DD4BF     /* 천족 (Elyos) */
+#A78BFA     /* 마족 (Asmodian) */
+
+/* 기타 포인트 */
+#ef4444     /* 빨강 (경고/에러) */
+#3b82f6     /* 파랑 (정보/보너스) */
+#10B981     /* 녹색 (성공/OCR) */
+```
+
+### 11.3 CSS 변수 (globals.css)
+```css
+:root {
+  --bg-main: #000;
+  --bg-secondary: #111;
+  --bg-hover: #1a1a1a;
+  --border: #222;
+  --primary: #f59e0b;
+  --text-main: #E5E7EB;
+  --text-secondary: #9CA3AF;
+  --text-disabled: #6B7280;
+}
+```
+
+### 11.4 디자인 원칙
+1. **검은 배경 기반**: 메인 배경 `#000`, 카드 배경 `#111`
+2. **주황 포인트**: 활성 탭, 중요 수치, 버튼, 강조 요소에 `#f59e0b` 사용
+3. **보라색 최소화**: OD 에너지, 마족 표시, 2배속 버튼 등 제한적으로만 `#A78BFA` 사용
+4. **일관된 테두리**: 기본 `#222`, 호버/강조 시 `#333`
+5. **PC/모바일 동일 테마**: 색상, 카드 스타일, 버튼 스타일 통일
+
+### 11.5 컴포넌트 스타일 예시
+```css
+/* 카드 */
+.card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+}
+
+/* 버튼 (Primary) */
+.btnPrimary {
+  background: #f59e0b;
+  color: #000;
+  border: none;
+}
+
+/* 버튼 (Secondary) */
+.btnSecondary {
+  background: #111;
+  color: #E5E7EB;
+  border: 1px solid #222;
+}
+
+/* 활성 탭 */
+.tabActive {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+/* 입력 필드 */
+.input {
+  background: #111;
+  border: 1px solid #222;
+  color: #E5E7EB;
+}
+
+.input:focus {
+  border-color: #f59e0b;
+}
 ```
 
 ---
 
-## 11. 가계부 날짜 로직
+## 12. 모바일 조건부 렌더링
+
+### 12.1 개요
+1024px 미만 화면에서 PC 레이아웃 대신 독립적인 모바일 전용 페이지를 렌더링합니다.
+
+### 12.2 대상 페이지
+| 페이지 | PC 컴포넌트 | 모바일 컴포넌트 |
+|--------|-------------|-----------------|
+| 홈 | `page.tsx` | `HomeMobile.tsx` |
+| 캐릭터 상세 | `CharacterDetail.tsx` | `CharacterDetailMobile.tsx` |
+| 랭킹 | `RankingLayoutClient.tsx` | `RankingMobile.tsx` |
+| 가계부 | `ledger/page.tsx` | `ledger/mobile/page.tsx` |
+
+### 12.3 모바일 전용 규칙
+1. **고정 네비게이션 없음**: 애드센스 광고와 호환을 위해 모든 요소 일반 배치
+2. **하단 여백**: 광고 영역을 위한 `bottomSpacer` (40px) 포함
+3. **메뉴 탭**: 홈/랭킹/가계부 일반 배치 (스크롤 시 같이 이동)
+
+### 12.4 모바일 레이아웃 구조
+```tsx
+<div className={styles.container}>
+  {/* 헤더 - 일반 배치 (sticky 아님) */}
+  <header className={styles.header}>
+    <Logo /> <PageTitle />
+  </header>
+
+  {/* 메뉴 탭 - 일반 배치 */}
+  <nav className={styles.menuTabs}>
+    <Link href="/">홈</Link>
+    <Link href="/ranking">랭킹</Link>
+    <Link href="/ledger/mobile">가계부</Link>
+  </nav>
+
+  {/* 콘텐츠 영역 */}
+  <main>{/* 페이지별 콘텐츠 */}</main>
+
+  {/* 하단 여백 (광고용) */}
+  <div className={styles.bottomSpacer} />
+</div>
+```
+
+### 12.5 조건부 렌더링 구현
+```tsx
+const [isMobile, setIsMobile] = useState(false)
+
+useEffect(() => {
+  const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+  return () => window.removeEventListener('resize', checkMobile)
+}, [])
+
+if (isMobile) return <MobileComponent />
+return <PCComponent />
+```
+
+### 12.6 CSS 모듈 파일
+- `HomeMobile.module.css`
+- `CharacterDetailMobile.module.css`
+- `RankingMobile.module.css`
+- `MobileLedger.module.css`
+
+**주의:** 모바일 CSS는 CSS 변수(`var(--xxx)`) 대신 직접 색상값을 사용합니다.
+
+---
+
+## 13. 가계부 날짜 로직
 
 ### 게임 날짜 기준
 - **일일 리셋**: 매일 새벽 5시
@@ -341,7 +500,7 @@ const canEdit = isEditable(selectedDate)
 
 ---
 
-## 12. 자주 발생하는 이슈
+## 13. 자주 발생하는 이슈
 
 ### 빌드 에러
 | 에러 | 원인 | 해결 |
@@ -359,7 +518,7 @@ const canEdit = isEditable(selectedDate)
 
 ---
 
-## 13. 배포 체크리스트
+## 14. 배포 체크리스트
 
 ### 커밋 전
 - [ ] `npm run build` 성공 확인
@@ -380,9 +539,9 @@ git push
 
 ---
 
-## 14. 연락처 및 참고
+## 15. 연락처 및 참고
 
-- **GitHub**: `shshajek-cpu/hiton-1-12`
+- **GitHub**: `shshajek-cpu/sugo-gg`
 - **배포**: Vercel (자동 배포)
 - **DB 관리**: Supabase Dashboard
 

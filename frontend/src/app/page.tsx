@@ -9,12 +9,24 @@ import ServerStatsDashboard from './components/home/stats/ServerStatsDashboard'
 import RecentCharacterCard from './components/RecentCharacterCard'
 import LiveStreamContainer from './components/live/LiveStreamContainer'
 import OfficialNewsFeed from './components/home/news/OfficialNewsFeed'
+import HomeMobile from './components/home/HomeMobile'
 import { RecentCharacter } from '../types/character'
 import styles from './Home.module.css'
 
 export default function Home() {
     const router = useRouter()
     const [recentCharacters, setRecentCharacters] = useState<RecentCharacter[]>([])
+    const [isMobile, setIsMobile] = useState(false)
+
+    // 모바일 감지
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 1024)
+        }
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
 
     // Load recent characters from localStorage on mount
     useEffect(() => {
@@ -95,6 +107,11 @@ export default function Home() {
         const updated = recentCharacters.filter(c => c.id !== id)
         setRecentCharacters(updated)
         localStorage.setItem('recent_characters', JSON.stringify(updated))
+    }
+
+    // 모바일 뷰
+    if (isMobile) {
+        return <HomeMobile />
     }
 
     return (

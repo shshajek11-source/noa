@@ -3,6 +3,7 @@ import CharacterShowcase from './profile/CharacterShowcase'
 import styles from './ProfileSection.module.css'
 import { aggregateStats } from '../../lib/statsAggregator'
 import { calculateDualCombatPowerFromStats } from '../../lib/combatPower'
+import type { OcrStat } from '../../types/stats'
 
 interface ProfileSectionProps {
     character: any
@@ -14,13 +15,14 @@ interface ProfileSectionProps {
     titles?: any
     daevanion?: any
     equippedTitleId?: number
+    ocrStats?: OcrStat[]  // OCR 스탯 (최종값 오버라이드)
 }
 
 const formatNumber = (num: number) => {
     return new Intl.NumberFormat('ko-KR').format(num)
 }
 
-export default function ProfileSection({ character, arcana, onArcanaClick, stats, equipment, topPower, titles, daevanion, equippedTitleId }: ProfileSectionProps) {
+export default function ProfileSection({ character, arcana, onArcanaClick, stats, equipment, topPower, titles, daevanion, equippedTitleId, ocrStats }: ProfileSectionProps) {
     const [hoveredArcana, setHoveredArcana] = useState<any | null>(null)
     const [showDebug, setShowDebug] = useState(false)
     const [copied, setCopied] = useState(false)
@@ -34,12 +36,13 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                 titles || {},
                 daevanion || {},
                 stats,
-                equippedTitleId
+                equippedTitleId,
+                ocrStats  // OCR 스탯 전달
             )
             return calculateDualCombatPowerFromStats(aggregatedStats, stats)
         }
         return null
-    }, [equipment, titles, daevanion, stats, equippedTitleId])
+    }, [equipment, titles, daevanion, stats, equippedTitleId, ocrStats])
 
     // PVE/PVP 전투력
     const pveCombatPower = dualCombatPower?.pve || character.pve_score || character.power || 0
@@ -184,9 +187,10 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
             titles: titles,
             daevanion: daevanion,
             stats: stats,
-            equippedTitleId: equippedTitleId
+            equippedTitleId: equippedTitleId,
+            ocrStats: ocrStats
         }
-    }, [character, combatPower, dualCombatPower, equipment, titles, daevanion, stats, equippedTitleId])
+    }, [character, combatPower, dualCombatPower, equipment, titles, daevanion, stats, equippedTitleId, ocrStats])
 
     // 복사 함수
     const copyDebugData = () => {

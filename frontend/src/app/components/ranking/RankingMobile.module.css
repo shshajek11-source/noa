@@ -1,0 +1,339 @@
+/* RankingMobile Styles - Black Theme */
+
+.container {
+  min-height: 100vh;
+  background: #000;
+  color: #E5E7EB;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #000;
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 1.4rem;
+  letter-spacing: -0.5px;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.logoSu {
+  color: #f59e0b;
+}
+
+.logoGo {
+  color: #fff;
+}
+
+.logoGg {
+  font-size: 0.9rem;
+  color: #6B7280;
+  margin-left: 1px;
+}
+
+.pageTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #E5E7EB;
+  margin: 0;
+}
+
+/* 메뉴 탭 */
+.menuTabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px 16px;
+  background: #000;
+}
+
+.menuTab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 10px;
+  color: #9CA3AF;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.menuTab:hover {
+  background: #1a1a1a;
+}
+
+.menuTabActive {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+/* 랭킹 타입 탭 */
+.typeTabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+
+.typeTab {
+  flex: 1;
+  padding: 10px 16px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  color: #9CA3AF;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.typeTabActive {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: #000;
+}
+
+/* 필터 바 */
+.filterBar {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+
+.filterSelect {
+  flex: 1;
+  padding: 10px 12px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  color: #E5E7EB;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.filterSelect:focus {
+  border-color: #f59e0b;
+}
+
+/* 랭킹 리스트 */
+.rankingList {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 16px;
+  background: #1a1a1a;
+  margin: 0 16px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.rankingItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: #111;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s;
+}
+
+.rankingItem:active {
+  background: #1a1a1a;
+}
+
+.rankBadge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #9CA3AF;
+  flex-shrink: 0;
+}
+
+.rank1 {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #000;
+}
+
+.rank2 {
+  background: linear-gradient(135deg, #9CA3AF, #6B7280);
+  color: #000;
+}
+
+.rank3 {
+  background: linear-gradient(135deg, #CD7F32, #8B4513);
+  color: #fff;
+}
+
+.charAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.charAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.charAvatar span {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.charInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.charName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #E5E7EB;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.charMeta {
+  font-size: 0.75rem;
+  color: #6B7280;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.dot {
+  color: #6B7280;
+}
+
+.elyos {
+  color: #2DD4BF;
+}
+
+.asmodian {
+  color: #A78BFA;
+}
+
+.charScore {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.scoreRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scoreLabel {
+  font-size: 0.6rem;
+  color: #6B7280;
+  text-transform: uppercase;
+}
+
+.scoreValue {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f59e0b;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* 더보기 버튼 */
+.loadMoreWrapper {
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.loadMoreBtn {
+  width: 100%;
+  padding: 14px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 10px;
+  color: #E5E7EB;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.loadMoreBtn:hover {
+  background: #1a1a1a;
+}
+
+.loadMoreBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 빈 상태 */
+.emptyState {
+  padding: 48px 16px;
+  text-align: center;
+  background: #111;
+}
+
+.emptyState p {
+  margin: 0 0 4px;
+  color: #E5E7EB;
+  font-weight: 600;
+}
+
+.emptyState span {
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
+/* 스켈레톤 */
+.skeleton {
+  background: linear-gradient(90deg, #1a1a1a 25%, #111 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 하단 여백 */
+.bottomSpacer {
+  height: 40px;
+}

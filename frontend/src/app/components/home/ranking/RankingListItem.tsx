@@ -57,10 +57,10 @@ export default function RankingListItem({ character, rank }: RankingListItemProp
                     </div>
                 </div>
 
-                {/* Score */}
+                {/* Score - DB에 저장된 pve_score 사용 */}
                 <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: 'var(--text-main)', fontWeight: 'bold', fontSize: '0.95rem' }}>
-                        {(character.combat_power || 0).toLocaleString()}
+                    <div style={{ color: '#4ade80', fontWeight: 'bold', fontSize: '0.95rem' }}>
+                        {(character.pve_score || character.combat_power || 0).toLocaleString()}
                     </div>
                 </div>
             </div>

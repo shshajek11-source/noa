@@ -80,6 +80,8 @@ export async function POST(request: NextRequest) {
         character_item_level: body.character_item_level,
         character_breakthrough: body.character_breakthrough,
         character_combat_power: body.character_combat_power,
+        character_pve_score: body.character_pve_score,
+        character_pvp_score: body.character_pvp_score,
         profile_image: body.profile_image,
         display_order: nextOrder
       })
@@ -127,7 +129,8 @@ export async function PATCH(request: NextRequest) {
     const allowedFields = [
       'character_name', 'character_class', 'character_server_id',
       'character_level', 'character_item_level', 'character_breakthrough',
-      'character_combat_power', 'profile_image', 'display_order'
+      'character_combat_power', 'character_pve_score', 'character_pvp_score',
+      'profile_image', 'display_order'
     ]
 
     const filteredData: Record<string, unknown> = {}

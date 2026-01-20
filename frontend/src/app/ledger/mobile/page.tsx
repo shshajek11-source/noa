@@ -352,6 +352,68 @@ export default function MobileLedgerPage() {
                                 </div>
                             </div>
 
+                            {/* Abyss Weekly Order Card */}
+                            <div className={styles.wmCard}>
+                                <div className={styles.wmHeader}>
+                                    <div className={styles.wmTitleGroup}>
+                                        <span className={styles.wmTitle}>어비스 주간 지령서</span>
+                                        <span className={styles.wmTimer}>1일 08:44:40</span>
+                                    </div>
+                                    <div className={styles.wmControls}>
+                                        <button className={styles.btnCompleteAll}>전체 완료 하기</button>
+                                        <span className={styles.wmCount}>0/20</span>
+                                        <button className={styles.btnStep}>+</button>
+                                        <button className={styles.btnStep}>-</button>
+                                    </div>
+                                </div>
+                                <div className={styles.wmProgressTrack}>
+                                    {[...Array(10)].map((_, i) => (
+                                        <div key={i} className={styles.wmBlock}></div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Shugo & Abyss Grid */}
+                            <div className={styles.dualCardGrid}>
+                                <div className={styles.miniCard}>
+                                    <div className={styles.miniCardTimer}>02:59:00</div>
+                                    <div className={styles.miniCardLabel}>슈고 페스타</div>
+                                    <div className={styles.miniCardValue}>
+                                        14 <span className={styles.miniCardMax}>/ 14</span>
+                                        <span className={styles.miniCardBonus}>(+1)</span>
+                                    </div>
+                                    <div className={styles.miniCardControls}>
+                                        <button className={styles.btnStepMini}>-</button>
+                                        <button className={styles.btnStepMini}>+</button>
+                                    </div>
+                                </div>
+                                <div className={styles.miniCard}>
+                                    <div className={styles.miniCardTimer}>00:00:00</div>
+                                    <div className={styles.miniCardLabel}>어비스 회랑</div>
+                                    <div className={styles.miniCardValue}>
+                                        3 <span className={styles.miniCardMax}>/ 3</span>
+                                    </div>
+                                    <div className={styles.miniCardControls}>
+                                        <button className={styles.btnStepMini}>-</button>
+                                        <button className={styles.btnStepMini}>+</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Od Energy Status */}
+                            <div className={styles.odEnergyBox}>
+                                <span className={styles.odValue}>840</span>
+                                <span className={styles.odLabel}>
+                                    주기충전: <span className={styles.odTimer}>1:59:08</span>
+                                </span>
+                            </div>
+
+                            {/* Weekly Content Header */}
+                            <div className={styles.contentHeader}>
+                                <span className={styles.contentTitle}>주간 컨텐츠</span>
+                                <span className={styles.contentRemaining}>잔여: 3건</span>
+                            </div>
+
                             {/* Complex Cards */}
                             <div className={styles.complexCard}>
                                 <div className={styles.cardHead}>
@@ -396,6 +458,98 @@ export default function MobileLedgerPage() {
                                 </div>
                             </div>
 
+                            {/* Expedition Card */}
+                            <div className={styles.complexCard}>
+                                <div className={styles.cardHead}>
+                                    <span className={styles.cardTitle}>원정</span>
+                                    <div className={styles.cardHeadRight}>
+                                        <span className={styles.cardCount}>0/21회 <span className={styles.bonusCount}>(+1)</span></span>
+                                        <span className={styles.collapseIcon}>▼</span>
+                                    </div>
+                                </div>
+                                <div className={styles.cardBody}>
+                                    <div className={styles.controlsWrapper}>
+                                        <div className={`${styles.settingsGrid} ${styles.settingsGrid3}`}>
+                                            <div className={styles.settingItem}>
+                                                <div className={styles.settingLabel}>보스</div>
+                                                <div className={styles.settingValue}>크라오 동굴 ▼</div>
+                                            </div>
+                                            <div className={styles.settingItem}>
+                                                <div className={styles.settingLabel}>구분</div>
+                                                <div className={styles.settingValue}>탐험/정복 ▼</div>
+                                            </div>
+                                            <div className={styles.settingItem}>
+                                                <div className={styles.settingLabel}>단계</div>
+                                                <div className={styles.settingValue}>1단계 ▼</div>
+                                            </div>
+                                        </div>
+                                        <div className={styles.actionRow}>
+                                            <div className={`${styles.btn2x} ${styles.active}`}>
+                                                오드에너지 2배사용
+                                            </div>
+                                            <button className={styles.btnRecord}>진행완료</button>
+                                        </div>
+                                    </div>
+                                    <div className={styles.logList}>
+                                        <div className={styles.logItem}>
+                                            <div className={styles.logLeft}>
+                                                <span>크라오</span>
+                                                <span className={styles.logBadge}>1단계</span>
+                                            </div>
+                                            <div className={styles.logRight}>
+                                                <span className={styles.logCount}>1회</span>
+                                                <span className={styles.logValue}>1,500,000</span>
+                                                <button className={styles.btnLogDelete}>×</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Sanctuary Card */}
+                            <div className={styles.complexCard}>
+                                <div className={styles.cardHead}>
+                                    <span className={styles.cardTitle}>성역</span>
+                                    <div className={styles.cardHeadRight}>
+                                        <span className={styles.cardCountSub}>0/4회 <span className={styles.bonusCount}>(+1)</span></span>
+                                        <span className={styles.collapseIcon}>▼</span>
+                                    </div>
+                                </div>
+                                <div className={styles.cardBody}>
+                                    <div className={styles.controlsWrapper}>
+                                        <div className={styles.settingsGrid}>
+                                            <div className={styles.settingItem}>
+                                                <div className={styles.settingLabel}>보스</div>
+                                                <div className={styles.settingValue}>심연의 재련 : 루드라 ▼</div>
+                                            </div>
+                                            <div className={styles.settingItem}>
+                                                <div className={styles.settingLabel}>단계</div>
+                                                <div className={styles.settingValue}>1단계 ▼</div>
+                                            </div>
+                                        </div>
+                                        <div className={styles.actionRow}>
+                                            <div className={styles.btn2x}>
+                                                오드에너지 2배사용
+                                            </div>
+                                            <button className={styles.btnRecord}>진행완료</button>
+                                        </div>
+                                    </div>
+                                    <div className={styles.logList}>
+                                        <div className={styles.logItem}>
+                                            <div className={styles.logLeft}>
+                                                <span>루드라</span>
+                                                <span className={styles.logBadge}>1단계</span>
+                                            </div>
+                                            <div className={styles.logRight}>
+                                                <span className={styles.logCount}>1회</span>
+                                                <span className={styles.logValue}>10,000,000</span>
+                                                <button className={styles.btnLogDelete}>×</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Simple Cards */}
                             <div className={styles.simpleCard}>
                                 <div className={styles.simpleCardLeft}>
@@ -425,6 +579,30 @@ export default function MobileLedgerPage() {
                                 <div className={styles.simpleCardLeft}>
                                     <div className={styles.simpleCardBar}></div>
                                     <span className={styles.simpleCardTitle}>악몽 (1/1)</span>
+                                </div>
+                                <div className={styles.simpleCardRight}>
+                                    <span className={styles.simpleCardTimer}>00:00:00</span>
+                                    <span className={styles.simpleCardDivider}>|</span>
+                                    <span className={styles.simpleCardCount}>1/1</span>
+                                </div>
+                            </div>
+
+                            <div className={styles.simpleCard}>
+                                <div className={styles.simpleCardLeft}>
+                                    <div className={styles.simpleCardBar}></div>
+                                    <span className={styles.simpleCardTitle}>차원침공 (1/1)</span>
+                                </div>
+                                <div className={styles.simpleCardRight}>
+                                    <span className={styles.simpleCardTimer}>00:00:00</span>
+                                    <span className={styles.simpleCardDivider}>|</span>
+                                    <span className={styles.simpleCardCount}>1/1</span>
+                                </div>
+                            </div>
+
+                            <div className={styles.simpleCard}>
+                                <div className={styles.simpleCardLeft}>
+                                    <div className={styles.simpleCardBar}></div>
+                                    <span className={styles.simpleCardTitle}>토벌전 (1/1)</span>
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardTimer}>00:00:00</span>

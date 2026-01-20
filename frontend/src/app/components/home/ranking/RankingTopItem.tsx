@@ -91,17 +91,17 @@ export default function RankingTopItem({ character, rank }: RankingTopItemProps)
                     </p>
                 </div>
 
-                {/* Score */}
+                {/* Score - DB에 저장된 pve_score 사용 */}
                 <div style={{
                     background: 'rgba(0,0,0,0.3)',
                     padding: '0.25rem 0.5rem',
                     borderRadius: '4px',
                     display: 'inline-block'
                 }}>
-                    <span style={{ color: 'var(--brand-red-main)', fontWeight: 'bold' }}>
-                        {(character.combat_power || 0).toLocaleString()}
+                    <span style={{ color: '#4ade80', fontWeight: 'bold' }}>
+                        {(character.pve_score || character.combat_power || 0).toLocaleString()}
                     </span>
-                    <span style={{ fontSize: '0.75rem', color: '#666', marginLeft: '4px' }}>CP</span>
+                    <span style={{ fontSize: '0.75rem', color: '#666', marginLeft: '4px' }}>PVE</span>
                 </div>
             </DSCard>
         </Link>

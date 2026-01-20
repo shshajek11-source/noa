@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
         // 1. Supabase DB에서 검색 (정확히 일치하는 이름만)
         let dbQuery = supabase
             .from('characters')
-            .select('character_id, name, server_id, class_name, race_name, level, combat_power, item_level, noa_score, profile_image, scraped_at')
+            .select('character_id, name, server_id, class_name, race_name, level, combat_power, item_level, pve_score, pvp_score, profile_image, scraped_at')
             .eq('name', name)  // 정확히 일치하는 이름만 검색
             .order('level', { ascending: false })
             .limit(50)
@@ -57,8 +57,11 @@ export async function POST(request: NextRequest) {
             dbQuery = dbQuery.eq('server_id', serverId)
         }
         if (numericRace) {
-            const raceName = numericRace === 1 ? '천족' : '마족'
-            dbQuery = dbQuery.eq('race_name', raceName)
+            // DB에 한국어('천족', '마족') 또는 영어('Elyos', 'Asmodian') 둘 다 저장될 수 있으므로 둘 다 검색
+            const raceNames = numericRace === 1
+                ? ['천족', 'Elyos', 'ELYOS', 'elyos']
+                : ['마족', 'Asmodian', 'ASMODIAN', 'asmodian', 'ASMODIANS']
+            dbQuery = dbQuery.in('race_name', raceNames)
         }
 
         const { data: dbResults, error: dbError } = await dbQuery
@@ -67,7 +70,21 @@ export async function POST(request: NextRequest) {
             console.error('[Live Search] DB error:', dbError)
         }
 
-        console.log('[Live Search] DB results:', dbResults?.length || 0, 'items')
+        // 결과가 없고 서버 필터가 적용된 경우, 서버 필터 없이 재검색 시도
+        let fallbackDbResults: typeof dbResults = null
+        if ((!dbResults || dbResults.length === 0) && serverId) {
+            const fallbackQuery = supabase
+                .from('characters')
+                .select('character_id, name, server_id, class_name, race_name, level, combat_power, item_level, pve_score, pvp_score, profile_image, scraped_at')
+                .eq('name', name)
+                .order('level', { ascending: false })
+                .limit(10)
+
+            const { data: fbResults, error: fbError } = await fallbackQuery
+            if (fbResults && fbResults.length > 0) {
+                fallbackDbResults = fbResults
+            }
+        }
 
         // 캐시만 요청한 경우 (forceFresh가 아닐 때만)
         if (cacheOnly && !forceFresh && dbResults && dbResults.length > 0) {
@@ -93,8 +110,6 @@ export async function POST(request: NextRequest) {
             if (serverId) url.searchParams.append('serverId', serverId.toString())
             if (numericRace) url.searchParams.append('race', numericRace.toString())
 
-            console.log('[Live Search] Fetching API:', url.toString())
-
             // 5초 타임아웃 설정
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), 5000)
@@ -115,7 +130,6 @@ export async function POST(request: NextRequest) {
                     const data = await response.json()
                     apiResults = data.list || []
                     apiTotal = data.pagination?.total || 0
-                    console.log('[Live Search] API results:', apiResults.length, 'items, total:', apiTotal)
 
                     // API 결과를 DB에 캐싱 (백그라운드)
                     if (apiResults.length > 0) {
@@ -162,8 +176,10 @@ export async function POST(request: NextRequest) {
 
         // DB 결과 먼저 추가 (우선순위 높음 - 더 상세한 데이터)
         // forceFresh 모드에서는 DB 결과를 나중에 추가 (API 결과 우선)
-        if (!skipDbResults && dbResults) {
-            dbResults.forEach(item => {
+        // 결과가 없으면 fallback 결과 사용
+        const effectiveDbResults = (dbResults && dbResults.length > 0) ? dbResults : fallbackDbResults
+        if (!skipDbResults && effectiveDbResults) {
+            effectiveDbResults.forEach(item => {
                 const key = normalizeKey(item.character_id)
                 mergedMap.set(key, transformCachedToApiFormat(item))
             })
@@ -202,8 +218,8 @@ export async function POST(request: NextRequest) {
         })
 
         // forceFresh 모드: DB 결과를 API 결과 뒤에 추가 (API에 없는 것만)
-        if (skipDbResults && dbResults) {
-            dbResults.forEach(item => {
+        if (skipDbResults && effectiveDbResults) {
+            effectiveDbResults.forEach(item => {
                 const key = normalizeKey(item.character_id)
                 if (!mergedMap.has(key)) {
                     mergedMap.set(key, transformCachedToApiFormat(item))
@@ -220,17 +236,15 @@ export async function POST(request: NextRequest) {
             })
             .slice(0, 50)  // 최대 50개
 
-        const totalCount = Math.max(mergedList.length, apiTotal, dbResults?.length || 0)
-
-        console.log('[Live Search] Merged results:', mergedList.length, 'items (DB:', dbResults?.length || 0, ', API:', filteredApiResults.length, '/', apiResults.length, 'filtered)', apiWarning ? `Warning: ${apiWarning}` : '')
+        const totalCount = Math.max(mergedList.length, apiTotal, effectiveDbResults?.length || 0)
 
         return NextResponse.json({
             list: mergedList,
             pagination: { total: totalCount, page: page || 1 },
             source: skipDbResults ? 'fresh' : 'merged',
-            dbCount: dbResults?.length || 0,
-            apiCount: filteredApiResults.length,  // 필터링된 결과 수
-            warning: apiWarning  // 에러/경고 메시지 포함
+            dbCount: effectiveDbResults?.length || 0,
+            apiCount: filteredApiResults.length,
+            warning: apiWarning
         })
 
     } catch (error) {
@@ -271,27 +285,30 @@ function transformCachedToApiFormat(cached: any) {
         itemLevel: cached.item_level,
         // 프론트엔드 호환성을 위한 snake_case 필드 추가
         item_level: cached.item_level,
-        noa_score: cached.noa_score,
+        pve_score: cached.pve_score,
+        // PVE/PVP 전투력 (DB에 저장된 값)
+        pve_score: cached.pve_score,
+        pvp_score: cached.pvp_score,
         // DB에서 온 데이터 표시
         fromDb: true
     }
 }
 
-// 검색 결과를 Supabase에 캐싱 (기존 item_level, noa_score 보존)
+// 검색 결과를 Supabase에 캐싱 (기존 item_level, pve_score 보존)
 async function cacheSearchResults(supabase: any, results: any[]) {
     if (results.length === 0) return
 
-    // 먼저 기존 DB 데이터 조회 (item_level, noa_score 보존용)
+    // 먼저 기존 DB 데이터 조회 (item_level, pve_score 보존용)
     // characterId 정규화하여 일관성 유지
     const characterIds = results.map(item => normalizeCharacterId(item.characterId))
 
     const { data: existingData } = await supabase
         .from('characters')
-        .select('character_id, item_level, noa_score')
+        .select('character_id, item_level, pve_score')
         .in('character_id', characterIds)
 
     // DB의 character_id도 정규화하여 매핑
-    const existingMap = new Map<string, { character_id: string; item_level: number | null; noa_score: number | null }>(
+    const existingMap = new Map<string, { character_id: string; item_level: number | null; pve_score: number | null }>(
         existingData?.map((d: any) => [normalizeCharacterId(d.character_id), d]) || []
     )
 
@@ -308,9 +325,9 @@ async function cacheSearchResults(supabase: any, results: any[]) {
             profile_image: item.profileImageUrl?.startsWith('http')
                 ? item.profileImageUrl
                 : item.profileImageUrl ? `https://profileimg.plaync.com${item.profileImageUrl}` : null,
-            // 기존 item_level, noa_score 보존 (있으면 유지, 없으면 null)
+            // 기존 item_level, pve_score 보존 (있으면 유지, 없으면 null)
             item_level: existing?.item_level ?? null,
-            noa_score: existing?.noa_score ?? null,
+            pve_score: existing?.pve_score ?? null,
             scraped_at: new Date().toISOString()
         }
     })
@@ -331,7 +348,7 @@ async function cacheSearchResults(supabase: any, results: any[]) {
     // 전투력 없는 캐릭터 백그라운드 동기화 트리거
     const needsSync = results.filter(r => {
         const existing = existingMap.get(normalizeCharacterId(r.characterId))
-        return !existing || existing.noa_score === null || existing.noa_score === undefined
+        return !existing || existing.pve_score === null || existing.pve_score === undefined
     })
 
     if (needsSync.length > 0) {

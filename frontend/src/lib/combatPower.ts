@@ -261,7 +261,11 @@ export function extractCombatStats(aggregatedStats: StatDetail[], baseStats?: an
   const accuracyVal = getStat('명중').value || getBaseStatValue('명중')
   const critVal = getStat('치명타').value || getBaseStatValue('치명타')
   const attackVal = getStat('공격력').value || getBaseStatValue('공격력')
-  const smashVal = getStat('강타').value > 0 ? getStat('강타').value : getStat('강타 적중').percentage
+  // 강타는 퍼센트 스탯으로 저장될 수 있으므로 percentage도 확인
+  const smashStat = getStat('강타')
+  const smashVal = smashStat.value > 0 ? smashStat.value :
+                   smashStat.percentage > 0 ? smashStat.percentage :
+                   getStat('강타 적중').percentage
 
   // [Calibration] Missing Data Fallback (Mock for verifiable average high-ranker)
   const finalAttack = attackVal > 0 ? attackVal : 3100

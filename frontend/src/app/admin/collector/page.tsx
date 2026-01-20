@@ -66,6 +66,12 @@ export default function CollectorPage() {
     // Auto Collection State
     const [isCollecting, setIsCollecting] = useState(true)
 
+    // Batch Update State (미조회 캐릭터 처리)
+    const [isBatchRunning, setIsBatchRunning] = useState(false)
+    const [batchRemaining, setBatchRemaining] = useState<number | null>(null)
+    const [batchUpdated, setBatchUpdated] = useState(0)
+    const [batchLastResult, setBatchLastResult] = useState<string>('')
+
     const fetchLogs = async () => {
         try {
             const res = await fetch(`/api/admin/logs?type=${activeTab}`, { cache: 'no-store' })
@@ -104,10 +110,10 @@ export default function CollectorPage() {
                 if (res.ok) {
                     const data = await res.json()
                     if (data.new_characters && Array.isArray(data.new_characters) && data.new_characters.length > 0) {
-                        // Rate Limit을 고려하여 랜덤하게 최대 3명만 상세 수집 진행
+                        // Rate Limit을 고려하여 랜덤하게 최대 10명 상세 수집 진행 (기존 3명 → 10명으로 증가)
                         const targets = data.new_characters
                             .sort(() => 0.5 - Math.random())
-                            .slice(0, 3)
+                            .slice(0, 10)
 
                         // 비동기로 상세 수집 호출 (결과 기다리지 않음, 로그는 DB에 쌓임)
                         targets.forEach((target: any) => {
@@ -127,9 +133,60 @@ export default function CollectorPage() {
         // 페이지 진입 시 즉시 1회 실행
         triggerCollection()
 
-        const interval = setInterval(triggerCollection, 4000) // 4초마다 수집 실행
+        const interval = setInterval(triggerCollection, 2000) // 2초마다 수집 실행 (기존 4초 → 2초로 단축)
         return () => clearInterval(interval)
     }, [isCollecting, activeTab])
+
+    // Batch Update (미조회 캐릭터 집중 처리)
+    useEffect(() => {
+        if (!isBatchRunning) return
+
+        const runBatch = async () => {
+            try {
+                const res = await fetch('/api/admin/batch-update')
+                const data = await res.json()
+
+                if (data.remaining !== undefined) {
+                    setBatchRemaining(data.remaining)
+                }
+
+                if (data.results) {
+                    const successCount = data.results.filter((r: any) => r.success).length
+                    setBatchUpdated(prev => prev + successCount)
+                    setBatchLastResult(`${successCount}/${data.results.length} 성공`)
+                }
+
+                // 남은 캐릭터가 0이면 자동 중지
+                if (data.remaining === 0) {
+                    setIsBatchRunning(false)
+                    setBatchLastResult('✅ 모든 캐릭터 처리 완료!')
+                }
+            } catch (e) {
+                console.error('Batch update failed:', e)
+                setBatchLastResult('❌ 오류 발생')
+            }
+        }
+
+        runBatch()
+        const interval = setInterval(runBatch, 3000) // 3초마다 배치 실행
+        return () => clearInterval(interval)
+    }, [isBatchRunning])
+
+    // 초기 미조회 캐릭터 수 확인
+    useEffect(() => {
+        const checkRemaining = async () => {
+            try {
+                const res = await fetch('/api/admin/batch-update')
+                const data = await res.json()
+                if (data.remaining !== undefined) {
+                    setBatchRemaining(data.remaining)
+                }
+            } catch (e) {
+                console.error('Failed to check remaining:', e)
+            }
+        }
+        checkRemaining()
+    }, [])
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -186,6 +243,51 @@ export default function CollectorPage() {
                     trend={isCollecting ? "Background Active" : "Paused"}
                 />
             </div>
+
+            {/* 미조회 캐릭터 배치 처리 */}
+            <DSCard title="🚀 미조회 캐릭터 집중 처리" hoverEffect={false}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+                    <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+                        <div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>미조회 캐릭터</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: batchRemaining && batchRemaining > 0 ? '#F59E0B' : '#34D399' }}>
+                                {batchRemaining !== null ? `${batchRemaining.toLocaleString()}명` : '확인 중...'}
+                            </div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>이번 세션 처리</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#34D399' }}>
+                                {batchUpdated.toLocaleString()}명
+                            </div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>마지막 결과</div>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                                {batchLastResult || '-'}
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.8rem', color: isBatchRunning ? '#34D399' : 'var(--text-disabled)' }}>
+                            {isBatchRunning ? '● 처리 중 (10명/3초)' : '○ 대기'}
+                        </span>
+                        <DSButton
+                            variant={isBatchRunning ? 'danger' : 'primary'}
+                            size="sm"
+                            onClick={() => {
+                                if (!isBatchRunning) setBatchUpdated(0)
+                                setIsBatchRunning(!isBatchRunning)
+                            }}
+                            disabled={batchRemaining === 0}
+                        >
+                            {isBatchRunning ? '⏹ 중지' : '▶ 시작'}
+                        </DSButton>
+                    </div>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-disabled)', marginTop: '0.5rem' }}>
+                    💡 DB에 저장되어 있지만 상세 정보(스탯, 장비, 전투력)가 없는 캐릭터들을 집중 조회합니다.
+                </div>
+            </DSCard>
 
             {/* Main Content Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', minHeight: '500px' }}>

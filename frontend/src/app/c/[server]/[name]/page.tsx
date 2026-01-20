@@ -662,7 +662,7 @@ export default function CharacterDetailPage() {
       addDebugLog(`검색 결과: ${searchResults.length}개 찾음`)
 
       // Filter by server name or ID locally.
-      const match = searchResults.find(r => {
+      let match = searchResults.find(r => {
         // If we have a verified server ID for the requested server, match strictly by ID
         if (targetSearchServerId && r.server_id) {
           return r.server_id === targetSearchServerId
@@ -670,6 +670,41 @@ export default function CharacterDetailPage() {
         // Fallback to name matching
         return r.server === serverName
       })
+
+      // 검색 실패 시 DB 직접 조회 폴백
+      if (!match && targetSearchServerId) {
+        addDebugLog(`검색 실패, DB 직접 조회 시도...`)
+        try {
+          const dbFallbackRes = await fetch(
+            `https://mnbngmdjiszyowfvnzhk.supabase.co/rest/v1/characters?name=eq.${encodeURIComponent(charName)}&server_id=eq.${targetSearchServerId}&select=character_id,name,server_id,class_name,race_name,profile_image&limit=1`,
+            {
+              headers: {
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uYm5nbWRqaXN6eW93ZnZuemhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTY0ODAsImV4cCI6MjA4MjU3MjQ4MH0.AIvvGxd_iQKpQDbmOBoe4yAmii1IpB92Pp7Scs8Lz7U',
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uYm5nbWRqaXN6eW93ZnZuemhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTY0ODAsImV4cCI6MjA4MjU3MjQ4MH0.AIvvGxd_iQKpQDbmOBoe4yAmii1IpB92Pp7Scs8Lz7U'
+              }
+            }
+          )
+          if (dbFallbackRes.ok) {
+            const dbData = await dbFallbackRes.json()
+            if (dbData && dbData.length > 0) {
+              const dbChar = dbData[0]
+              addDebugLog(`DB 직접 조회 성공: ${dbChar.character_id}`)
+              match = {
+                characterId: dbChar.character_id,
+                name: dbChar.name,
+                server_id: dbChar.server_id,
+                server: serverName,
+                job: dbChar.class_name,
+                race: dbChar.race_name,
+                level: 0,
+                imageUrl: dbChar.profile_image
+              }
+            }
+          }
+        } catch (dbErr) {
+          addDebugLog(`DB 직접 조회 실패: ${dbErr}`)
+        }
+      }
 
       if (!match) {
         addDebugLog(`ERROR: 매칭 실패 - 검색결과 서버: ${searchResults.map(r => r.server).join(', ')}`)

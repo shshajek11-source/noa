@@ -1,10 +1,10 @@
-/* Mobile Ledger Page Styles */
+/* Mobile Ledger Page Styles - Black Theme */
 
 .container {
     margin: 0;
     padding: 0;
-    background: var(--bg-main);
-    color: var(--text-main);
+    background: #000;
+    color: #E5E7EB;
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     padding-bottom: 100px;
     min-height: 100vh;
@@ -33,10 +33,10 @@
 /* --- Header --- */
 .header {
     padding: 16px;
-    background: rgba(22, 22, 24, 0.9);
+    background: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #222;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -53,7 +53,7 @@
 
 .navArrow {
     padding: 4px;
-    color: var(--text-main);
+    color: #E5E7EB;
 }
 
 .dateDisplay {
@@ -68,7 +68,7 @@
     display: flex;
     justify-content: space-between;
     margin-top: 12px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.5);
     padding: 8px 0;
     border-radius: 8px;
 }
@@ -85,7 +85,7 @@
 
 .incomeLabel {
     font-size: 0.75rem;
-    color: var(--text-secondary);
+    color: #9CA3AF;
 }
 
 .incomeValue {
@@ -94,7 +94,7 @@
 }
 
 .incomeValuePrimary {
-    color: var(--primary);
+    color: #f59e0b;
     font-weight: bold;
 }
 
@@ -126,7 +126,7 @@
 }
 
 .filterActive {
-    background: var(--primary);
+    background: #f59e0b;
     color: #000;
     border: none;
     padding: 4px 8px;
@@ -137,9 +137,9 @@
 }
 
 .filterInactive {
-    background: #333;
+    background: #222;
     color: #aaa;
-    border: 1px solid #444;
+    border: 1px solid #333;
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.8rem;
@@ -165,9 +165,9 @@
 .itemImgBox {
     width: 64px;
     height: 64px;
-    background: var(--bg-secondary);
+    background: #111;
     border-radius: 8px;
-    border: 1px solid var(--border);
+    border: 1px solid #222;
     position: relative;
 }
 
@@ -176,7 +176,7 @@
 }
 
 .itemImgBox.itemFavorite {
-    border-color: var(--primary);
+    border-color: #f59e0b;
 }
 
 .itemBadge {
@@ -193,7 +193,7 @@
 
 .itemName {
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    color: #9CA3AF;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
@@ -236,15 +236,15 @@
 }
 
 .storyAvatarWrapper.storyAvatarInactive {
-    background: #444;
+    background: #333;
 }
 
 .storyAvatar {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: #333;
-    border: 2px solid var(--bg-main);
+    background: #222;
+    border: 2px solid #000;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -264,7 +264,7 @@
 
 .storyJob {
     font-size: 0.65rem;
-    color: var(--text-secondary);
+    color: #9CA3AF;
 }
 
 /* --- Divider --- */
@@ -277,9 +277,9 @@
 /* --- Character Card --- */
 .charCard {
     margin: 0 16px 16px 16px;
-    background: var(--bg-secondary);
+    background: #111;
     border-radius: 12px;
-    border: 1px solid var(--border);
+    border: 1px solid #222;
     padding: 16px;
     cursor: pointer;
 }
@@ -307,13 +307,13 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: #555;
+    background: #333;
     border: 2px solid #444;
     flex-shrink: 0;
 }
 
 .profileImg.profileInactive {
-    border-color: #333;
+    border-color: #222;
 }
 
 .charInfo {
@@ -329,7 +329,7 @@
 
 .charLv {
     font-size: 0.85rem;
-    color: var(--text-disabled);
+    color: #6B7280;
 }
 
 .charIncomeArea {
@@ -337,14 +337,14 @@
 }
 
 .incomeArrow {
-    color: var(--text-disabled);
+    color: #6B7280;
     font-size: 0.9rem;
     margin-bottom: 4px;
     font-weight: bold;
 }
 
 .charIncome {
-    color: var(--primary);
+    color: #f59e0b;
     font-weight: 700;
     font-size: 1.1rem;
 }
@@ -352,7 +352,7 @@
 .progressLabel {
     margin-bottom: 8px;
     font-size: 0.8rem;
-    color: var(--text-disabled);
+    color: #6B7280;
     font-weight: bold;
 }
 
@@ -364,12 +364,12 @@
 }
 
 .statusChip {
-    background: #1f1f22;
-    border: 1px solid #333;
+    background: #0a0a0a;
+    border: 1px solid #222;
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: #9CA3AF;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -389,7 +389,7 @@
 }
 
 .chipOrange {
-    border-left: 3px solid var(--primary);
+    border-left: 3px solid #f59e0b;
 }
 
 .chipDot {
@@ -437,7 +437,7 @@
 
 .detailHeaderContainer {
     padding: 16px;
-    background: var(--bg-main);
+    background: #000;
 }
 
 .backBtn {
@@ -465,16 +465,16 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: #444;
-    border: 2px solid #555;
+    background: #333;
+    border: 2px solid #444;
 }
 
 .settingsIcon {
     position: absolute;
     top: -2px;
     right: -2px;
-    background: #1a1a1c;
-    border: 1px solid #333;
+    background: #111;
+    border: 1px solid #222;
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -499,7 +499,7 @@
 
 .detailCharInfo {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: #9CA3AF;
 }
 
 .incomeStatsArea {
@@ -516,20 +516,20 @@
 
 .incomeStatDetail .label {
     font-size: 0.7rem;
-    color: var(--text-secondary);
+    color: #9CA3AF;
     font-weight: bold;
 }
 
 .incomeStatDetail .value {
     font-size: 1.1rem;
     font-weight: 800;
-    color: var(--primary);
+    color: #f59e0b;
 }
 
 /* --- Sub Tabs --- */
 .charSubTabs {
     display: flex;
-    background: #141416;
+    background: #0a0a0a;
     margin: 0 16px 16px 16px;
     padding: 4px;
     border-radius: 8px;
@@ -541,7 +541,7 @@
     padding: 8px;
     text-align: center;
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: #9CA3AF;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
@@ -549,7 +549,7 @@
 
 .charSubTab.active {
     background: rgba(245, 158, 11, 0.1);
-    color: var(--primary);
+    color: #f59e0b;
     font-weight: 700;
 }
 
@@ -567,14 +567,14 @@
 }
 
 .contentRemaining {
-    color: var(--text-secondary);
+    color: #9CA3AF;
     font-size: 0.85rem;
 }
 
 /* --- Weekly Mission Card --- */
 .wmCard {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    background: #111;
+    border: 1px solid #222;
     border-radius: 8px;
     padding: 8px 10px;
     margin: 0 16px 8px 16px;
@@ -617,8 +617,8 @@
 
 .btnCompleteAll {
     background: transparent;
-    border: 1px solid var(--primary);
-    color: var(--primary);
+    border: 1px solid #f59e0b;
+    color: #f59e0b;
     font-size: 0.7rem;
     padding: 1px 6px;
     border-radius: 4px;
@@ -636,8 +636,8 @@
 }
 
 .btnStep {
-    background: #333;
-    border: 1px solid #555;
+    background: #222;
+    border: 1px solid #444;
     color: #fff;
     width: 20px;
     height: 20px;
@@ -658,29 +658,29 @@
 .wmBlock {
     flex: 1;
     height: 6px;
-    border: 1px solid #444;
+    border: 1px solid #333;
     border-radius: 2px;
     background: transparent;
 }
 
 .wmBlock.filled {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: #f59e0b;
+    border-color: #f59e0b;
     box-shadow: 0 0 2px rgba(245, 158, 11, 0.5);
 }
 
 /* --- Complex Card --- */
 .complexCard {
     margin: 0 16px 20px 16px;
-    background: var(--bg-secondary);
+    background: #111;
     border-radius: 12px;
-    border: 1px solid var(--border);
+    border: 1px solid #222;
     overflow: hidden;
 }
 
 .cardHead {
     padding: 12px 16px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.3);
     display: flex;
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -699,7 +699,7 @@
 }
 
 .cardCount {
-    color: var(--primary);
+    color: #f59e0b;
 }
 
 .bonusCount {
@@ -731,16 +731,16 @@
 }
 
 .settingItem {
-    background: #1f1f22;
+    background: #0a0a0a;
     border-radius: 6px;
     padding: 6px 8px;
-    border: 1px solid #333;
+    border: 1px solid #222;
     overflow: hidden;
 }
 
 .settingLabel {
     font-size: 0.7rem;
-    color: var(--text-secondary);
+    color: #9CA3AF;
     margin-bottom: 2px;
     white-space: nowrap;
 }
@@ -767,10 +767,10 @@
     justify-content: center;
     gap: 4px;
     border-radius: 6px;
-    background: #1f1f22;
-    color: var(--text-disabled);
+    background: #0a0a0a;
+    color: #6B7280;
     font-weight: bold;
-    border: 1px solid #444;
+    border: 1px solid #333;
     cursor: pointer;
     padding: 8px;
     font-size: 0.8rem;
@@ -786,10 +786,10 @@
 .btnRecord {
     flex: 1;
     background: rgba(245, 158, 11, 0.15);
-    color: var(--primary);
+    color: #f59e0b;
     font-weight: 800;
     border-radius: 6px;
-    border: 1px solid var(--primary);
+    border: 1px solid #f59e0b;
     padding: 8px;
     font-size: 0.85rem;
     cursor: pointer;
@@ -812,7 +812,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px 12px;
     border-radius: 6px;
@@ -865,7 +865,7 @@
 }
 
 .logTime {
-    color: var(--text-secondary);
+    color: #9CA3AF;
     font-size: 0.8rem;
 }
 
@@ -886,9 +886,9 @@
     justify-content: space-between;
     margin: 0 16px 12px 16px;
     padding: 12px 16px;
-    background: var(--bg-secondary);
+    background: #111;
     border-radius: 8px;
-    border: 1px solid var(--border);
+    border: 1px solid #222;
 }
 
 .simpleCardLeft {
@@ -900,7 +900,7 @@
 .simpleCardBar {
     width: 4px;
     height: 16px;
-    background: var(--primary);
+    background: #f59e0b;
     border-radius: 2px;
 }
 
@@ -920,19 +920,19 @@
 }
 
 .simpleCardDivider {
-    color: #444;
+    color: #333;
 }
 
 .simpleCardCount {
-    color: var(--text-main);
+    color: #E5E7EB;
     font-weight: bold;
 }
 
 /* --- Item Sub View --- */
 .itemSummaryBox {
-    background: var(--bg-secondary);
+    background: #111;
     border-radius: 12px;
-    border: 1px solid var(--border);
+    border: 1px solid #222;
     padding: 16px;
     display: flex;
     gap: 16px;
@@ -951,11 +951,11 @@
 
 .itemSummaryLabel {
     font-size: 0.75rem;
-    color: var(--text-secondary);
+    color: #9CA3AF;
 }
 
 .itemSummaryValue {
-    color: var(--primary);
+    color: #f59e0b;
     font-weight: bold;
 }
 
@@ -971,7 +971,7 @@
 .favoritesTitle {
     font-weight: 700;
     font-size: 1rem;
-    color: var(--primary);
+    color: #f59e0b;
     margin-bottom: 8px;
 }
 
@@ -979,7 +979,7 @@
     position: absolute;
     top: 4px;
     left: 4px;
-    color: #444;
+    color: #333;
     font-size: 0.8rem;
     cursor: pointer;
     z-index: 5;
@@ -987,7 +987,7 @@
 }
 
 .favoriteStar.active {
-    color: var(--primary);
+    color: #f59e0b;
     text-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
 }
 
@@ -1011,8 +1011,8 @@
 
 .searchInput {
     width: 100%;
-    background: #1f1f22;
-    border: 1px solid #333;
+    background: #0a0a0a;
+    border: 1px solid #222;
     border-radius: 8px;
     padding: 10px 12px 10px 36px;
     color: #fff;
@@ -1047,5 +1047,111 @@
 .statsPlaceholder {
     padding: 40px 16px;
     text-align: center;
-    color: var(--text-disabled);
+    color: #6B7280;
+}
+
+/* --- Od Energy Box --- */
+.odEnergyBox {
+    margin: 0 16px 16px 16px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.1));
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.odValue {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #A78BFA;
+}
+
+.odLabel {
+    font-size: 0.85rem;
+    color: #9CA3AF;
+}
+
+.odTimer {
+    color: #A78BFA;
+    font-weight: bold;
+}
+
+/* --- Dual Card Grid (Shugo & Abyss) --- */
+.dualCardGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 0 16px 16px 16px;
+}
+
+.miniCard {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.miniCardTimer {
+    font-size: 0.75rem;
+    color: #666;
+    text-align: right;
+}
+
+.miniCardLabel {
+    font-size: 0.85rem;
+    color: #9CA3AF;
+    font-weight: bold;
+}
+
+.miniCardValue {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #f59e0b;
+}
+
+.miniCardMax {
+    font-size: 0.9rem;
+    color: #9CA3AF;
+    font-weight: normal;
+}
+
+.miniCardBonus {
+    font-size: 0.8rem;
+    color: #3b82f6;
+    margin-left: 4px;
+}
+
+.miniCardControls {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.btnStepMini {
+    flex: 1;
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    height: 28px;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Settings Grid 3 Columns --- */
+.settingsGrid3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* --- Card Count Variations --- */
+.cardCountSub {
+    color: #ef4444;
 }

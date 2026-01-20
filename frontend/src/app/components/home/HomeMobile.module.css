@@ -1,0 +1,474 @@
+/* HomeMobile Styles - Black Theme */
+
+.container {
+  min-height: 100vh;
+  background: #000;
+  color: #E5E7EB;
+}
+
+/* Header - 일반 배치 */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #000;
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 1.4rem;
+  letter-spacing: -0.5px;
+  font-family: 'Rajdhani', sans-serif;
+  flex-shrink: 0;
+}
+
+.logoSu {
+  color: #f59e0b;
+}
+
+.logoGo {
+  color: #fff;
+}
+
+.logoGg {
+  font-size: 0.9rem;
+  color: #6B7280;
+  margin-left: 1px;
+}
+
+.searchWrapper {
+  flex: 1;
+  position: relative;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #E5E7EB;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: #6B7280;
+}
+
+.autocompleteWrapper {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+/* 메뉴 탭 */
+.menuTabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px 16px;
+  background: #000;
+}
+
+.menuTab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 10px;
+  color: #9CA3AF;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.menuTab:hover {
+  background: #1a1a1a;
+}
+
+.menuTabActive {
+  background: rgba(250, 204, 21, 0.1);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+/* 대표 캐릭터 섹션 */
+.mainCharSection {
+  padding: 0 16px 16px;
+}
+
+.mainCharCard {
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.08), rgba(250, 204, 21, 0.02));
+  border: 1px solid rgba(250, 204, 21, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.mainCharCard:active {
+  transform: scale(0.98);
+}
+
+.mainCharInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mainCharServer {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+}
+
+.mainCharName {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+
+.mainCharBadges {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.badge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  background: #111;
+  border-radius: 6px;
+  color: #9CA3AF;
+}
+
+.badgeHighlight {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  background: rgba(250, 204, 21, 0.15);
+  border-radius: 6px;
+  color: #f59e0b;
+}
+
+.mainCharStats {
+  display: flex;
+  gap: 16px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.statLabel {
+  font-size: 0.65rem;
+  color: #6B7280;
+  text-transform: uppercase;
+}
+
+.statValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f59e0b;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.mainCharEmpty {
+  background: #111;
+  border: 1px dashed #333;
+  border-radius: 16px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.mainCharEmpty p {
+  margin: 0 0 4px;
+  color: #E5E7EB;
+  font-weight: 600;
+}
+
+.mainCharEmpty span {
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
+/* 섹션 공통 */
+.section {
+  padding: 0 16px 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #E5E7EB;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionTitle::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 14px;
+  background: #f59e0b;
+  border-radius: 2px;
+}
+
+.moreLink {
+  font-size: 0.8rem;
+  color: #6B7280;
+  text-decoration: none;
+}
+
+.clearBtn {
+  font-size: 0.75rem;
+  color: #6B7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* 최근 검색 */
+.recentList {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.recentItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #111;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.recentItem:active {
+  background: #1a1a1a;
+}
+
+.recentAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #f59e0b;
+}
+
+.recentInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recentName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #E5E7EB;
+}
+
+.recentMeta {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+/* 랭킹 리스트 */
+.rankingList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rankingItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: #111;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+}
+
+.rankBadge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #9CA3AF;
+}
+
+.rankFirst {
+  background: #f59e0b;
+  color: #000;
+}
+
+.rankingInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rankingName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #E5E7EB;
+}
+
+.rankingMeta {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+.rankingScore {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.scoreLabel {
+  font-size: 0.6rem;
+  color: #6B7280;
+  text-transform: uppercase;
+}
+
+.scoreNum {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f59e0b;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* 서버 현황 */
+.serverGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.serverCard {
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #111;
+}
+
+.serverElyos {
+  border: 1px solid rgba(45, 212, 191, 0.3);
+}
+
+.serverAsmo {
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.serverLabel {
+  font-size: 0.7rem;
+  color: #2DD4BF;
+}
+
+.serverAsmo .serverLabel {
+  color: #A78BFA;
+}
+
+.serverName {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #E5E7EB;
+}
+
+.serverTax {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+/* 공지사항 */
+.noticeList {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.noticeItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #111;
+}
+
+.noticeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6B7280;
+  flex-shrink: 0;
+}
+
+.noticeDotNew {
+  background: #f59e0b;
+}
+
+.noticeText {
+  font-size: 0.85rem;
+  color: #E5E7EB;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 하단 여백 */
+.bottomSpacer {
+  height: 40px;
+}

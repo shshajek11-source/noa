@@ -156,6 +156,8 @@ export interface PartyUserCharacter {
   character_item_level?: number
   character_breakthrough?: number
   character_combat_power?: number
+  character_pve_score?: number
+  character_pvp_score?: number
   profile_image?: string
   display_order: number
   created_at: string

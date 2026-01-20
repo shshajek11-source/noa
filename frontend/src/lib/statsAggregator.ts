@@ -520,9 +520,20 @@ function extractEquipmentStats(equipment: any[]): Map<string, StatSource[]> {
         const rawValue = manastone.value || manastone.point || 0
 
         // "+80" 형식의 문자열도 파싱
-        const statValue = typeof rawValue === 'string'
+        let statValue = typeof rawValue === 'string'
           ? parseFloat(rawValue.replace(/[+%]/g, '')) || 0
           : rawValue
+
+        // 마석의 퍼센트 스탯은 스케일링 필요 (API가 정수로 저장: 100 = 1%)
+        // 예: "피해 증폭 +100" → 실제로는 +1%
+        // ALWAYS_PERCENTAGE_STATS에 해당하는 스탯만 스케일링 적용
+        if (ALWAYS_PERCENTAGE_STATS.has(statName) && statValue > 0) {
+          // 마석 값이 10 이상이면 스케일링 적용 (1% 미만 값은 그대로 사용)
+          // 이렇게 하면 이미 퍼센트로 저장된 값(예: 0.5)은 영향 없음
+          if (statValue >= 10) {
+            statValue = statValue / 100
+          }
+        }
 
         if (statName && statValue > 0) {
           addToItemStats(statName, statValue, 0)
@@ -603,9 +614,14 @@ function extractEquipmentStats(equipment: any[]): Map<string, StatSource[]> {
           const rawValue = stone.value || 0
 
           // "+80" 형식의 문자열도 파싱
-          const statValue = typeof rawValue === 'string'
+          let statValue = typeof rawValue === 'string'
             ? parseFloat(rawValue.replace(/[+%]/g, '')) || 0
             : rawValue
+
+          // 마석의 퍼센트 스탯 스케일링 (100 = 1%)
+          if (ALWAYS_PERCENTAGE_STATS.has(statName) && statValue >= 10) {
+            statValue = statValue / 100
+          }
 
           if (statName && statValue > 0) {
             addToItemStats(statName, statValue, 0)
@@ -623,7 +639,13 @@ function extractEquipmentStats(equipment: any[]): Map<string, StatSource[]> {
 
             // "+80" 형식에서 숫자 추출
             const isPercent = String(statValue).includes('%')
-            const numValue = parseFloat(String(statValue).replace(/[+%]/g, '')) || 0
+            let numValue = parseFloat(String(statValue).replace(/[+%]/g, '')) || 0
+
+            // 마석의 퍼센트 스탯 스케일링 (100 = 1%)
+            // isPercent가 true면 이미 퍼센트 값이므로 스케일링 불필요
+            if (!isPercent && ALWAYS_PERCENTAGE_STATS.has(statName) && numValue >= 10) {
+              numValue = numValue / 100
+            }
 
             if (numValue > 0) {
               addToItemStats(statName, isPercent ? 0 : numValue, isPercent ? numValue : 0)

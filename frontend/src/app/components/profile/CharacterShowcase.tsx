@@ -135,10 +135,10 @@ export default function CharacterShowcase({
                             </span>
                         </div>
 
-                        {/* PVE/PVP 전투력 + 돌파총합 (3열 그리드) */}
+                        {/* PVE/PVP 전투력 (2열) */}
                         <div style={{
                             display: 'grid',
-                            gridTemplateColumns: '1fr 1fr 1fr',
+                            gridTemplateColumns: '1fr 1fr',
                             gap: '6px',
                             width: '100%'
                         }}>
@@ -183,43 +183,47 @@ export default function CharacterShowcase({
                                     {pvpCombatPower?.toLocaleString() || 0}
                                 </div>
                             </div>
+                        </div>
 
-                            {/* 돌파 총합 */}
+                        {/* 돌파 총합 (하단 중앙) */}
+                        <div style={{
+                            marginTop: '6px',
+                            background: 'rgba(59, 130, 246, 0.1)',
+                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                            borderRadius: '8px',
+                            padding: '6px 12px',
+                            textAlign: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                        }}>
+                            <div style={{ fontSize: '0.6rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                돌파
+                            </div>
                             <div style={{
-                                background: 'rgba(59, 130, 246, 0.1)',
-                                border: '1px solid rgba(59, 130, 246, 0.3)',
-                                borderRadius: '8px',
-                                padding: '8px 6px',
-                                textAlign: 'center'
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
                             }}>
-                                <div style={{ fontSize: '0.6rem', color: '#9CA3AF', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    돌파
-                                </div>
+                                {/* 파란 마름모 */}
                                 <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '4px'
+                                    width: '10px',
+                                    height: '10px',
+                                    transform: 'rotate(45deg)',
+                                    background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 40%, #2563EB 60%, #1D4ED8 100%)',
+                                    border: '1px solid #93C5FD',
+                                    borderRadius: '2px',
+                                    boxShadow: '0 0 6px rgba(59, 130, 246, 0.8)'
+                                }} />
+                                <span style={{
+                                    fontSize: '1rem',
+                                    fontWeight: 'bold',
+                                    color: '#3B82F6',
+                                    textShadow: '0 0 10px rgba(59, 130, 246, 0.5)'
                                 }}>
-                                    {/* 파란 마름모 */}
-                                    <div style={{
-                                        width: '10px',
-                                        height: '10px',
-                                        transform: 'rotate(45deg)',
-                                        background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 40%, #2563EB 60%, #1D4ED8 100%)',
-                                        border: '1px solid #93C5FD',
-                                        borderRadius: '2px',
-                                        boxShadow: '0 0 6px rgba(59, 130, 246, 0.8)'
-                                    }} />
-                                    <span style={{
-                                        fontSize: '1rem',
-                                        fontWeight: 'bold',
-                                        color: '#3B82F6',
-                                        textShadow: '0 0 10px rgba(59, 130, 246, 0.5)'
-                                    }}>
-                                        {totalBreakthrough || 0}
-                                    </span>
-                                </div>
+                                    {totalBreakthrough || 0}
+                                </span>
                             </div>
                         </div>
                     </div>

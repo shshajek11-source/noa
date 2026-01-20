@@ -18,7 +18,17 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "mcp__supabase__list_tables",
+      "Bash(dir /s /b /ad C:projectshiton2frontendsrcapp)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(npx next build)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint)",
+      "Bash(ls:*)",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__apply_migration"
     ]
   }
 }

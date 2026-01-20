@@ -176,10 +176,7 @@ export const supabaseApi = {
             allResults = (data.list as ExternalCharacterResult[])
                 .filter((item) => {
                     // Validation: Skip characters with invalid data
-                    if (!item.level || item.level <= 0) {
-                        console.warn(`Skipping character: invalid level (${item.level})`);
-                        return false;
-                    }
+                    // level이 0이어도 DB에 저장된 유효한 캐릭터일 수 있으므로 characterId만 확인
                     if (!item.characterId) {
                         console.warn(`Skipping character: missing characterId`);
                         return false;

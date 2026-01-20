@@ -422,7 +422,8 @@ export async function GET(request: NextRequest) {
         }
 
         // 스탯 집계 (OCR 머지된 스탯 사용)
-        const aggregatedStats = aggregateStats(equipmentForCalc, titles, daevanion, statForCalculation, equippedTitleId)
+        // OCR 스탯이 있으면 6번째 파라미터로 전달하여 최종값 오버라이드 활성화
+        const aggregatedStats = aggregateStats(equipmentForCalc, titles, daevanion, statForCalculation, equippedTitleId, ocrData?.stats)
 
         // PVE/PVP 전투력 계산
         // 레벨이 0이거나 장비가 없으면 전투력 계산하지 않음 (잘못된 값 방지)

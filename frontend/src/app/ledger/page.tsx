@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Wallet, HelpCircle, X } from 'lucide-react'
 import {
@@ -33,6 +34,21 @@ import { getGameDate, getWeekKey } from './utils/dateUtils'
 import styles from './ledger.module.css'
 
 export default function LedgerPage() {
+  const router = useRouter()
+
+  // 모바일 감지 및 리다이렉트
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      const isSmallScreen = window.innerWidth <= 768
+      return isMobile || isSmallScreen
+    }
+
+    if (checkMobile()) {
+      router.replace('/ledger/mobile')
+    }
+  }, [router])
+
   // 인증 (Google 또는 device_id)
   const { nickname, setNickname, mainCharacter, setMainCharacter, isAuthenticated: isGoogleAuth, user, signInWithGoogle, isLoading: isGoogleLoading } = useAuth()
   const { getAuthHeader, isLoading: isAuthLoading, isAuthenticated, deviceId } = useDeviceId()

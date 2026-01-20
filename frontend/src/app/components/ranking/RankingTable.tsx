@@ -220,7 +220,7 @@ export default function RankingTable({ type }: RankingTableProps) {
     const getScoreValue = (char: RankingCharacter) => {
         switch (type) {
             case 'hiton': return char.hiton_score?.toLocaleString() || 0
-            case 'cp': return char.combat_power?.toLocaleString() || 0
+            case 'cp': return (char.pve_score || char.combat_power)?.toLocaleString() || 0
             case 'content': return char.ranking_ap?.toLocaleString() || 0
             default: return 0
         }

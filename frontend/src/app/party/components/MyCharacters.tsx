@@ -318,16 +318,23 @@ export default function MyCharacters() {
                       )}
                     </div>
                     <div className={styles.searchResultInfo}>
-                      {/* 1행: 캐릭터명 + NOA점수 */}
+                      {/* 1행: 캐릭터명 + PVE/PVP 점수 */}
                       <div className={styles.searchResultMain}>
                         <span className={styles.charName}>
                           {char.name.replace(/<\/?[^>]+(>|$)/g, '')}
                         </span>
-                        {char.noa_score && char.noa_score > 0 && (
-                          <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.8rem', marginLeft: 'auto' }}>
-                            {char.noa_score.toLocaleString()}
-                          </span>
-                        )}
+                        <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
+                          {char.pve_score && char.pve_score > 0 && (
+                            <span style={{ color: '#4ade80', fontWeight: 600 }}>
+                              PVE {char.pve_score.toLocaleString()}
+                            </span>
+                          )}
+                          {char.pvp_score && char.pvp_score > 0 && (
+                            <span style={{ color: '#f87171', fontWeight: 600 }}>
+                              PVP {char.pvp_score.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {/* 2행: 종족 | 서버 | 아이템레벨 */}
                       <div className={styles.searchResultMeta}>
@@ -413,8 +420,12 @@ export default function MyCharacters() {
                         </span>
                       </span>
                       <span className={styles.separator}>|</span>
-                      <span className={styles.stat}>
-                        전투력{formatCombatPower(char.character_combat_power)}
+                      <span className={styles.stat} style={{ color: '#4ade80' }}>
+                        PVE {formatCombatPower(char.character_pve_score)}
+                      </span>
+                      <span className={styles.separator}>|</span>
+                      <span className={styles.stat} style={{ color: '#f87171' }}>
+                        PVP {formatCombatPower(char.character_pvp_score)}
                       </span>
                     </div>
                     <div className={styles.characterCardActions}>

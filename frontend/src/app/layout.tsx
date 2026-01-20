@@ -2,6 +2,7 @@
 
 import './globals.css'
 import Script from 'next/script'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import HeroSection from './components/home/HeroSection'
 import Header from './components/shared/Header'
@@ -12,20 +13,38 @@ import { AuthProvider } from '../context/AuthContext'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
+    const [isMobile, setIsMobile] = useState(false)
+    const [isClient, setIsClient] = useState(false)
+
     const isAdminPage = pathname?.startsWith('/admin')
     const isOcrTestPage = pathname?.startsWith('/ocr-test')
+    const isMobileLedger = pathname?.startsWith('/ledger/mobile')
 
-    // Admin 페이지와 OCR 테스트 페이지는 완전히 독립된 레이아웃 사용
-    if (isAdminPage || isOcrTestPage) {
+    // 클라이언트 사이드 모바일 감지
+    useEffect(() => {
+        setIsClient(true)
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 1024)
+        }
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
+
+    // Admin 페이지, OCR 테스트 페이지, 모바일 가계부, 또는 모바일 기기는 독립 레이아웃
+    if (isAdminPage || isOcrTestPage || isMobileLedger || (isClient && isMobile)) {
         return (
             <html lang="ko">
                 <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
                     <link rel="preconnect" href="https://fonts.googleapis.com" />
                     <link rel="preconnect" href="https://fonts.gstatic.com" />
                     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
                 </head>
                 <body style={{ margin: 0, padding: 0 }}>
-                    {children}
+                    <AuthProvider>
+                        {children}
+                    </AuthProvider>
                 </body>
             </html>
         )
