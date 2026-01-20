@@ -24,15 +24,35 @@ export default function AuthCallbackPage() {
           throw new Error('세션을 찾을 수 없습니다')
         }
 
-        setStatus('로그인 성공! 기존 데이터 확인 중...')
+        // 팝업 모드: 빠르게 처리하고 즉시 닫기
+        if (isPopup) {
+          // device_id 마이그레이션 (백그라운드)
+          const deviceId = localStorage.getItem(DEVICE_ID_KEY)
+          if (deviceId) {
+            fetch('/api/auth/migrate-device', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+              },
+              body: JSON.stringify({ device_id: deviceId })
+            }).then(() => {
+              localStorage.removeItem(DEVICE_ID_KEY)
+            }).catch(console.error)
+          }
 
-        // Check for existing device_id to migrate
+          // 즉시 창 닫기
+          window.close()
+          return
+        }
+
+        // 일반 모드: 기존 로직
+        setStatus('로그인 성공!')
+
         const deviceId = localStorage.getItem(DEVICE_ID_KEY)
-
         if (deviceId) {
           setStatus('기존 데이터를 계정에 연결 중...')
 
-          // Call migration API
           const res = await fetch('/api/auth/migrate-device', {
             method: 'POST',
             headers: {
@@ -45,50 +65,44 @@ export default function AuthCallbackPage() {
           if (res.ok) {
             const data = await res.json()
             if (data.migrated) {
-              // Clear device_id after successful migration
               localStorage.removeItem(DEVICE_ID_KEY)
-              setStatus('데이터 연결 완료!')
-            } else {
-              setStatus('로그인 완료!')
             }
-          } else {
-            console.warn('Migration warning:', await res.text())
-            setStatus('로그인 완료!')
           }
-        } else {
-          setStatus('로그인 완료!')
         }
 
-        // 팝업 모드인 경우 창 닫기
-        if (isPopup) {
-          setStatus('로그인 완료! 창을 닫습니다...')
-          setTimeout(() => {
-            window.close()
-          }, 500)
-          return
-        }
-
-        // 일반 모드인 경우 리다이렉트
-        setTimeout(() => router.push('/ledger'), 1000)
+        setTimeout(() => router.push('/ledger'), 500)
 
       } catch (err: any) {
         console.error('Auth callback error:', err)
         setError(err.message)
+
+        // 팝업 에러 시에도 3초 후 자동 닫기
+        if (isPopup) {
+          setTimeout(() => window.close(), 3000)
+        }
       }
     }
 
     handleCallback()
   }, [router, isPopup])
 
+  // 전체 화면을 덮는 오버레이 스타일 (사이트 레이아웃 가림)
+  const overlayStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 99999,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0B0D12'
+  }
+
   if (error) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#0B0D12'
-      }}>
+      <div style={overlayStyle}>
         <div style={{
           padding: '32px',
           background: '#1b1b1e',
@@ -96,20 +110,14 @@ export default function AuthCallbackPage() {
           textAlign: 'center',
           maxWidth: '400px'
         }}>
-          <div style={{
-            fontSize: '48px',
-            marginBottom: '16px'
-          }}>
-            ❌
-          </div>
-          <h2 style={{
-            color: '#ef4444',
-            fontSize: '20px',
-            marginBottom: '8px'
-          }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
+          <h2 style={{ color: '#ef4444', fontSize: '20px', marginBottom: '8px' }}>
             로그인 실패
           </h2>
           <p style={{ color: '#9ca3af', marginBottom: '24px' }}>{error}</p>
+          {isPopup && (
+            <p style={{ color: '#6b7280', fontSize: '14px' }}>3초 후 자동으로 닫힙니다...</p>
+          )}
           <button
             onClick={() => isPopup ? window.close() : router.push('/')}
             style={{
@@ -130,13 +138,7 @@ export default function AuthCallbackPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#0B0D12'
-    }}>
+    <div style={overlayStyle}>
       <div style={{
         padding: '32px',
         background: '#1b1b1e',
