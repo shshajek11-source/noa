@@ -156,11 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('[Auth] Google 로그인 시도 시작 (팝업 방식)')
 
     try {
-      // 팝업으로 OAuth URL 열기 (API 라우트 사용 - 레이아웃 없음)
+      // 팝업으로 OAuth URL 열기
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/api/auth/popup-callback`,
+          redirectTo: `${window.location.origin}/auth/callback?popup=true`,
           skipBrowserRedirect: true // 브라우저 리다이렉트 방지, URL만 반환
         }
       })

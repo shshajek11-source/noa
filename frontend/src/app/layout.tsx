@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import HeroSection from './components/home/HeroSection'
 import Header from './components/shared/Header'
+import MobileHeader from './components/shared/MobileHeader'
 // import DebugPanel from '@/components/DebugPanel'  // 비활성화
 import Footer from '@/components/Footer'
 import { SyncProvider } from '../context/SyncContext'
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
     const isAdminPage = pathname?.startsWith('/admin')
     const isOcrTestPage = pathname?.startsWith('/ocr-test')
+    const isAuthCallback = pathname?.startsWith('/auth/callback')
     const isMobileLedger = pathname?.startsWith('/ledger/mobile')
 
     // 클라이언트 사이드 모바일 감지
@@ -31,8 +33,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         return () => window.removeEventListener('resize', checkMobile)
     }, [])
 
-    // Admin 페이지, OCR 테스트 페이지, 모바일 가계부, 또는 모바일 기기는 독립 레이아웃
-    if (isAdminPage || isOcrTestPage || isMobileLedger || (isClient && isMobile)) {
+    // Admin 페이지, OCR 테스트 페이지, Auth 콜백 (독립 레이아웃)
+    if (isAdminPage || isOcrTestPage || isAuthCallback) {
         return (
             <html lang="ko">
                 <head>
@@ -86,11 +88,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <body>
                 <AuthProvider>
                     <SyncProvider>
-                        {/* New Header */}
-                        <Header />
+                        {/* Header - Mobile vs Desktop */}
+                        {isClient && isMobile ? <MobileHeader /> : <Header />}
 
-                        {/* Hero Section - Adaptive */}
-                        <HeroSection />
+                        {/* Hero Section - Desktop Only */}
+                        {!isMobile && <HeroSection />}
 
                         {/* Main Content - Adaptive Container */}
                         <div className="container">
