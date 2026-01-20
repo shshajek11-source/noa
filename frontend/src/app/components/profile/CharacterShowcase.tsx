@@ -159,7 +159,7 @@ export default function CharacterShowcase({
                                     color: '#4ade80',
                                     textShadow: '0 0 10px rgba(74, 222, 128, 0.5)'
                                 }}>
-                                    {combatPower?.toLocaleString() || 0}
+                                    {combatPower >= 100 ? combatPower.toLocaleString() : '-'}
                                 </div>
                             </div>
 
@@ -180,7 +180,7 @@ export default function CharacterShowcase({
                                     color: '#f87171',
                                     textShadow: '0 0 10px rgba(248, 113, 113, 0.5)'
                                 }}>
-                                    {pvpCombatPower?.toLocaleString() || 0}
+                                    {pvpCombatPower >= 100 ? pvpCombatPower.toLocaleString() : '-'}
                                 </div>
                             </div>
                         </div>

@@ -11,6 +11,10 @@ import MobileHeader from './components/shared/MobileHeader'
 import Footer from '@/components/Footer'
 import { SyncProvider } from '../context/SyncContext'
 import { AuthProvider } from '../context/AuthContext'
+import GatePage from '../components/GatePage'
+
+// 게이트 페이지 활성화 여부 (true: 비밀코드 입력 필요, false: 바로 접근 가능)
+const GATE_ENABLED = true
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
@@ -87,21 +91,41 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </head>
             <body>
                 <AuthProvider>
-                    <SyncProvider>
-                        {/* Header - Mobile vs Desktop */}
-                        {isClient && isMobile ? <MobileHeader /> : <Header />}
+                    {GATE_ENABLED ? (
+                        <GatePage>
+                            <SyncProvider>
+                                {/* Header - Mobile vs Desktop */}
+                                {isClient && isMobile ? <MobileHeader /> : <Header />}
 
-                        {/* Hero Section - Desktop Only */}
-                        {!isMobile && <HeroSection />}
+                                {/* Hero Section - Desktop Only */}
+                                {!isMobile && <HeroSection />}
 
-                        {/* Main Content - Adaptive Container */}
-                        <div className="container">
-                            {children}
-                        </div>
+                                {/* Main Content - Adaptive Container */}
+                                <div className="container">
+                                    {children}
+                                </div>
 
-                        {/* Footer */}
-                        <Footer />
-                    </SyncProvider>
+                                {/* Footer */}
+                                <Footer />
+                            </SyncProvider>
+                        </GatePage>
+                    ) : (
+                        <SyncProvider>
+                            {/* Header - Mobile vs Desktop */}
+                            {isClient && isMobile ? <MobileHeader /> : <Header />}
+
+                            {/* Hero Section - Desktop Only */}
+                            {!isMobile && <HeroSection />}
+
+                            {/* Main Content - Adaptive Container */}
+                            <div className="container">
+                                {children}
+                            </div>
+
+                            {/* Footer */}
+                            <Footer />
+                        </SyncProvider>
+                    )}
                 </AuthProvider>
             </body>
         </html>

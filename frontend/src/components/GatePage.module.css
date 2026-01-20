@@ -1,0 +1,353 @@
+.loadingScreen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #222;
+  border-top-color: #f59e0b;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.container {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+
+/* 스캔라인 효과 */
+.scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* 노이즈 효과 */
+.noise {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* 떠다니는 코드 */
+.floatingCode {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.floatingCode span {
+  position: absolute;
+  top: -20px;
+  color: rgba(245, 158, 11, 0.1);
+  font-size: 12px;
+  animation: fall linear infinite;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+/* 메인 컨텐츠 */
+.content {
+  position: relative;
+  z-index: 20;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* 글리치 타이틀 */
+.glitchTitle {
+  font-size: clamp(2rem, 8vw, 4rem);
+  font-weight: bold;
+  color: #f59e0b;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  position: relative;
+  animation: glitch 3s infinite;
+}
+
+.glitchTitle::before,
+.glitchTitle::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitchTitle::before {
+  color: #ff0000;
+  animation: glitch-1 0.3s infinite;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  transform: translate(-2px, -2px);
+}
+
+.glitchTitle::after {
+  color: #00ffff;
+  animation: glitch-2 0.3s infinite;
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+  transform: translate(2px, 2px);
+}
+
+@keyframes glitch {
+  0%, 90%, 100% { opacity: 1; }
+  91%, 93%, 95%, 97% { opacity: 0.8; }
+  92%, 94%, 96%, 98% { opacity: 1; }
+}
+
+@keyframes glitch-1 {
+  0%, 100% { transform: translate(-2px, -2px); }
+  25% { transform: translate(2px, 0); }
+  50% { transform: translate(-1px, 2px); }
+  75% { transform: translate(1px, -1px); }
+}
+
+@keyframes glitch-2 {
+  0%, 100% { transform: translate(2px, 2px); }
+  25% { transform: translate(-2px, 0); }
+  50% { transform: translate(1px, -2px); }
+  75% { transform: translate(-1px, 1px); }
+}
+
+/* 경고 아이콘 */
+.warningIcon {
+  margin: 2rem 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.warningIcon svg {
+  width: 80px;
+  height: 80px;
+  color: #ef4444;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+/* 설명 텍스트 */
+.description {
+  color: #9CA3AF;
+  font-size: 1rem;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}
+
+.highlight {
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+/* 입력 폼 */
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 2px solid #333;
+  background: #0a0a0a;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.inputWrapper:focus-within {
+  border-color: #f59e0b;
+}
+
+.input {
+  background: transparent;
+  border: none;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  color: #E5E7EB;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.2em;
+  width: 250px;
+  outline: none;
+}
+
+.input::placeholder {
+  color: #4B5563;
+  letter-spacing: 0.1em;
+}
+
+.submitButton {
+  background: #f59e0b;
+  border: none;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.submitButton:hover {
+  background: #d97706;
+}
+
+.submitButton svg {
+  width: 24px;
+  height: 24px;
+  color: #000;
+}
+
+/* 흔들림 애니메이션 */
+.shake {
+  animation: shake 0.5s ease-in-out;
+  border-color: #ef4444 !important;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  animation: blink 0.5s ease-in-out;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
+}
+
+/* 힌트 */
+.hint {
+  margin-top: 2rem;
+  color: #4B5563;
+  font-size: 0.8rem;
+}
+
+/* 하단 */
+.footer {
+  margin-top: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #374151;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.blink {
+  color: #10B981;
+  animation: blinkDot 1s infinite;
+}
+
+@keyframes blinkDot {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* 코너 장식 */
+.corner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-color: #f59e0b;
+  border-style: solid;
+  opacity: 0.5;
+}
+
+.topLeft {
+  top: 20px;
+  left: 20px;
+  border-width: 2px 0 0 2px;
+}
+
+.topRight {
+  top: 20px;
+  right: 20px;
+  border-width: 2px 2px 0 0;
+}
+
+.bottomLeft {
+  bottom: 20px;
+  left: 20px;
+  border-width: 0 0 2px 2px;
+}
+
+.bottomRight {
+  bottom: 20px;
+  right: 20px;
+  border-width: 0 2px 2px 0;
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+  .input {
+    width: 180px;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .submitButton {
+    padding: 0.75rem 1rem;
+  }
+
+  .description {
+    font-size: 0.9rem;
+    padding: 0 1rem;
+  }
+
+  .warningIcon svg {
+    width: 60px;
+    height: 60px;
+  }
+}

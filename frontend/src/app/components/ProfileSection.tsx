@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import CharacterShowcase from './profile/CharacterShowcase'
 import styles from './ProfileSection.module.css'
 import { aggregateStats } from '../../lib/statsAggregator'
@@ -44,45 +44,12 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
         return null
     }, [equipment, titles, daevanion, stats, equippedTitleId, ocrStats])
 
-    // PVE/PVP 전투력
-    const pveCombatPower = dualCombatPower?.pve || character.pve_score || character.power || 0
-    const pvpCombatPower = dualCombatPower?.pvp || character.pvp_score || 0
+    // PVE/PVP 전투력 - DB 값(서버 계산) 우선 사용
+    // 서버 API(/api/character)에서 계산하여 DB에 저장한 값을 그대로 표시
+    const pveCombatPower = character.pve_score || dualCombatPower?.pve || character.power || 0
+    const pvpCombatPower = character.pvp_score || dualCombatPower?.pvp || 0
     // 호환성 유지
     const combatPower = pveCombatPower
-
-    // 클라이언트에서 계산된 전투력을 DB에 저장 (캐릭터 상세 페이지 조회 시)
-    const savedScoreRef = useRef<string | null>(null)
-    useEffect(() => {
-        const saveScores = async () => {
-            // 전투력이 계산되었고, 이전에 저장한 값과 다른 경우에만 저장
-            if (!pveCombatPower || pveCombatPower <= 0) return
-            const scoreKey = `${pveCombatPower}-${pvpCombatPower}`
-            if (savedScoreRef.current === scoreKey) return
-            if (!character?.characterId) return
-
-            try {
-                // API를 통해 PVE/PVP 점수 저장
-                const res = await fetch('/api/character/save-score', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        characterId: character.characterId,
-                        pveScore: pveCombatPower,
-                        pvpScore: pvpCombatPower
-                    })
-                })
-
-                if (res.ok) {
-                    savedScoreRef.current = scoreKey
-                    console.log(`[ProfileSection] PVE=${pveCombatPower}, PVP=${pvpCombatPower} saved for ${character.characterName || character.name}`)
-                }
-            } catch (err) {
-                console.error('[ProfileSection] Failed to save scores:', err)
-            }
-        }
-
-        saveScores()
-    }, [pveCombatPower, pvpCombatPower, character?.characterId, character?.characterName, character?.name])
 
     // Calculate Percentile / Tier
     const tierInfo = useMemo(() => {
