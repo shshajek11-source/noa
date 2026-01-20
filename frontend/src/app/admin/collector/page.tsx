@@ -71,6 +71,11 @@ export default function CollectorPage() {
     const [batchRemaining, setBatchRemaining] = useState<number | null>(null)
     const [batchUpdated, setBatchUpdated] = useState(0)
     const [batchLastResult, setBatchLastResult] = useState<string>('')
+    const [batchStatus, setBatchStatus] = useState<{
+        blocked: number
+        rateLimited: number
+        isBlocked: boolean
+    } | null>(null)
 
     const fetchLogs = async () => {
         try {
@@ -156,6 +161,18 @@ export default function CollectorPage() {
                     setBatchLastResult(`${successCount}/${data.results.length} 성공`)
                 }
 
+                // 차단 상태 업데이트
+                if (data.status) {
+                    setBatchStatus(data.status)
+
+                    // 차단 감지 시 자동 중지
+                    if (data.status.shouldPause || data.status.isBlocked) {
+                        setIsBatchRunning(false)
+                        setBatchLastResult('🚫 차단 감지! 자동 중지됨')
+                        return
+                    }
+                }
+
                 // 남은 캐릭터가 0이면 자동 중지
                 if (data.remaining === 0) {
                     setIsBatchRunning(false)
@@ -168,7 +185,7 @@ export default function CollectorPage() {
         }
 
         runBatch()
-        const interval = setInterval(runBatch, 2000) // 2초마다 배치 실행 (기존 3초 → 2초)
+        const interval = setInterval(runBatch, 2000) // 2초마다 배치 실행
         return () => clearInterval(interval)
     }, [isBatchRunning])
 
@@ -284,8 +301,36 @@ export default function CollectorPage() {
                         </DSButton>
                     </div>
                 </div>
+                {/* 차단 경고 배너 */}
+                {batchStatus?.isBlocked && (
+                    <div style={{
+                        marginTop: '0.75rem',
+                        padding: '0.75rem',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid #EF4444',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem'
+                    }}>
+                        <span style={{ fontSize: '1.5rem' }}>🚫</span>
+                        <div>
+                            <div style={{ color: '#EF4444', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                                API 차단 감지됨!
+                            </div>
+                            <div style={{ color: '#FCA5A5', fontSize: '0.8rem' }}>
+                                차단: {batchStatus.blocked}회 | Rate Limit: {batchStatus.rateLimited}회
+                                <br />
+                                10~30분 후 다시 시도하세요.
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-disabled)', marginTop: '0.5rem' }}>
                     💡 DB에 저장되어 있지만 상세 정보(스탯, 장비, 전투력)가 없는 캐릭터들을 집중 조회합니다.
+                    {batchStatus && !batchStatus.isBlocked && batchStatus.blocked > 0 && (
+                        <span style={{ color: '#F59E0B' }}> (경고: 차단 {batchStatus.blocked}회 감지)</span>
+                    )}
                 </div>
             </DSCard>
 
