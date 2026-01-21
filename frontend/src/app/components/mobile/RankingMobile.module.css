@@ -1,9 +1,11 @@
-/* RankingMobile Styles - Black Theme */
+/* RankingMobile Styles - Deep Black & Glassmorphism Theme */
 
 .container {
   min-height: 100vh;
   background: #000;
   color: #E5E7EB;
+  padding-bottom: 80px;
+  /* Bottom spacer included in padding */
 }
 
 /* Header */
@@ -12,7 +14,13 @@
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: #000;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .logo {
@@ -20,6 +28,7 @@
   font-size: 1.4rem;
   letter-spacing: -0.5px;
   font-family: 'Rajdhani', sans-serif;
+  text-decoration: none;
 }
 
 .logoSu {
@@ -43,12 +52,14 @@
   margin: 0;
 }
 
-/* 메뉴 탭 */
+/* Menu Tabs */
 .menuTabs {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   padding: 0 16px 16px;
   background: #000;
+  position: relative;
+  z-index: 40;
 }
 
 .menuTab {
@@ -57,10 +68,12 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  /* Glass base */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  /* Pill shape */
   color: #9CA3AF;
   text-decoration: none;
   font-size: 0.85rem;
@@ -69,16 +82,17 @@
 }
 
 .menuTab:hover {
-  background: #1a1a1a;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .menuTabActive {
-  background: rgba(249, 115, 22, 0.1);
+  background: rgba(245, 158, 11, 0.15);
   border-color: #f59e0b;
   color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
 }
 
-/* 랭킹 타입 탭 */
+/* Ranking Type Tabs */
 .typeTabs {
   display: flex;
   gap: 8px;
@@ -88,23 +102,25 @@
 .typeTab {
   flex: 1;
   padding: 10px 16px;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
   color: #9CA3AF;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
+  font-family: 'Rajdhani', sans-serif;
 }
 
 .typeTabActive {
   background: #f59e0b;
   border-color: #f59e0b;
   color: #000;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
 }
 
-/* 필터 바 */
+/* Filter Bar */
 .filterBar {
   display: flex;
   gap: 8px;
@@ -114,29 +130,28 @@
 .filterSelect {
   flex: 1;
   padding: 10px 12px;
-  background: #111;
-  border: 1px solid #222;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: #E5E7EB;
   font-size: 0.85rem;
   cursor: pointer;
   outline: none;
+  backdrop-filter: blur(8px);
 }
 
 .filterSelect:focus {
   border-color: #f59e0b;
+  background: rgba(0, 0, 0, 0.8);
 }
 
-/* 랭킹 리스트 */
+/* Ranking List */
 .rankingList {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 8px;
+  /* Spaced cards instead of unified list */
   padding: 0 16px;
-  background: #1a1a1a;
-  margin: 0 16px;
-  border-radius: 12px;
-  overflow: hidden;
 }
 
 .rankingItem {
@@ -144,50 +159,59 @@
   align-items: center;
   gap: 12px;
   padding: 14px;
-  background: #111;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   text-decoration: none;
   color: inherit;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
 }
 
 .rankingItem:active {
-  background: #1a1a1a;
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(0.98);
 }
 
 .rankBadge {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: #1a1a1a;
+  background: rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: #9CA3AF;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #6B7280;
   flex-shrink: 0;
+  font-family: 'Rajdhani', sans-serif;
 }
 
 .rank1 {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #FFD700, #B8860B);
   color: #000;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
 }
 
 .rank2 {
-  background: linear-gradient(135deg, #9CA3AF, #6B7280);
+  background: linear-gradient(135deg, #C0C0C0, #808080);
   color: #000;
+  box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
 }
 
 .rank3 {
   background: linear-gradient(135deg, #CD7F32, #8B4513);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
 }
 
 .charAvatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  background: #1a1a1a;
+  border-radius: 12px;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -214,7 +238,7 @@
 
 .charName {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #E5E7EB;
   margin-bottom: 2px;
   white-space: nowrap;
@@ -232,7 +256,7 @@
 }
 
 .dot {
-  color: #6B7280;
+  color: #444;
 }
 
 .elyos {
@@ -258,30 +282,32 @@
 }
 
 .scoreLabel {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: #6B7280;
   text-transform: uppercase;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
 }
 
 .scoreValue {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #f59e0b;
+  font-size: 0.9rem;
+  font-weight: 800;
   font-family: 'Rajdhani', sans-serif;
+  color: #E5E7EB;
 }
 
-/* 더보기 버튼 */
+/* Load More Button */
 .loadMoreWrapper {
-  padding: 20px 16px;
+  padding: 24px 16px;
   text-align: center;
 }
 
 .loadMoreBtn {
   width: 100%;
   padding: 14px;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
   color: #E5E7EB;
   font-size: 0.9rem;
   font-weight: 600;
@@ -290,7 +316,8 @@
 }
 
 .loadMoreBtn:hover {
-  background: #1a1a1a;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #f59e0b;
 }
 
 .loadMoreBtn:disabled {
@@ -298,11 +325,14 @@
   cursor: not-allowed;
 }
 
-/* 빈 상태 */
+/* Empty State */
 .emptyState {
   padding: 48px 16px;
   text-align: center;
-  background: #111;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  margin: 0 16px;
 }
 
 .emptyState p {
@@ -316,9 +346,9 @@
   color: #6B7280;
 }
 
-/* 스켈레톤 */
+/* Skeleton */
 .skeleton {
-  background: linear-gradient(90deg, #1a1a1a 25%, #111 50%, #1a1a1a 75%);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
@@ -328,12 +358,12 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
 }
 
-/* 하단 여백 */
 .bottomSpacer {
   height: 40px;
 }

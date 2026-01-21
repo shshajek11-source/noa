@@ -147,6 +147,55 @@
   color: #f59e0b;
 }
 
+/* 성역 8인 파티 그룹 탭 */
+.partyGroupTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.partyGroupTab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.partyGroupTab:hover {
+  border-color: #f59e0b;
+  color: #E5E7EB;
+}
+
+.partyGroupTab.activeTab {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.emptyBadge {
+  padding: 2px 6px;
+  background: rgba(239, 68, 68, 0.2);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #ef4444;
+}
+
+.partyGroupTab.activeTab .emptyBadge {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
 /* 파티원 섹션 */
 .membersSection {
   margin-bottom: 12px;
@@ -388,11 +437,71 @@
 /* 푸터 */
 .footer {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
   gap: 8px;
   padding-top: 12px;
   margin-top: 12px;
   border-top: 1px solid #222;
+}
+
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.footerTotalPower {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #4ade80;
+  font-family: 'Rajdhani', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.expandButton {
+  display: none;
+  /* PC에서는 숨김 */
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.expandButton:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.expandButton svg {
+  transition: transform 0.3s ease;
+}
+
+.expandButton.expanded svg {
+  transform: rotate(180deg);
+}
+
+.footerBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.timeAgo {
+  font-size: 0.75rem;
+  color: #6B7280;
+  flex-shrink: 0;
 }
 
 .pendingBadge {
@@ -439,19 +548,19 @@
 @media (max-width: 1024px) {
   .membersGrid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 6px;
+    gap: 8px;
   }
 
   /* 멤버 카드: 가로 배치 */
   .memberCard {
     flex-direction: row;
-    /* 가로 정렬 */
     align-items: center;
     justify-content: flex-start;
-    padding: 8px 10px;
-    gap: 10px;
-    min-height: 80px;
-    /* 높이 약간 축소 */
+    padding: 10px;
+    gap: 12px;
+    min-height: 84px;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
   }
 
   .leaderBadge {
@@ -465,14 +574,14 @@
 
   .profileWrapper {
     margin-bottom: 0;
-    margin-right: 0;
     flex-shrink: 0;
   }
 
   .profileImage,
   .profilePlaceholder {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
+    border-color: #222;
   }
 
   .raceIndicator {
@@ -494,14 +603,11 @@
 
   .memberMainInfo {
     display: flex;
-    flex-wrap: wrap;
-    /* 내용 많으면 줄바꿈 */
-    align-items: center;
-    gap: 4px;
+    flex-direction: column !important;
+    align-items: flex-start;
+    gap: 1px;
     line-height: 1.2;
     margin-bottom: 2px;
-    flex-direction: row !important;
-    /* 강제로 가로 방향 지정 */
   }
 
   .memberName {
@@ -520,9 +626,11 @@
   }
 
   .combatPower {
-    font-size: 0.85rem !important;
-    /* 조금 더 크게 */
-    margin-top: 0;
+    font-size: 0.8rem !important;
+    color: #f59e0b;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    margin-top: 2px;
     align-self: flex-start;
   }
 
@@ -534,5 +642,24 @@
 
   .emptySlot {
     padding: 20px 0;
+  }
+
+  /* 모바일에서 펼치기 버튼 표시 */
+  .expandButton {
+    display: flex;
+  }
+
+  /* 접힌 상태에서의 카드 여백 최적화 */
+  .card {
+    padding: 12px;
+  }
+
+  .header {
+    margin-bottom: 8px;
+  }
+
+  .footer {
+    margin-top: 8px;
+    padding-top: 8px;
   }
 }

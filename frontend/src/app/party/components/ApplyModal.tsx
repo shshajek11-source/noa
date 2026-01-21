@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useMyCharacters } from '@/hooks/useMyCharacters'
+import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabaseClient'
 import type { PartySlot, PartyUserCharacter } from '@/types/party'
 import { SERVERS } from '@/app/constants/servers'
 import styles from './ApplyModal.module.css'
 
 interface ApplyModalProps {
   slot: PartySlot
+  partyId?: string  // 직접 API 호출용 파티 ID
   minItemLevel?: number
   minBreakthrough?: number
   minCombatPower?: number
@@ -20,6 +23,7 @@ interface ApplyModalProps {
     character_level?: number
     character_item_level?: number
     character_breakthrough?: number
+    profile_image?: string
     character_combat_power?: number
     apply_message?: string
   }) => Promise<void>
@@ -27,36 +31,31 @@ interface ApplyModalProps {
 
 export default function ApplyModal({
   slot,
+  partyId,
   minItemLevel,
   minBreakthrough,
   minCombatPower,
   onClose,
   onApply
 }: ApplyModalProps) {
-  const { characters, loading } = useMyCharacters()
+  const { session, isLoading: authLoading } = useAuth()
+  const { characters, loading: charactersLoading, refresh } = useMyCharacters({ accessToken: session?.access_token })
+
+  // 세션이 로드된 후 캐릭터 다시 불러오기
+  useEffect(() => {
+    if (session?.access_token && characters.length === 0 && !charactersLoading) {
+      refresh()
+    }
+  }, [session?.access_token, characters.length, charactersLoading, refresh])
+
+  const loading = authLoading || charactersLoading
   const [selectedCharacter, setSelectedCharacter] = useState<PartyUserCharacter | null>(null)
   const [applyMessage, setApplyMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 슬롯 직업에 맞는 캐릭터 필터링
-  const eligibleCharacters = characters.filter(char => {
-    // 직업 조건
-    if (slot.required_class && char.character_class !== slot.required_class) {
-      return false
-    }
-    // 스펙 조건
-    if (minItemLevel && char.character_item_level && char.character_item_level < minItemLevel) {
-      return false
-    }
-    if (minBreakthrough && char.character_breakthrough && char.character_breakthrough < minBreakthrough) {
-      return false
-    }
-    if (minCombatPower && char.character_combat_power && char.character_combat_power < minCombatPower) {
-      return false
-    }
-    return true
-  })
+  // 모든 캐릭터 표시 (필터링 없음 - 유저가 직접 판단)
+  const eligibleCharacters = characters
 
   useEffect(() => {
     if (eligibleCharacters.length === 1) {
@@ -74,7 +73,7 @@ export default function ApplyModal({
     setError(null)
 
     try {
-      await onApply({
+      const applicationData = {
         slot_id: slot.id,
         character_name: selectedCharacter.character_name,
         character_class: selectedCharacter.character_class,
@@ -82,9 +81,38 @@ export default function ApplyModal({
         character_level: selectedCharacter.character_level,
         character_item_level: selectedCharacter.character_item_level,
         character_breakthrough: selectedCharacter.character_breakthrough,
+        profile_image: selectedCharacter.profile_image,
         character_combat_power: selectedCharacter.character_combat_power,
         apply_message: applyMessage || undefined
-      })
+      }
+
+      // partyId가 있으면 직접 API 호출
+      if (partyId) {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
+        }
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`
+        }
+
+        const response = await fetch(`/api/party/${partyId}/apply`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(applicationData)
+        })
+
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || '신청에 실패했습니다.')
+        }
+
+        alert('파티 신청이 완료되었습니다. 파티장의 승인을 기다려주세요.')
+        await onApply(applicationData)
+      } else {
+        // 기존 방식 (PartyDetailModal에서 호출 시)
+        await onApply(applicationData)
+      }
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : '신청에 실패했습니다.')

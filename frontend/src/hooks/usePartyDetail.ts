@@ -1,23 +1,26 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 import type { PartyPost, PartyComment } from '@/types/party'
 
-// device_id 헬퍼 (ledger_device_id 사용)
-function getDeviceId(): string {
-  let deviceId = localStorage.getItem('ledger_device_id')
-  if (!deviceId) {
-    deviceId = crypto.randomUUID()
-    localStorage.setItem('ledger_device_id', deviceId)
+// 인증 헤더 가져오기 (Bearer 토큰만 사용)
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {}
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`
   }
-  return deviceId
+
+  return headers
 }
 
 interface PartyDetailResponse extends PartyPost {
   comments: PartyComment[]
   is_member: boolean
   is_leader: boolean
-  user_id: string
+  current_user_id: string  // 현재 요청자의 ID
   current_members: number
   pending_count: number
 }
@@ -38,12 +41,8 @@ export function usePartyDetail(partyId: string | null) {
     setError(null)
 
     try {
-      const deviceId = getDeviceId()
-      const response = await fetch(`/api/party/${partyId}`, {
-        headers: {
-          'X-Device-ID': deviceId
-        }
-      })
+      const headers = await getAuthHeaders()
+      const response = await fetch(`/api/party/${partyId}`, { headers })
 
       if (!response.ok) {
         const data = await response.json()
@@ -72,6 +71,7 @@ export function usePartyDetail(partyId: string | null) {
     character_level?: number
     character_item_level?: number
     character_breakthrough?: number
+    profile_image?: string
     character_combat_power?: number
     character_equipment?: Record<string, unknown>
     character_stats?: Record<string, unknown>
@@ -79,12 +79,12 @@ export function usePartyDetail(partyId: string | null) {
   }) => {
     if (!partyId) throw new Error('Party ID is required')
 
-    const deviceId = getDeviceId()
+    const headers = await getAuthHeaders()
     const response = await fetch(`/api/party/${partyId}/apply`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        ...headers,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(applicationData)
     })
@@ -102,12 +102,10 @@ export function usePartyDetail(partyId: string | null) {
   const cancelApplication = useCallback(async () => {
     if (!partyId) throw new Error('Party ID is required')
 
-    const deviceId = getDeviceId()
+    const headers = await getAuthHeaders()
     const response = await fetch(`/api/party/${partyId}/apply`, {
       method: 'DELETE',
-      headers: {
-        'X-Device-ID': deviceId
-      }
+      headers
     })
 
     if (!response.ok) {
@@ -123,12 +121,12 @@ export function usePartyDetail(partyId: string | null) {
   const approve = useCallback(async (memberId: string) => {
     if (!partyId) throw new Error('Party ID is required')
 
-    const deviceId = getDeviceId()
+    const headers = await getAuthHeaders()
     const response = await fetch(`/api/party/${partyId}/approve`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        ...headers,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ member_id: memberId })
     })
@@ -146,12 +144,12 @@ export function usePartyDetail(partyId: string | null) {
   const reject = useCallback(async (memberId: string, reason?: string) => {
     if (!partyId) throw new Error('Party ID is required')
 
-    const deviceId = getDeviceId()
+    const headers = await getAuthHeaders()
     const response = await fetch(`/api/party/${partyId}/reject`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        ...headers,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ member_id: memberId, reason, is_kick: false })
     })
@@ -169,12 +167,12 @@ export function usePartyDetail(partyId: string | null) {
   const kick = useCallback(async (memberId: string, reason?: string) => {
     if (!partyId) throw new Error('Party ID is required')
 
-    const deviceId = getDeviceId()
+    const headers = await getAuthHeaders()
     const response = await fetch(`/api/party/${partyId}/reject`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        ...headers,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ member_id: memberId, reason, is_kick: true })
     })
@@ -192,12 +190,12 @@ export function usePartyDetail(partyId: string | null) {
   const addComment = useCallback(async (content: string) => {
     if (!partyId) throw new Error('Party ID is required')
 
-    const deviceId = getDeviceId()
+    const headers = await getAuthHeaders()
     const response = await fetch(`/api/party/${partyId}/comments`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        ...headers,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ content })
     })
@@ -215,12 +213,12 @@ export function usePartyDetail(partyId: string | null) {
   const updateParty = useCallback(async (updateData: Partial<PartyPost>) => {
     if (!partyId) throw new Error('Party ID is required')
 
-    const deviceId = getDeviceId()
+    const headers = await getAuthHeaders()
     const response = await fetch(`/api/party/${partyId}`, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        ...headers,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(updateData)
     })
@@ -238,12 +236,10 @@ export function usePartyDetail(partyId: string | null) {
   const deleteParty = useCallback(async () => {
     if (!partyId) throw new Error('Party ID is required')
 
-    const deviceId = getDeviceId()
+    const headers = await getAuthHeaders()
     const response = await fetch(`/api/party/${partyId}`, {
       method: 'DELETE',
-      headers: {
-        'X-Device-ID': deviceId
-      }
+      headers
     })
 
     if (!response.ok) {

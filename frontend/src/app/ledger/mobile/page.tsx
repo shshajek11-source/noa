@@ -1,10 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import styles from './MobileLedger.module.css';
 
-// 모바일 전용 가계부 페이지 - 기능 없이 UI만 표시
+// 모바일 전용 가계부 뷰 - 조건부 렌더링용 컴포넌트
 export default function MobileLedgerPage() {
+    const router = useRouter()
+    const pathname = usePathname()
+
+    // Google 인증 (부모에서 이미 체크되지만, 여기서도 사용자 정보 접근용)
+    const { user, nickname, mainCharacter } = useAuth()
+
+    // /ledger/mobile 경로로 직접 접근 시 /ledger로 리다이렉트
+    useEffect(() => {
+        if (pathname === '/ledger/mobile') {
+            router.replace('/ledger')
+        }
+    }, [pathname, router])
+
     const [currentView, setCurrentView] = useState<'main' | 'detail'>('main');
     const [selectedCharacter, setSelectedCharacter] = useState({
         name: '포식자',

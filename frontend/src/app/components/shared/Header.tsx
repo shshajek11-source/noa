@@ -25,7 +25,6 @@ export default function Header() {
                 <Link href="/" className={styles.logoLink}>
                     <span className={styles.logoText}>
                         <span className={styles.logoSugo}>SUGO</span>
-                        <span className={styles.logoGg}>.gg</span>
                     </span>
                 </Link>
 

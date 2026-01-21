@@ -68,7 +68,7 @@ export default function RankingLayoutClient({
             <RankingFilterBar />
 
             {/* Content (Table) - Adaptive */}
-            <div className="card" style={{ minHeight: '400px', padding: 0, overflow: 'hidden' }}>
+            <div className={styles.rankingCard}>
                 <div className={styles.tableScroll}>
                     {children}
                 </div>

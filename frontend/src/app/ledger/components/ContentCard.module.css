@@ -1,12 +1,13 @@
 .card {
   display: flex;
-  background: linear-gradient(135deg, rgba(26, 29, 36, 0.95) 0%, rgba(15, 17, 21, 0.95) 100%);
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s;
   height: 240px;
   margin-bottom: 20px;
+  backdrop-filter: blur(12px);
 }
 
 .card:hover {

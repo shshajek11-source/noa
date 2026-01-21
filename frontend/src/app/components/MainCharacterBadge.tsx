@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext'
 import styles from './shared/HeaderButtons.module.css'
 
 // 모달 지연 로딩 (클릭 시에만 로드)
-const MainCharacterModal = dynamic(() => import('./MainCharacterModal'), { ssr: false })
+const MainCharacterModal = dynamic(() => import('@/components/MainCharacterModal'), { ssr: false })
 
 export default function MainCharacterBadge() {
     const router = useRouter()

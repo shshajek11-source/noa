@@ -31,6 +31,7 @@ export interface CharacterSearchResult {
     item_level?: number // 아이템 레벨
     pve_score?: number // PVE 전투력
     pvp_score?: number // PVP 전투력
+    noa_score?: number // HITON 전투력 (종합)
     raw?: ExternalCharacterResult
 }
 
@@ -316,7 +317,6 @@ export const supabaseApi = {
                 imageUrl: item.profile_image ? (item.profile_image.startsWith('http') ? item.profile_image : `https://profileimg.plaync.com${item.profile_image}`) : undefined,
                 item_level: item.item_level,
                 pve_score: item.pve_score,
-                pve_score: item.pve_score || item.pve_score,
                 pvp_score: item.pvp_score
             }))
         } catch (e) {

@@ -133,7 +133,7 @@ export default function GatePage({ children }: GatePageProps) {
         {/* 하단 장식 */}
         <div className={styles.footer}>
           <span className={styles.blink}>●</span>
-          <span>SUGO.GG SECURITY SYSTEM v2.0</span>
+          <span>SUGO SECURITY SYSTEM v2.0</span>
         </div>
       </div>
 

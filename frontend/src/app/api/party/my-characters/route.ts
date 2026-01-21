@@ -6,6 +6,8 @@ import { getUserFromRequest } from '../../../../lib/auth'
 export async function GET(request: NextRequest) {
   try {
     const user = await getUserFromRequest(request)
+    console.log('[My Characters GET] User:', user?.id || 'not authenticated')
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -16,7 +18,10 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
       .order('display_order', { ascending: true })
 
+    console.log('[My Characters GET] Found characters:', characters?.length || 0)
+
     if (error) {
+      console.error('[My Characters GET] DB error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
@@ -52,8 +57,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '최대 10개의 캐릭터만 등록할 수 있습니다.' }, { status: 400 })
     }
 
-    // 중복 확인 (같은 서버, 같은 이름)
-    const { data: duplicate } = await supabase
+    // 내 계정에 중복 확인 (같은 서버, 같은 이름)
+    const { data: myDuplicate } = await supabase
       .from('party_user_characters')
       .select('id')
       .eq('user_id', user.id)
@@ -61,8 +66,21 @@ export async function POST(request: NextRequest) {
       .eq('character_server_id', body.character_server_id)
       .single()
 
-    if (duplicate) {
+    if (myDuplicate) {
       return NextResponse.json({ error: '이미 등록된 캐릭터입니다.' }, { status: 400 })
+    }
+
+    // 다른 유저가 이미 등록한 캐릭터인지 확인 (같은 서버, 같은 이름)
+    const { data: otherUserDuplicate } = await supabase
+      .from('party_user_characters')
+      .select('id, user_id')
+      .eq('character_name', body.character_name)
+      .eq('character_server_id', body.character_server_id)
+      .neq('user_id', user.id)
+      .single()
+
+    if (otherUserDuplicate) {
+      return NextResponse.json({ error: '이미 다른 유저가 등록한 캐릭터입니다.' }, { status: 400 })
     }
 
     // display_order 계산

@@ -43,21 +43,47 @@ export default function SlotCard({
           onMouseLeave={() => setShowTooltip(false)}
         >
           <div className={styles.memberMain}>
-            {member.role === 'leader' && <span className={styles.leaderBadge}>👑</span>}
-            <span className={styles.memberClass}>{member.character_class}</span>
-            <span className={styles.memberLevel}>Lv{member.character_level}</span>
-            <span className={styles.memberName}>{member.character_name}</span>
+            <div className={styles.profileWrapper}>
+              {member.profile_image ? (
+                <img src={member.profile_image} alt={member.character_name} className={styles.profileImage} />
+              ) : (
+                <div className={styles.profilePlaceholder}>
+                  {member.character_name.charAt(0)}
+                </div>
+              )}
+              {member.role === 'leader' && <span className={styles.leaderBadge}>👑</span>}
+            </div>
+            <div className={styles.memberDetails}>
+              <div className={styles.nameRow}>
+                <span className={styles.memberName}>{member.character_name}</span>
+                <span className={styles.memberLevel}>Lv.{member.character_level}</span>
+              </div>
+              <div className={styles.classRow}>
+                <span className={styles.memberClass}>{member.character_class}</span>
+              </div>
+            </div>
           </div>
 
           <div className={styles.memberStats}>
             {member.character_item_level && (
-              <span>아이템{member.character_item_level}</span>
+              <div className={styles.statItem}>
+                <span className={styles.statLabel}>아이템</span>
+                <span className={styles.statValue}>{member.character_item_level}</span>
+              </div>
             )}
-            {member.character_breakthrough && (
-              <span>돌파{member.character_breakthrough}</span>
+
+            {(member.character_breakthrough || 0) > 0 && (
+              <div className={styles.breakthroughBadge}>
+                <div className={styles.diamondIcon}></div>
+                <span className={styles.breakthroughValue}>{member.character_breakthrough}</span>
+              </div>
             )}
+
             {member.character_combat_power && (
-              <span>전투력{(member.character_combat_power / 10000).toFixed(1)}만</span>
+              <div className={styles.statItem}>
+                <span className={styles.statLabel}>전투력</span>
+                <span className={styles.statValue}>{(member.character_combat_power / 10000).toFixed(1)}만</span>
+              </div>
             )}
           </div>
 

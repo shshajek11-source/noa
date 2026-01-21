@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Wallet, HelpCircle, X } from 'lucide-react'
 import {
@@ -29,25 +28,26 @@ const AddCharacterModal = dynamic(() => import('./components/AddCharacterModal')
 const AddItemModal = dynamic(() => import('./components/AddItemModal'), { ssr: false })
 const CalendarModal = dynamic(() => import('./components/CalendarModal'), { ssr: false })
 const MainCharacterModal = dynamic(() => import('@/components/MainCharacterModal'), { ssr: false })
+
+// 모바일 뷰 컴포넌트 (조건부 렌더링)
+const MobileLedgerView = dynamic(() => import('./mobile/page'), { ssr: false })
+
 import { useAuth } from '@/context/AuthContext'
 import { getGameDate, getWeekKey } from './utils/dateUtils'
 import styles from './ledger.module.css'
 
 export default function LedgerPage() {
-  const router = useRouter()
+  // 모바일 감지 (조건부 렌더링)
+  const [isMobile, setIsMobile] = useState(false)
 
-  // 모바일 감지 및 리다이렉트
   useEffect(() => {
     const checkMobile = () => {
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      const isSmallScreen = window.innerWidth <= 768
-      return isMobile || isSmallScreen
+      setIsMobile(window.innerWidth < 1024)
     }
-
-    if (checkMobile()) {
-      router.replace('/ledger/mobile')
-    }
-  }, [router])
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // 인증 (Google 또는 device_id)
   const { nickname, setNickname, mainCharacter, setMainCharacter, isAuthenticated: isGoogleAuth, user, signInWithGoogle, isLoading: isGoogleLoading } = useAuth()
@@ -807,6 +807,11 @@ export default function LedgerPage() {
   // Google 로그인 필수 - 비로그인 시 안내 화면 표시
   if (isGoogleLoading || !isGoogleAuth) {
     return <LedgerLoginRequired onLogin={signInWithGoogle} isLoading={isGoogleLoading} />
+  }
+
+  // 모바일 뷰 (조건부 렌더링)
+  if (isMobile) {
+    return <MobileLedgerView />
   }
 
   return (

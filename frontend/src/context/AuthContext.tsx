@@ -153,6 +153,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchNickname, fetchMainCharacter])
 
   const signInWithGoogle = async () => {
+    // 모바일 감지 (1024px 미만 또는 터치 디바이스)
+    const isMobile = typeof window !== 'undefined' && (
+      window.innerWidth < 1024 ||
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0
+    )
+
+    if (isMobile) {
+      // 모바일: 현재 창에서 리다이렉트 방식
+      console.log('[Auth] Google 로그인 시도 (모바일 리다이렉트 방식)')
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+
+      if (error) {
+        console.error('[Auth] Google 로그인 오류:', error)
+        throw error
+      }
+      // 리다이렉트가 자동으로 발생함
+      return
+    }
+
+    // PC: 팝업 방식
     console.log('[Auth] Google 로그인 시도 시작 (팝업 방식)')
 
     try {

@@ -45,17 +45,7 @@ export function usePartyList(initialParams?: PartyListParams) {
       if (params.page) searchParams.set('page', String(params.page))
       if (params.limit) searchParams.set('limit', String(params.limit))
 
-      // ledger_device_id 키 사용 (useMyCharacters와 동일)
-      let deviceId = localStorage.getItem('ledger_device_id')
-      if (!deviceId) {
-        deviceId = crypto.randomUUID()
-        localStorage.setItem('ledger_device_id', deviceId)
-      }
-      const response = await fetch(`/api/party?${searchParams.toString()}`, {
-        headers: {
-          'X-Device-ID': deviceId
-        }
-      })
+      const response = await fetch(`/api/party?${searchParams.toString()}`)
 
       if (!response.ok) {
         const data = await response.json()

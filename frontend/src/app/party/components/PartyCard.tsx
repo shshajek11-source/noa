@@ -1,7 +1,6 @@
 'use client'
 
-import { useMemo, memo } from 'react'
-import Image from 'next/image'
+import { useMemo, memo, useState, useEffect } from 'react'
 import type { PartyPost, PartySlot, PartyMember } from '@/types/party'
 import { getTimeOfDay, getTimeOfDayIcon, getTimeOfDayLabel, getRelativeTime, getRemainingTime } from '@/types/party'
 import { SERVERS } from '@/app/constants/servers'
@@ -66,6 +65,19 @@ export default memo(function PartyCard({
   const isPvp = party.dungeon_type === 'pvp'
   const dungeonColor = DUNGEON_TYPE_COLORS[party.dungeon_type] || '#f59e0b'
 
+  // 성역 8인 파티인지 확인
+  const isSanctuary8 = party.dungeon_type === 'sanctuary' && (party.max_members || 4) === 8
+  const [selectedPartyGroup, setSelectedPartyGroup] = useState<1 | 2>(1)
+
+  const [isExpanded, setIsExpanded] = useState(true)
+
+  // 모바일인 경우 기본적으로 접힘 상태로 시작 (마운트 시점에 체크)
+  useEffect(() => {
+    if (window.innerWidth < 1024) {
+      setIsExpanded(false)
+    }
+  }, [])
+
   const currentMembers = party.current_members ||
     party.members?.filter(m => m.status === 'approved').length || 0
 
@@ -119,21 +131,18 @@ export default memo(function PartyCard({
     // 최대 표시 슬롯 수 (최소 4개, 최대 8개)
     const maxDisplay = Math.max(4, Math.min(party.max_members || 4, 8))
 
-    // 리더가 먼저 오고 나머지 멤버들
-    // const sortedMembers = [
-    //     ...(leaderMember ? [leaderMember] : []),
-    //     ...approvedMembers.filter(m => m.user_id !== party.user_id)
-    // ]
+    // 파티장 먼저, 나머지 멤버들 순서대로
+    const sortedMembers = [
+      ...(leaderMember ? [leaderMember] : []),
+      ...approvedMembers.filter(m => m.user_id !== party.user_id)
+    ]
 
     const result = []
 
     for (let i = 0; i < maxDisplay; i++) {
       const slot = slots[i]
-      // 슬롯 ID로 멤버 찾기 (없으면 순서대로)
-      let member = slot ? approvedMembers.find(m => m.slot_id === slot.id) : approvedMembers[i]
-
-      // 리더 표시 (첫 번째 슬롯이고 멤버가 없거나, 해당 멤버가 리더인 경우)
-      // 여기서는 단순히 멤버 정보만 매핑
+      // 정렬된 멤버 순서대로 배치 (파티장이 항상 첫 번째)
+      const member = sortedMembers[i]
       const isLeader = member && member.user_id === party.user_id
 
       if (member) {
@@ -147,7 +156,7 @@ export default memo(function PartyCard({
             class: member.character_class || '자유',
             server: memberServerName,
             race: 'Elyos', // API 연동 시 수정
-            profileImage: null,
+            profileImage: member.profile_image || null,
             itemLevel: member.character_item_level || 0,
             pveScore: member.character_combat_power || 0,
             pvpScore: null
@@ -165,10 +174,35 @@ export default memo(function PartyCard({
     return result
   }, [party, serverName])
 
+  // 성역 8인 파티: 1파티/2파티로 분리
+  const party1Slots = useMemo(() => memberSlots.slice(0, 4), [memberSlots])
+  const party2Slots = useMemo(() => memberSlots.slice(4, 8), [memberSlots])
+
+  // 각 파티의 빈 슬롯 수
+  const party1EmptyCount = useMemo(() => party1Slots.filter(s => s.type === 'empty').length, [party1Slots])
+  const party2EmptyCount = useMemo(() => party2Slots.filter(s => s.type === 'empty').length, [party2Slots])
+
+  // 현재 선택된 파티의 슬롯
+  const displaySlots = useMemo(() => {
+    if (!isSanctuary8) return memberSlots
+    return selectedPartyGroup === 1 ? party1Slots : party2Slots
+  }, [isSanctuary8, selectedPartyGroup, memberSlots, party1Slots, party2Slots])
+
   const handleClick = () => {
+    // 모바일에서 접힌 상태면 카드 클릭 시 펼치기 (이벤트 전파 제어 고려)
+    if (!isExpanded && window.innerWidth < 1024) {
+      setIsExpanded(true)
+      return
+    }
+
     if (onSelect) {
       onSelect(party.id)
     }
+  }
+
+  const toggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsExpanded(!isExpanded)
   }
 
   return (
@@ -195,130 +229,189 @@ export default memo(function PartyCard({
         </div>
       </div>
 
-      {/* 제목 */}
-      {party.title && (
-        <div className={styles.title}>{party.title}</div>
-      )}
-
-      {/* 시간 정보 */}
-      {timeDisplay && (
-        <div className={styles.timeBox}>
-          <span className={styles.timeIcon}>{timeDisplay.icon}</span>
-          <span className={styles.timeLabel}>{timeDisplay.label}</span>
-          <span className={styles.timeSub}>{timeDisplay.sub}</span>
+      {/* 참여 조건 */}
+      {(party.min_item_level || party.min_breakthrough || party.min_combat_power) && (
+        <div className={styles.requirements}>
+          {party.min_item_level && (
+            <span className={styles.reqItem}>
+              <span className={styles.reqLabel}>아이템</span>
+              <span className={styles.reqValue}>{party.min_item_level}+</span>
+            </span>
+          )}
+          {party.min_breakthrough && (
+            <span className={styles.reqItem}>
+              <span className={styles.reqLabel}>돌파</span>
+              <span className={styles.reqValue}>{party.min_breakthrough}+</span>
+            </span>
+          )}
+          {party.min_combat_power && (
+            <span className={styles.reqItem}>
+              <span className={styles.reqLabel}>전투력</span>
+              <span className={styles.reqValue}>{(party.min_combat_power / 10000).toFixed(0)}만+</span>
+            </span>
+          )}
         </div>
       )}
 
-      {/* 파티원 슬롯 그리드 (4열 고정) */}
-      <div className={styles.membersSection}>
-        <div className={styles.membersGrid}>
-          {memberSlots.map((slot, idx) => (
-            <div key={slot.id} className={styles.memberSlot}>
-              {slot.type === 'filled' ? (
-                <div className={styles.memberCard}>
-                  {slot.isLeader && <div className={styles.leaderBadge}>파티장</div>}
-                  <div className={styles.profileWrapper}>
-                    {slot.member.profileImage ? (
-                      <Image
-                        src={slot.member.profileImage}
-                        alt={slot.member.name}
-                        width={42}
-                        height={42}
-                        className={styles.profileImage}
-                      />
-                    ) : (
-                      <div className={styles.profilePlaceholder}>
-                        {CLASS_ICONS[slot.member.class] || '👤'}
+      {/* 성역 8인: 1파티/2파티 탭 */}
+      {isSanctuary8 && (
+        <div className={styles.partyGroupTabs}>
+          <button
+            className={`${styles.partyGroupTab} ${selectedPartyGroup === 1 ? styles.activeTab : ''}`}
+            onClick={(e) => { e.stopPropagation(); setSelectedPartyGroup(1) }}
+          >
+            1파티 {party1EmptyCount > 0 && <span className={styles.emptyBadge}>{party1EmptyCount}자리</span>}
+          </button>
+          <button
+            className={`${styles.partyGroupTab} ${selectedPartyGroup === 2 ? styles.activeTab : ''}`}
+            onClick={(e) => { e.stopPropagation(); setSelectedPartyGroup(2) }}
+          >
+            2파티 {party2EmptyCount > 0 && <span className={styles.emptyBadge}>{party2EmptyCount}자리</span>}
+          </button>
+        </div>
+      )}
+
+      {/* 파티원 슬롯 그리드 (4열 고정) - 펼쳐진 상태거나 PC인 경우 표시 */}
+      {(isExpanded || (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
+        <>
+          <div className={styles.membersSection}>
+            <div className={styles.membersGrid}>
+              {displaySlots.map((slot, idx) => (
+                <div key={slot.id} className={styles.memberSlot}>
+                  {slot.type === 'filled' ? (
+                    <div className={styles.memberCard}>
+                      {slot.isLeader && <div className={styles.leaderBadge}>파티장</div>}
+                      <div className={styles.profileWrapper}>
+                        {slot.member.profileImage ? (
+                          <img
+                            src={slot.member.profileImage}
+                            alt={slot.member.name}
+                            className={styles.profileImage}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                              const parent = (e.target as HTMLImageElement).parentElement
+                              if (parent) {
+                                const placeholder = document.createElement('div')
+                                placeholder.className = styles.profilePlaceholder
+                                placeholder.innerHTML = CLASS_ICONS[slot.member.class] || '👤'
+                                parent.insertBefore(placeholder, e.target as HTMLImageElement)
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className={styles.profilePlaceholder}>
+                            {CLASS_ICONS[slot.member.class] || '👤'}
+                          </div>
+                        )}
+                        <span
+                          className={styles.raceIndicator}
+                          style={{ background: RACE_COLORS[slot.member.race] || '#2DD4BF' }}
+                        />
                       </div>
-                    )}
-                    <span
-                      className={styles.raceIndicator}
-                      style={{ background: RACE_COLORS[slot.member.race] || '#2DD4BF' }}
-                    />
-                  </div>
-                  <div className={styles.memberInfo}>
-                    <div className={styles.memberMainInfo}>
-                      <span className={styles.memberName}>{slot.member.name}</span>
-                      <span className={styles.memberClass}>{slot.member.class}</span>
-                      {slot.member.itemLevel > 0 && (
-                        <span className={styles.itemLevel}>iLv.{slot.member.itemLevel}</span>
-                      )}
+                      <div className={styles.memberInfo}>
+                        <div className={styles.memberMainInfo}>
+                          <span className={styles.memberName}>{slot.member.name}</span>
+                          <span className={styles.memberClass}>{slot.member.class}</span>
+                          {slot.member.itemLevel > 0 && (
+                            <span className={styles.itemLevel}>iLv.{slot.member.itemLevel}</span>
+                          )}
+                        </div>
+                        {slot.member.pveScore && slot.member.pveScore > 0 && (
+                          <span className={styles.combatPower}>
+                            {(slot.member.pveScore / 10000).toFixed(1)}만
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {slot.member.pveScore && slot.member.pveScore > 0 && (
-                      <span className={styles.combatPower}>
-                        {(slot.member.pveScore / 10000).toFixed(1)}만
+                  ) : (
+                    <div className={styles.emptySlot}>
+                      <div className={styles.emptyIcon}>+</div>
+                      <span className={styles.emptyClass}>
+                        {slot.requiredClass === '자유' ? '모집중' : slot.requiredClass}
                       </span>
-                    )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 하단 스탯 (파티 전투력, 평균 돌파) */}
+          {(partyStats.totalPower > 0 || partyStats.avgBreakthrough > 0) && (
+            <div className={styles.partyStats}>
+              {partyStats.totalPower > 0 && (
+                <div className={styles.partyStatItem}>
+                  <div className={styles.partyStatIcon} style={{ color: '#f59e0b' }}>⚔️</div>
+                  <div className={styles.partyStatContent}>
+                    <span className={styles.partyStatLabel}>파티 전투력</span>
+                    <span className={styles.partyStatValue}>
+                      {(partyStats.totalPower / 10000).toFixed(0)}만
+                    </span>
                   </div>
                 </div>
-              ) : (
-                <div className={styles.emptySlot}>
-                  <div className={styles.emptyIcon}>+</div>
-                  <span className={styles.emptyClass}>
-                    {slot.requiredClass === '자유' ? '모집중' : slot.requiredClass}
-                  </span>
+              )}
+
+              {partyStats.totalPower > 0 && partyStats.avgBreakthrough > 0 && (
+                <div style={{ width: 1, height: 24, background: '#333' }} />
+              )}
+
+              {partyStats.avgBreakthrough > 0 && (
+                <div className={styles.partyStatItem}>
+                  <div className={styles.partyStatIcon} style={{ color: '#60A5FA' }}>🛡️</div>
+                  <div className={styles.partyStatContent}>
+                    <span className={styles.partyStatLabel}>평균 돌파</span>
+                    <span className={styles.partyStatValue}>
+                      +{partyStats.avgBreakthrough}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 하단 스탯 (파티 전투력, 평균 돌파) */}
-      {(partyStats.totalPower > 0 || partyStats.avgBreakthrough > 0) && (
-        <div className={styles.partyStats}>
-          {partyStats.totalPower > 0 && (
-            <div className={styles.partyStatItem}>
-              <div className={styles.partyStatIcon} style={{ color: '#f59e0b' }}>⚔️</div>
-              <div className={styles.partyStatContent}>
-                <span className={styles.partyStatLabel}>파티 전투력</span>
-                <span className={styles.partyStatValue}>
-                  {(partyStats.totalPower / 10000).toFixed(0)}만
-                </span>
-              </div>
-            </div>
           )}
-
-          {partyStats.totalPower > 0 && partyStats.avgBreakthrough > 0 && (
-            <div style={{ width: 1, height: 24, background: '#333' }} />
-          )}
-
-          {partyStats.avgBreakthrough > 0 && (
-            <div className={styles.partyStatItem}>
-              <div className={styles.partyStatIcon} style={{ color: '#60A5FA' }}>🛡️</div>
-              <div className={styles.partyStatContent}>
-                <span className={styles.partyStatLabel}>평균 돌파</span>
-                <span className={styles.partyStatValue}>
-                  +{partyStats.avgBreakthrough}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
+        </>
       )}
 
-      {/* 푸터: 상태 뱃지 */}
+      {/* 푸터: 상태 뱃지 + 시간 */}
       <div className={styles.footer}>
-        {showPendingBadge && party.pending_count && party.pending_count > 0 && (
-          <span className={styles.pendingBadge}>
-            신청 대기 {party.pending_count}건
-          </span>
-        )}
-        {showMyRole && myMember && (
-          <span className={styles.myRoleBadge}>
-            내 역할: {myMember.character_class}
-          </span>
-        )}
-        {myApplication && (
-          <span className={styles.applicationBadge}>
-            승인 대기중
-          </span>
-        )}
-        {party.run_count && party.run_count > 1 && (
-          <span className={styles.runCountBadge}>
-            {party.run_count}회 진행
-          </span>
-        )}
+        <div className={styles.footerBadges}>
+          {showPendingBadge && party.pending_count && party.pending_count > 0 && (
+            <span className={styles.pendingBadge}>
+              신청 대기 {party.pending_count}건
+            </span>
+          )}
+          {showMyRole && myMember && (
+            <span className={styles.myRoleBadge}>
+              내 역할: {myMember.character_class}
+            </span>
+          )}
+          {myApplication && (
+            <span className={styles.applicationBadge}>
+              승인 대기중
+            </span>
+          )}
+          {party.run_count && party.run_count > 1 && (
+            <span className={styles.runCountBadge}>
+              {party.run_count}회 진행
+            </span>
+          )}
+        </div>
+        <div className={styles.footerRight}>
+          {partyStats.totalPower > 0 && (
+            <span className={styles.footerTotalPower}>
+              ⚔️ {(partyStats.totalPower / 10000).toFixed(0)}만
+            </span>
+          )}
+          <span className={styles.timeAgo}>{getRelativeTime(party.created_at)}</span>
+          <button
+            className={`${styles.expandButton} ${isExpanded ? styles.expanded : ''}`}
+            onClick={toggleExpand}
+            aria-label={isExpanded ? '접기' : '펼치기'}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   )

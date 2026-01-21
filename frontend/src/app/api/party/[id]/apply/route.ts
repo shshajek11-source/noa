@@ -33,7 +33,7 @@ export async function POST(
       return NextResponse.json({ error: '모집이 마감되었습니다.' }, { status: 400 })
     }
 
-    // 이미 신청했는지 확인
+    // 이미 신청했는지 확인 (pending, approved 상태)
     const existingMember = party.members?.find(
       (m: { user_id: string; status: string }) =>
         m.user_id === user.id && ['pending', 'approved'].includes(m.status)
@@ -41,6 +41,21 @@ export async function POST(
     if (existingMember) {
       return NextResponse.json({ error: '이미 신청한 파티입니다.' }, { status: 400 })
     }
+
+    // 취소/거절된 기록이 있으면 재신청 불가
+    const cancelledOrRejected = party.members?.find(
+      (m: { user_id: string; status: string }) =>
+        m.user_id === user.id && ['cancelled', 'rejected'].includes(m.status)
+    )
+    if (cancelledOrRejected) {
+      return NextResponse.json({ error: '이미 신청했던 파티입니다. 재신청이 불가능합니다.' }, { status: 400 })
+    }
+
+    // 추방된 경우에만 재신청 가능
+    const previousMember = party.members?.find(
+      (m: { id: string; user_id: string; status: string }) =>
+        m.user_id === user.id && m.status === 'kicked'
+    ) as { id: string; user_id: string; status: string } | undefined
 
     // 슬롯 확인
     const { data: slot, error: slotError } = await supabase
@@ -59,105 +74,79 @@ export async function POST(
       return NextResponse.json({ error: '해당 슬롯은 이미 채워졌습니다.' }, { status: 400 })
     }
 
-    // 직업 제한 확인
-    if (slot.required_class && slot.required_class !== body.character_class) {
-      return NextResponse.json({
-        error: `이 슬롯은 ${slot.required_class} 직업만 신청할 수 있습니다.`
-      }, { status: 400 })
-    }
+    // 직업/스펙 조건은 프론트엔드에서 표시만 하고, 실제 검증은 하지 않음 (유저 판단에 맡김)
 
-    // 스펙 조건 확인
-    if (party.min_item_level && body.character_item_level && body.character_item_level < party.min_item_level) {
-      return NextResponse.json({
-        error: `최소 아이템레벨 ${party.min_item_level} 이상이어야 합니다.`
-      }, { status: 400 })
-    }
-    if (party.min_breakthrough && body.character_breakthrough && body.character_breakthrough < party.min_breakthrough) {
-      return NextResponse.json({
-        error: `최소 돌파횟수 ${party.min_breakthrough}회 이상이어야 합니다.`
-      }, { status: 400 })
-    }
-    if (party.min_combat_power && body.character_combat_power && body.character_combat_power < party.min_combat_power) {
-      return NextResponse.json({
-        error: `최소 전투력 ${party.min_combat_power.toLocaleString()} 이상이어야 합니다.`
-      }, { status: 400 })
-    }
+    // 항상 승인제로 동작 (pending 상태로 시작)
+    const memberStatus = 'pending'
 
-    // 선착순인 경우 바로 승인
-    const isFirstCome = party.join_type === 'first_come'
-    const memberStatus = isFirstCome ? 'approved' : 'pending'
+    let member
 
-    // 파티원 등록
-    const { data: member, error: memberError } = await supabase
-      .from('party_members')
-      .insert({
-        party_id: partyId,
-        user_id: user.id,
-        slot_id: body.slot_id,
-        character_name: body.character_name,
-        character_class: body.character_class,
-        character_server_id: body.character_server_id,
-        character_level: body.character_level,
-        character_item_level: body.character_item_level,
-        character_breakthrough: body.character_breakthrough,
-        character_combat_power: body.character_combat_power,
-        character_equipment: body.character_equipment,
-        character_stats: body.character_stats,
-        apply_message: body.apply_message,
-        role: 'member',
-        status: memberStatus,
-        processed_at: isFirstCome ? new Date().toISOString() : null
-      })
-      .select()
-      .single()
-
-    if (memberError) {
-      console.error('[Party Apply] Error:', memberError)
-      return NextResponse.json({ error: memberError.message }, { status: 500 })
-    }
-
-    // 선착순인 경우 슬롯 업데이트
-    if (isFirstCome) {
-      await supabase
-        .from('party_slots')
-        .update({ member_id: member.id, status: 'filled' })
-        .eq('id', body.slot_id)
-
-      // 인원 확인 후 마감 처리
-      const { data: approvedMembers } = await supabase
+    // 이전 기록이 있으면 UPDATE, 없으면 INSERT
+    if (previousMember) {
+      // 기존 기록 업데이트 (재신청)
+      const { data: updatedMember, error: updateError } = await supabase
         .from('party_members')
-        .select('id')
-        .eq('party_id', partyId)
-        .eq('status', 'approved')
-
-      if (approvedMembers && approvedMembers.length >= party.max_members) {
-        await supabase
-          .from('party_posts')
-          .update({ status: 'full' })
-          .eq('id', partyId)
-
-        // 파티장에게 마감 알림
-        await supabase.from('party_notifications').insert({
-          user_id: party.user_id,
-          party_id: partyId,
-          type: 'party_full',
-          title: '파티 인원 마감',
-          message: `"${party.title}" 파티 인원이 마감되었습니다.`
+        .update({
+          slot_id: body.slot_id,
+          character_name: body.character_name,
+          character_class: body.character_class,
+          character_server_id: body.character_server_id,
+          character_level: body.character_level,
+          character_item_level: body.character_item_level,
+          character_breakthrough: body.character_breakthrough,
+          profile_image: body.profile_image,
+          character_combat_power: body.character_combat_power,
+          character_equipment: body.character_equipment,
+          character_stats: body.character_stats,
+          apply_message: body.apply_message,
+          status: memberStatus,
+          processed_at: null,
+          reject_reason: null
         })
-      }
+        .eq('id', previousMember.id)
+        .select()
+        .single()
 
-      // 시스템 메시지 추가
-      await supabase.from('party_comments').insert({
-        party_id: partyId,
-        user_id: user.id,
-        character_name: body.character_name,
-        content: `${body.character_name}님이 파티에 참여했습니다.`,
-        is_system_message: true
-      })
+      if (updateError) {
+        console.error('[Party Apply] Update Error:', updateError)
+        return NextResponse.json({ error: updateError.message }, { status: 500 })
+      }
+      member = updatedMember
+    } else {
+      // 새로 등록
+      const { data: newMember, error: memberError } = await supabase
+        .from('party_members')
+        .insert({
+          party_id: partyId,
+          user_id: user.id,
+          slot_id: body.slot_id,
+          character_name: body.character_name,
+          character_class: body.character_class,
+          character_server_id: body.character_server_id,
+          character_level: body.character_level,
+          character_item_level: body.character_item_level,
+          character_breakthrough: body.character_breakthrough,
+          profile_image: body.profile_image,
+          character_combat_power: body.character_combat_power,
+          character_equipment: body.character_equipment,
+          character_stats: body.character_stats,
+          apply_message: body.apply_message,
+          role: 'member',
+          status: memberStatus,
+          processed_at: null
+        })
+        .select()
+        .single()
+
+      if (memberError) {
+        console.error('[Party Apply] Error:', memberError)
+        return NextResponse.json({ error: memberError.message }, { status: 500 })
+      }
+      member = newMember
     }
 
-    // 파티장에게 알림 (승인제인 경우)
-    if (!isFirstCome && party.notification_enabled) {
+    // 파티장에게 알림
+    if (party.notification_enabled) {
       await supabase.from('party_notifications').insert({
         user_id: party.user_id,
         party_id: partyId,
@@ -171,7 +160,7 @@ export async function POST(
     return NextResponse.json({
       member,
       status: memberStatus,
-      message: isFirstCome ? '파티에 참여했습니다.' : '신청이 완료되었습니다. 파티장의 승인을 기다려주세요.'
+      message: '신청이 완료되었습니다. 파티장의 승인을 기다려주세요.'
     }, { status: 201 })
   } catch (err) {
     console.error('[Party Apply] Error:', err)

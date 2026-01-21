@@ -11,6 +11,7 @@ import PartyComments from './PartyComments'
 import styles from './PartyDetailModal.module.css'
 
 const ApplyModal = dynamic(() => import('./ApplyModal'), { ssr: false })
+const CreatePartyModal = dynamic(() => import('./CreatePartyModal'), { ssr: false })
 
 const DUNGEON_TYPE_ICONS: Record<string, string> = {
   transcend: '🏰',
@@ -24,9 +25,10 @@ interface PartyDetailModalProps {
   partyId: string
   isOpen: boolean
   onClose: () => void
+  onDeleted?: () => void  // 파티 삭제 후 콜백 (목록 새로고침용)
 }
 
-export default function PartyDetailModal({ partyId, isOpen, onClose }: PartyDetailModalProps) {
+export default function PartyDetailModal({ partyId, isOpen, onClose, onDeleted }: PartyDetailModalProps) {
   const {
     party,
     loading,
@@ -42,6 +44,7 @@ export default function PartyDetailModal({ partyId, isOpen, onClose }: PartyDeta
   } = usePartyDetail(partyId)
 
   const [applySlot, setApplySlot] = useState<PartySlot | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
   const [processing, setProcessing] = useState(false)
 
   const isPvp = party?.dungeon_type === 'pvp'
@@ -84,9 +87,17 @@ export default function PartyDetailModal({ partyId, isOpen, onClose }: PartyDeta
   const slotsWithMembers = useMemo(() => {
     if (!party?.slots) return []
     const approvedMembers = party.members?.filter(m => m.status === 'approved') || []
-    return party.slots.map(slot => {
+    const slotsData = party.slots.map(slot => {
       const member = approvedMembers.find(m => m.slot_id === slot.id)
       return { slot, member }
+    })
+    // 슬롯 번호 순서대로 정렬 (파티장 우선, 그 다음 슬롯 번호)
+    return slotsData.sort((a, b) => {
+      const aIsLeader = a.member?.role === 'leader' ? 1 : 0
+      const bIsLeader = b.member?.role === 'leader' ? 1 : 0
+      if (aIsLeader !== bIsLeader) return bIsLeader - aIsLeader
+      // 슬롯 번호 순서
+      return (a.slot.slot_number || 0) - (b.slot.slot_number || 0)
     })
   }, [party])
 
@@ -96,9 +107,9 @@ export default function PartyDetailModal({ partyId, isOpen, onClose }: PartyDeta
   }, [party])
 
   const myApplication = useMemo(() => {
-    if (!party?.members || !party.user_id) return null
+    if (!party?.members || !party.current_user_id) return null
     return party.members.find(
-      m => m.user_id === party.user_id && ['pending', 'approved'].includes(m.status)
+      m => m.user_id === party.current_user_id && ['pending', 'approved'].includes(m.status)
     )
   }, [party])
 
@@ -171,9 +182,13 @@ export default function PartyDetailModal({ partyId, isOpen, onClose }: PartyDeta
   const handleDelete = async () => {
     if (!confirm('파티를 취소하시겠습니까? 파티원들에게 알림이 발송됩니다.')) return
     try {
+      console.log('[PartyDetailModal] Deleting party:', partyId)
       await deleteParty()
+      console.log('[PartyDetailModal] Party deleted successfully')
       onClose()
+      onDeleted?.()  // 목록 새로고침
     } catch (err) {
+      console.error('[PartyDetailModal] Delete failed:', err)
       alert(err instanceof Error ? err.message : '취소에 실패했습니다.')
     }
   }
@@ -225,6 +240,12 @@ export default function PartyDetailModal({ partyId, isOpen, onClose }: PartyDeta
                     onClick={handleToggleNotification}
                   >
                     알림 {party.notification_enabled ? 'ON' : 'OFF'}
+                  </button>
+                  <button
+                    className={`${styles.actionButton} ${styles.edit}`}
+                    onClick={() => setShowEditModal(true)}
+                  >
+                    수정
                   </button>
                   <button
                     className={`${styles.actionButton} ${styles.complete}`}
@@ -313,6 +334,22 @@ export default function PartyDetailModal({ partyId, isOpen, onClose }: PartyDeta
                       const targetSlot = party.slots?.find(s => s.id === member.slot_id)
                       return (
                         <div key={member.id} className={styles.pendingCard}>
+                          <div className={styles.pendingProfile}>
+                            {member.profile_image ? (
+                              <img
+                                src={member.profile_image}
+                                alt={member.character_name}
+                                className={styles.pendingProfileImage}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none'
+                                }}
+                              />
+                            ) : (
+                              <div className={styles.pendingProfilePlaceholder}>
+                                {member.character_name.charAt(0)}
+                              </div>
+                            )}
+                          </div>
                           <div className={styles.pendingInfo}>
                             <div className={styles.pendingMain}>
                               {member.character_class} Lv{member.character_level} | {memberServerName} {member.character_name}
@@ -320,6 +357,7 @@ export default function PartyDetailModal({ partyId, isOpen, onClose }: PartyDeta
                             <div className={styles.pendingStats}>
                               {member.character_item_level && `아이템${member.character_item_level}`}
                               {member.character_breakthrough && ` 돌파${member.character_breakthrough}`}
+                              {member.character_combat_power && ` 전투력${(member.character_combat_power / 10000).toFixed(1)}만`}
                             </div>
                             {member.apply_message && (
                               <div className={styles.pendingMessage}>"{member.apply_message}"</div>
@@ -385,6 +423,18 @@ export default function PartyDetailModal({ partyId, isOpen, onClose }: PartyDeta
             minCombatPower={party.min_combat_power}
             onClose={() => setApplySlot(null)}
             onApply={handleApply}
+          />
+        )}
+
+        {showEditModal && party && (
+          <CreatePartyModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            editMode={true}
+            editData={party}
+            onUpdated={() => {
+              setShowEditModal(false)
+            }}
           />
         )}
       </div>

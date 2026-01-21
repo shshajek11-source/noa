@@ -205,20 +205,31 @@ export default function SearchBar() {
         return () => clearTimeout(timer)
     }, [name, race, server])
 
-    // Outside Click Handler
+    // Outside Click & Key Handler
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
                 setShowResults(false)
-                // Don't close server dropdown here if user clicked inside it
             }
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
                 wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
                 setIsDropdownOpen(false)
             }
         }
+
+        function handleKeyDown(event: KeyboardEvent) {
+            if (event.key === 'Escape') {
+                setShowResults(false)
+                setIsDropdownOpen(false)
+            }
+        }
+
         document.addEventListener("mousedown", handleClickOutside)
-        return () => document.removeEventListener("mousedown", handleClickOutside)
+        document.addEventListener("keydown", handleKeyDown)
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+            document.removeEventListener("keydown", handleKeyDown)
+        }
     }, [])
 
     // Dynamic Server List based on Race

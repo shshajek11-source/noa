@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User, Star, ChevronDown } from 'lucide-react';
 import type { ServerCandidate, PartyMember } from '@/hooks/usePartyScanner';
 
@@ -51,6 +51,7 @@ interface PartyCardProps {
 }
 
 export default function PartyCard({ member, index, spec, isLoadingSpec, selectionInfo, onSelect }: PartyCardProps) {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const isMvp = member.isMvp;
     const isMain = member.isMainCharacter;
     const hasSelection = selectionInfo && selectionInfo.candidates.length > 0;
@@ -211,47 +212,120 @@ export default function PartyCard({ member, index, spec, isLoadingSpec, selectio
                 </div>
             </div>
 
-            {/* Selection Overlay (if needed) */}
+            {/* Selection Overlay (Redesigned Dropdown) */}
             {hasSelection && (
                 <div style={{
-                    position: 'absolute', inset: 0,
-                    background: 'rgba(15, 23, 42, 0.95)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '0 20px',
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '12px',
+                    background: 'rgba(0, 0, 0, 0.6)',
+                    backdropFilter: 'blur(2px)',
                     zIndex: 10,
-                    borderRadius: '12px'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                 }}>
-                    <div style={{ width: '100%', maxWidth: '300px' }}>
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: '6px',
-                            color: selectionInfo.type === 'name' ? '#FACC15' : '#60A5FA',
-                            marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600
-                        }}>
-                            <ChevronDown size={14} />
-                            {selectionInfo.type === 'name' ? '캐릭터 선택' : '서버 선택'}
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            {selectionInfo.candidates.map((candidate, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => candidate.characterData && onSelect && onSelect(candidate.server, candidate.characterData)}
-                                    style={{
-                                        display: 'flex', justifyContent: 'space-between',
-                                        padding: '8px 12px',
-                                        background: 'rgba(255,255,255,0.1)',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '6px',
-                                        color: '#fff', fontSize: '0.85rem',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <span>{selectionInfo.type === 'name' ? (candidate.alternativeName || candidate.characterData?.name) : candidate.server}</span>
-                                    {candidate.characterData && (
-                                        <span style={{ color: '#60A5FA', fontSize: '0.75rem' }}>iLv.{candidate.characterData.gearScore}</span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
+                    <div style={{ position: 'relative', minWidth: '200px' }}>
+                        {/* Dropdown Trigger */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsDropdownOpen(!isDropdownOpen);
+                            }}
+                            style={{
+                                width: '100%',
+                                padding: '10px 16px',
+                                background: 'rgba(17, 24, 39, 0.95)',
+                                border: '1px solid #F59E0B',
+                                borderRadius: '8px',
+                                color: '#F59E0B',
+                                fontWeight: 600,
+                                fontSize: '0.9rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <span>{selectionInfo.type === 'name' ? '캐릭터 선택' : '서버를 선택해주세요'}</span>
+                            <ChevronDown size={16} style={{
+                                transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
+                                transition: 'transform 0.2s'
+                            }} />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {isDropdownOpen && (
+                            <div style={{
+                                position: 'absolute',
+                                top: 'calc(100% + 8px)',
+                                left: 0,
+                                right: 0,
+                                background: '#111827',
+                                border: '1px solid rgba(245, 158, 11, 0.3)',
+                                borderRadius: '8px',
+                                padding: '4px',
+                                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+                                zIndex: 20,
+                                maxHeight: '240px',
+                                overflowY: 'auto'
+                            }}>
+                                {selectionInfo.candidates.map((candidate, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (candidate.characterData && onSelect) {
+                                                onSelect(candidate.server, candidate.characterData);
+                                                setIsDropdownOpen(false);
+                                            }
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '10px 12px',
+                                            background: 'transparent',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            color: '#E5E7EB',
+                                            fontSize: '0.85rem',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            transition: 'background 0.15s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            <span style={{ fontWeight: 500 }}>
+                                                {selectionInfo.type === 'name'
+                                                    ? (candidate.alternativeName || candidate.characterData?.name)
+                                                    : candidate.server
+                                                }
+                                            </span>
+                                            {candidate.characterData?.server && selectionInfo.type === 'name' && (
+                                                <span style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>{candidate.characterData.server}</span>
+                                            )}
+                                        </div>
+                                        {candidate.characterData && (
+                                            <span style={{
+                                                color: '#F59E0B',
+                                                fontSize: '0.75rem',
+                                                background: 'rgba(245, 158, 11, 0.1)',
+                                                padding: '2px 6px',
+                                                borderRadius: '4px'
+                                            }}>
+                                                iLv.{candidate.characterData.gearScore}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

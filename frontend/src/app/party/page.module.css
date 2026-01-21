@@ -116,6 +116,44 @@
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
+/* 액션 버튼 그룹 (파티모집 + 내파티 + 알림) */
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.myPartyButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background: #111;
+  color: #E5E7EB;
+  border: 1px solid #222;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.myPartyButton:hover {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.myPartyButton .myPartyCount {
+  background: #f59e0b;
+  color: #000;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-top: 0;
+}
+
 /* 내 파티 섹션 */
 .myParties {
   display: flex;
@@ -186,9 +224,18 @@
     flex-direction: column;
   }
 
-  .createButton {
+  .actionButtons {
     width: 100%;
+    justify-content: space-between;
+  }
+
+  .createButton {
+    flex: 1;
     text-align: center;
+  }
+
+  .myPartyButton {
+    padding: 12px;
   }
 
   .myGrid {

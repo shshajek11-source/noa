@@ -68,7 +68,7 @@ export async function GET(
       comments,
       is_member: isMember,
       is_leader: isLeader,
-      user_id: user?.id
+      current_user_id: user?.id  // 현재 요청자의 ID (party.user_id는 파티장 ID)
     })
   } catch (err) {
     console.error('[Party Detail] Error:', err)
@@ -106,7 +106,7 @@ export async function PATCH(
     const allowedFields = [
       'title', 'description', 'scheduled_date', 'scheduled_time_start',
       'scheduled_time_end', 'run_count', 'min_item_level', 'min_breakthrough',
-      'min_combat_power', 'notification_enabled', 'status'
+      'min_combat_power', 'notification_enabled', 'status', 'profile_image'
     ]
 
     for (const field of allowedFields) {
@@ -140,20 +140,31 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+    console.log('[Party Delete] Attempting to delete party:', id)
+
     const user = await getUserFromRequest(request)
+    console.log('[Party Delete] User:', user?.id || 'not authenticated')
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // 파티장 확인
-    const { data: party } = await supabase
+    const { data: party, error: fetchError } = await supabase
       .from('party_posts')
-      .select('user_id, title')
+      .select('user_id, title, status')
       .eq('id', id)
       .single()
 
+    console.log('[Party Delete] Party found:', party, 'Error:', fetchError)
+
     if (!party || party.user_id !== user.id) {
+      console.log('[Party Delete] Not authorized - party.user_id:', party?.user_id, 'user.id:', user.id)
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+    }
+
+    if (party.status === 'cancelled') {
+      return NextResponse.json({ error: '이미 취소된 파티입니다.' }, { status: 400 })
     }
 
     // 파티원들에게 알림 발송
@@ -183,9 +194,11 @@ export async function DELETE(
       .eq('id', id)
 
     if (error) {
+      console.error('[Party Delete] Update failed:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    console.log('[Party Delete] Party cancelled successfully:', id)
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('[Party Delete] Error:', err)

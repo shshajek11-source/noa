@@ -1,15 +1,18 @@
+/* Ranking Page - Deep Black & Amber Theme */
+
 /* Filter Bar Container */
 .filterBar {
     display: flex;
     gap: 1rem;
-    background: rgba(17, 24, 39, 0.6);
+    background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 1rem;
     border-radius: 16px;
     margin-bottom: 2rem;
     align-items: center;
     flex-wrap: wrap;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .selectGroup {
@@ -38,9 +41,9 @@
 }
 
 .dsSelect:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.08);
     color: var(--text-main);
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(245, 158, 11, 0.3);
 }
 
 .dsSelect:focus {
@@ -48,9 +51,10 @@
     border-color: #f59e0b;
     box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
     color: var(--text-main);
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
-/* Search Wrapper (Gradient Border) */
+/* Search Wrapper */
 .dsSearchWrapper {
     flex: 1;
     min-width: 240px;
@@ -65,6 +69,7 @@
     background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
     background-size: 200% 100%;
     animation: gradientShift 3s linear infinite;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
 }
 
 .dsSearchInner {
@@ -129,10 +134,10 @@
 }
 
 .tabLinkActive {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: #f59e0b;
     color: #000;
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .tabLink:hover:not(.tabLinkActive) {
@@ -155,301 +160,215 @@
 }
 
 /* Ranking Table Specifics */
-
-/* Reuse global table/tr/td styles, just add specifics */
-
-
-
 .rankingTable {
-
     width: 100%;
-
-    border-collapse: collapse;
-
+    border-collapse: separate;
+    border-spacing: 0;
 }
-
-
 
 .rankingTable th {
-
     background: rgba(255, 255, 255, 0.03);
-
-    padding: 1rem 1.25rem;
-
-    font-size: 0.9rem;
-
+    padding: 1.25rem 1rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
-
     letter-spacing: 0.05em;
-
     color: var(--text-secondary);
-
-    border-bottom: 1px solid var(--border);
-
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-weight: 600;
 }
-
-
 
 .rankingTable td {
-
-    padding: 1rem 1.25rem;
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-
+    padding: 0.25rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     vertical-align: middle;
-
+    transition: background 0.2s;
 }
 
-
-
 .rankingTable tr {
-    /* content-visibility로 화면 밖 행 렌더링 최적화 */
     content-visibility: auto;
     contain-intrinsic-size: auto 60px;
 }
 
-.rankingTable tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+.rankingTable tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
 }
 
+/* Top 3 Highlighting */
 .rankRow1 {
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.02) 100%);
-    position: relative;
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.08) 0%, rgba(255, 215, 0, 0.01) 100%);
 }
 
-.rankRow1::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: #FFD700;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+.rankRow1 td:first-child {
+    border-left: 3px solid #FFD700;
 }
 
 .rankRow2 {
-    background: linear-gradient(90deg, rgba(192, 192, 192, 0.15) 0%, rgba(192, 192, 192, 0.02) 100%);
-    position: relative;
+    background: linear-gradient(90deg, rgba(192, 192, 192, 0.08) 0%, rgba(192, 192, 192, 0.01) 100%);
 }
 
-.rankRow2::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: #C0C0C0;
-    box-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+.rankRow2 td:first-child {
+    border-left: 3px solid #C0C0C0;
 }
 
 .rankRow3 {
-    background: linear-gradient(90deg, rgba(205, 127, 50, 0.15) 0%, rgba(205, 127, 50, 0.02) 100%);
-    position: relative;
+    background: linear-gradient(90deg, rgba(205, 127, 50, 0.08) 0%, rgba(205, 127, 50, 0.01) 100%);
 }
 
-.rankRow3::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: #CD7F32;
-    box-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+.rankRow3 td:first-child {
+    border-left: 3px solid #CD7F32;
 }
-
-
 
 .rankCell {
-
     display: flex;
-
     justify-content: center;
-
     align-items: center;
-
-    font-weight: bold;
-
+    font-weight: 800;
     color: var(--text-secondary);
-
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem;
 }
-
-
 
 .rankIcon {
-
     width: 28px;
-
     height: 28px;
-
 }
-
-
 
 .rankIconGold {
-
     color: #FFD700;
-
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
 }
-
-
 
 .rankIconSilver {
-
     color: #C0C0C0;
-
+    filter: drop-shadow(0 0 5px rgba(192, 192, 192, 0.5));
 }
-
-
 
 .rankIconBronze {
-
     color: #CD7F32;
-
+    filter: drop-shadow(0 0 5px rgba(205, 127, 50, 0.5));
 }
-
-
 
 .charLink {
-
     display: flex;
-
     align-items: center;
-
     gap: 1rem;
-
     text-decoration: none;
-
     color: inherit;
-
+    padding: 0.25rem 0;
 }
-
-
 
 .charImageWrapper {
-
-    width: 52px;
-
-    height: 52px;
-
-    border-radius: 50%;
-
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
     overflow: hidden;
-
-    background: var(--bg-hover);
-
-    border: 2px solid var(--border);
-
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     flex-shrink: 0;
-
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
-
-
 
 .charImage {
-
     width: 100%;
-
     height: 100%;
-
     object-fit: cover;
-
+    transition: transform 0.3s;
 }
 
-
+.charLink:hover .charImage {
+    transform: scale(1.1);
+}
 
 .charImagePlaceholder {
-
     width: 100%;
-
     height: 100%;
-
-    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-
-    color: white;
-
+    background: linear-gradient(135deg, #1f1f1f 0%, #111 100%);
+    color: #444;
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
-    font-weight: bold;
-
-    font-size: 1.2rem;
-
+    font-weight: 700;
+    font-size: 1.5rem;
     text-transform: uppercase;
-
 }
-
-
 
 .charInfo {
-
     display: flex;
-
     flex-direction: column;
-
+    gap: 0.25rem;
 }
-
-
 
 .charName {
-
     font-weight: 700;
-
     color: var(--text-main);
-
-    font-size: 1.1rem;
-
+    font-size: 1.15rem;
+    transition: color 0.2s;
 }
 
-
+.charLink:hover .charName {
+    color: #f59e0b;
+}
 
 .charDetail {
-
-    font-size: 0.9rem;
-
+    font-size: 0.85rem;
     color: var(--text-secondary);
-
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-
-
 
 .scoreValue {
-    font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: #FACC15;
-    letter-spacing: -0.03em;
-    text-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #E5E7EB;
+    letter-spacing: -0.02em;
 }
 
-
+.rankingTable tr:hover .scoreValue {
+    color: #f59e0b;
+    text-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+}
 
 .elyos {
-
-    color: var(--success);
-
+    color: #2DD4BF;
 }
-
-
 
 .asmodian {
-
-    color: var(--danger);
-
+    color: #A78BFA;
 }
 
+/* Page Title */
+.pageTitle {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    color: #fff;
+    letter-spacing: -0.03em;
+}
 
+/* Custom Scroll for Table */
+.tableScroll {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+}
+
+.tableScroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.tableScroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tableScroll::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
 
 /* Load More Button */
 .loadMoreButton {
@@ -464,7 +383,7 @@
     transition: all 0.3s ease;
     width: 100%;
     max-width: 200px;
-    margin: 0 auto;
+    margin: 2rem auto;
     display: block;
 }
 
@@ -479,2193 +398,189 @@
     opacity: 0.5;
     cursor: not-allowed;
     background: transparent;
-    color: var(--text-muted);
 }
 
-
-
-
-
-
-
-/* Skeleton Loading */
-
-
-
+/* Skeleton Stuff */
 .skeleton {
-
-
-
-    background: linear-gradient(90deg,
-
-
-
-            rgba(255, 255, 255, 0.05) 25%,
-
-
-
-            rgba(255, 255, 255, 0.1) 50%,
-
-
-
-            rgba(255, 255, 255, 0.05) 75%);
-
-
-
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
     background-size: 200% 100%;
-
-
-
     animation: loading 1.5s infinite;
-
-
-
     border-radius: 4px;
-
-
-
 }
-
-
-
-
-
-
 
 @keyframes loading {
-
-
-
     0% {
-
-
-
         background-position: 200% 0;
-
-
-
     }
-
-
 
     100% {
-
-
-
         background-position: -200% 0;
-
-
-
     }
-
-
-
 }
-
-
-
-
-
-
 
 .skeletonCircle {
-
-
-
-    width: 40px;
-
-
-
-    height: 40px;
-
-
-
-    border-radius: 50%;
-
-
-
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
 }
-
-
-
-
-
-
 
 .skeletonText {
-
-
-
-    height: 1rem;
-
-
-
+    height: 1.15rem;
     margin-bottom: 0.5rem;
-
-
-
 }
-
-
-
-
-
-
 
 .skeletonTextShort {
-
-
-
-
-
-
-
     width: 60%;
-
-
-
-
-
-
-
-    height: 0.8rem;
-
-
-
-
-
-
-
+    height: 0.85rem;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* =========================================
-
-
-
-
-
-
-
-   New Integrated Search Bar Styles
-
-
-
-
-
-
-
-   ========================================= */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.searchContainer {
-
-
-
-
-
-
-
-    position: relative;
-
-
-
-
-
-
-
-    width: 100%;
-
-
-
-
-
-
-
-    max-width: 800px;
-
-
-
-
-
-
-
-    margin: 0 auto;
-
-
-
-
-
-
-
-    z-index: 50;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* The Main Bar */
-
-
-
-
-
-
-
-.searchBarGlass {
-
-
-
-
-
-
-
-    display: flex;
-
-
-
-
-
-
-
-    align-items: center;
-
-
-
-
-
-
-
-    background: rgba(0, 0, 0, 0.6);
-
-
-
-
-
-
-
-    backdrop-filter: blur(12px);
-
-
-
-
-
-
-
-    -webkit-backdrop-filter: blur(12px);
-
-
-
-
-
-
-
-    border: 1px solid rgba(255, 255, 255, 0.1);
-
-
-
-
-
-
-
-    border-radius: 16px;
-
-
-
-
-
-
-
-    padding: 8px;
-
-
-
-
-
-
-
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-
-
-
-
-
-
-
-    transition: all 0.3s ease;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.searchBarGlass:focus-within {
-
-
-
-
-
-
-
-    border-color: rgba(250, 204, 21, 0.5);
-    /* Gold glow on focus */
-
-
-
-
-
-
-
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 15px rgba(250, 204, 21, 0.1);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Server Selector Trigger Button */
-
-
-
-
-
-
-
-.serverTriggerBtn {
-
-
-
-
-
-
-
-    display: flex;
-
-
-
-
-
-
-
-    align-items: center;
-
-
-
-
-
-
-
-    gap: 8px;
-
-
-
-
-
-
-
-    padding: 12px 20px;
-
-
-
-
-
-
-
-    background: rgba(255, 255, 255, 0.05);
-
-
-
-
-
-
-
-    border: 1px solid rgba(255, 255, 255, 0.1);
-
-
-
-
-
-
-
-    border-radius: 12px;
-
-
-
-
-
-
-
-    color: #e5e7eb;
-
-
-
-
-
-
-
-    font-size: 15px;
-
-
-
-
-
-
-
-    font-weight: 600;
-
-
-
-
-
-
-
-    cursor: pointer;
-
-
-
-
-
-
-
-    white-space: nowrap;
-
-
-
-
-
-
-
-    transition: all 0.2s;
-
-
-
-
-
-
-
-    min-width: 140px;
-
-
-
-
-
-
-
-    justify-content: center;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.serverTriggerBtn:hover {
-
-
-
-
-
-
-
-    background: rgba(255, 255, 255, 0.1);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.serverTriggerBtn.elyos {
-
-
-
-
-
-
-
-    color: #60a5fa;
-
-
-
-
-
-
-
-    border-color: rgba(96, 165, 250, 0.3);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.serverTriggerBtn.asmodian {
-
-
-
-
-
-
-
-    color: #f87171;
-
-
-
-
-
-
-
-    border-color: rgba(248, 113, 113, 0.3);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Input Field */
-
-
-
-
-
-
-
-.searchInputField {
-
-
-
-
-
-
-
-    flex: 1;
-
-
-
-
-
-
-
-    background: transparent;
-
-
-
-
-
-
-
-    border: none;
-
-
-
-
-
-
-
-    color: white;
-
-
-
-
-
-
-
-    font-size: 16px;
-
-
-
-
-
-
-
-    padding: 12px 20px;
-
-
-
-
-
-
-
-    outline: none;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.searchInputField::placeholder {
-
-
-
-
-
-
-
-    color: rgba(255, 255, 255, 0.4);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Search Action Button */
-
-
-
-
-
-
-
-.searchActionBtn {
-
-
-
-
-
-
-
-    display: flex;
-
-
-
-
-
-
-
-    align-items: center;
-
-
-
-
-
-
-
-    justify-content: center;
-
-
-
-
-
-
-
-    width: 48px;
-
-
-
-
-
-
-
-    height: 48px;
-
-
-
-
-
-
-
-    background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
-
-
-
-
-
-
-
-    color: #000;
-
-
-
-
-
-
-
-    border: none;
-
-
-
-
-
-
-
-    border-radius: 12px;
-
-
-
-
-
-
-
-    cursor: pointer;
-
-
-
-
-
-
-
-    transition: transform 0.2s, box-shadow 0.2s;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.searchActionBtn:hover {
-
-
-
-
-
-
-
-    transform: translateY(-2px);
-
-
-
-
-
-
-
-    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Dropdown Panel */
-
-
-
-
-
-
-
-.dropdownPanel {
-
-
-
-
-
-
-
-    position: absolute;
-
-
-
-
-
-
-
-    top: calc(100% + 12px);
-
-
-
-
-
-
-
-    left: 0;
-
-
-
-
-
-
-
-    width: 100%;
-
-
-
-
-
-
-
-    background: rgba(15, 15, 20, 0.95);
-
-
-
-
-
-
-
-    backdrop-filter: blur(16px);
-
-
-
-
-
-
-
-    -webkit-backdrop-filter: blur(16px);
-
-
-
-
-
-
-
-    border: 1px solid rgba(255, 255, 255, 0.1);
-
-
-
-
-
-
-
-    border-radius: 16px;
-
-
-
-
-
-
-
-    padding: 20px;
-
-
-
-
-
-
-
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-
-
-
-
-
-
-
-    z-index: 100;
-
-
-
-
-
-
-
-    animation: slideDown 0.2s ease-out;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@keyframes slideDown {
-
-
-
-
-
-
-
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-
-
-
-
-
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Race Toggles */
-
-
-
-
-
-
-
-.raceToggleGroup {
-
-
-
-
-
-
-
-    display: flex;
-
-
-
-
-
-
-
-    gap: 10px;
-
-
-
-
-
-
-
-    margin-bottom: 20px;
-
-
-
-
-
-
-
-    padding-bottom: 20px;
-
-
-
-
-
-
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.raceBtn {
-
-
-
-
-
-
-
-    flex: 1;
-
-
-
-
-
-
-
-    padding: 12px;
-
-
-
-
-
-
-
-    border: 1px solid rgba(255, 255, 255, 0.1);
-
-
-
-
-
-
-
-    background: rgba(0, 0, 0, 0.3);
-
-
-
-
-
-
-
-    color: #9ca3af;
-
-
-
-
-
-
-
-    border-radius: 8px;
-
-
-
-
-
-
-
-    font-size: 15px;
-
-
-
-
-
-
-
-    font-weight: 700;
-
-
-
-
-
-
-
-    cursor: pointer;
-
-
-
-
-
-
-
-    transition: all 0.2s;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.raceBtn:hover {
-
-
-
-
-
-
-
-    background: rgba(255, 255, 255, 0.05);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.raceBtn.activeElyos {
-
-
-
-
-
-
-
-    background: rgba(59, 130, 246, 0.15);
-
-
-
-
-
-
-
-    border-color: #3b82f6;
-
-
-
-
-
-
-
-    color: #60a5fa;
-
-
-
-
-
-
-
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.raceBtn.activeAsmodian {
-
-
-
-
-
-
-
-    background: rgba(239, 68, 68, 0.15);
-
-
-
-
-
-
-
-    border-color: #ef4444;
-
-
-
-
-
-
-
-    color: #f87171;
-
-
-
-
-
-
-
-    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Server Grid */
-
-
-
-
-
-
-
-.serverGrid {
-
-
-
-
-
-
-
-    display: grid;
-
-
-
-
-
-
-
-    grid-template-columns: repeat(6, 1fr);
-    /* 6 Columns as requested */
-
-
-
-
-
-
-
-    gap: 8px;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.serverItem {
-
-
-
-
-
-
-
-    padding: 10px 4px;
-
-
-
-
-
-
-
+/* Main Glass Card for Table */
+.rankingCard {
     background: rgba(255, 255, 255, 0.03);
-
-
-
-
-
-
-
-    border: 1px solid transparent;
-
-
-
-
-
-
-
-    border-radius: 6px;
-
-
-
-
-
-
-
-    color: #d1d5db;
-
-
-
-
-
-
-
-    font-size: 14px;
-
-
-
-
-
-
-
-    text-align: center;
-
-
-
-
-
-
-
-    cursor: pointer;
-
-
-
-
-
-
-
-    transition: all 0.2s;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.serverItem:hover {
-
-
-
-
-
-
-
-    background: rgba(255, 255, 255, 0.1);
-
-
-
-
-
-
-
-    color: white;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.serverItem.selected {
-
-
-
-
-
-
-
-    background: rgba(250, 204, 21, 0.1);
-
-
-
-
-
-
-
-    border-color: rgba(250, 204, 21, 0.5);
-
-
-
-
-
-
-
-    color: #facc15;
-
-
-
-
-
-
-
-    font-weight: bold;
-
-
-
-
-
-
-
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 0;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    min-height: 400px;
 }
 
 /* =========================================
-   순위 변동 스타일
+   Responsive & Mobile Views
    ========================================= */
 
-.rankChangeWrapper {
-    position: relative;
-    display: inline-block;
+/* Desktop Default: Hide Mobile List, Show Table */
+.rankingTableWrapper {
+    display: block;
 }
 
-.rankChange {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.3rem 0.5rem;
-    border-radius: 5px;
-    min-width: 48px;
-}
-
-.rankChangeUp {
-    color: #22c55e;
-    background: rgba(34, 197, 94, 0.1);
-}
-
-.rankChangeDown {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
-}
-
-.rankChangeSame {
-    color: #6b7280;
-    background: rgba(107, 114, 128, 0.1);
-}
-
-.rankChangeNew {
-    color: #facc15;
-    background: rgba(250, 204, 21, 0.15);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-}
-
-.rankChangeTooltip {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.9);
-    color: #e5e7eb;
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    z-index: 100;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.rankChangeTooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: rgba(0, 0, 0, 0.9);
-}
-
-/* =========================================
-   티어 뱃지 스타일
-   ========================================= */
-
-.tierBadgeWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    position: relative;
-}
-
-.tierBadge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.3rem 0.6rem;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    border: 1px solid;
-    transition: all 0.3s ease;
-}
-
-.tierPromoted {
-    animation: tierGlow 2s ease-in-out infinite;
-}
-
-@keyframes tierGlow {
-
-    0%,
-    100% {
-        box-shadow: 0 0 5px currentColor;
-    }
-
-    50% {
-        box-shadow: 0 0 15px currentColor, 0 0 25px currentColor;
-    }
-}
-
-.promotionSparkle {
-    color: #facc15;
-    animation: sparkle 1.5s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 0.6;
-        transform: scale(1.2);
-    }
-}
-
-/* 티어 진급 행 하이라이트 */
-.promotedRow {
-    position: relative;
-    background: linear-gradient(90deg, rgba(250, 204, 21, 0.08) 0%, transparent 100%) !important;
-}
-
-.promotedRow::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(180deg, #facc15, #f59e0b);
-    box-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
-}
-
-/* =========================================
-   아이템 레벨 스타일
-   ========================================= */
-
-.itemLevelValue {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: #a78bfa;
-    letter-spacing: -0.01em;
-}
-
-/* =========================================
-   순위 숫자 스타일
-   ========================================= */
-
-.rankNumber {
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #9ca3af;
-}
-
-/* =============================================
-   ADAPTIVE STYLES FOR RANKING PAGE
-   ============================================= */
-
-/* Page Title - Adaptive */
-.pageTitle {
-    font-size: 2rem;
-    font-weight: 800;
-    margin-bottom: 2rem;
-    border-left: 4px solid var(--brand-red-main);
-    padding-left: 1rem;
-    color: #fff;
-    letter-spacing: -0.02em;
-    background: linear-gradient(to right, #fff, #D1D5DB);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    width: fit-content;
-}
-
-/* Desktop: 1200px */
-@media (min-width: 1025px) {
-    .pageTitle {
-        font-size: 2rem;
-    }
-
-    .filterBar {
-        flex-wrap: nowrap;
-    }
-
-    .dsSelect {
-        min-width: 140px;
-    }
-
-    .dsSearchWrapper {
-        min-width: 240px;
-    }
-
-    .tabLink {
-        padding: 0.6rem 1.75rem;
-        font-size: 0.95rem;
-    }
-
-    .rankingTable th,
-    .rankingTable td {
-        padding: 1rem;
-    }
-}
-
-/* Tablet: 768px */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .pageTitle {
-        font-size: 1.75rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .filterBar {
-        flex-wrap: wrap;
-        padding: 0.75rem;
-        gap: 0.75rem;
-    }
-
-    .selectGroup {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .dsSelect {
-        min-width: 120px;
-        padding: 0.6rem 2rem 0.6rem 1rem;
-        font-size: 0.85rem;
-    }
-
-    .dsSearchWrapper {
-        width: 100%;
-        min-width: unset;
-    }
-
-    .tabNav {
-        margin-bottom: 1.5rem;
-    }
-
-    .tabLink {
-        padding: 0.5rem 1.25rem;
-        font-size: 0.875rem;
-    }
-
-    .rankingTable th,
-    .rankingTable td {
-        padding: 0.75rem;
-        font-size: 0.9rem;
-    }
-
-    .charImageWrapper {
-        width: 36px;
-        height: 36px;
-    }
-
-    .charLink {
-        gap: 0.75rem;
-    }
-}
-
-/* Mobile: ≤768px */
-@media (max-width: 768px) {
-    .pageTitle {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-        padding-left: 0.75rem;
-    }
-
-    .filterBar {
-        flex-direction: column;
-        padding: 0.75rem;
-        gap: 0.75rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-    }
-
-    .selectGroup {
-        width: 100%;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .dsSelect {
-        flex: 1;
-        min-width: calc(50% - 0.25rem);
-        padding: 0.6rem 2rem 0.6rem 0.75rem;
-        font-size: 0.85rem;
-        border-radius: 8px;
-    }
-
-    .dsSearchWrapper {
-        width: 100%;
-        min-width: unset;
-    }
-
-    .searchInput {
-        padding: 0.6rem 0.75rem 0.6rem 2.5rem;
-        font-size: 16px;
-        /* Prevents iOS zoom */
-    }
-
-    .tabNav {
-        width: 100%;
-        overflow-x: auto;
-        margin-bottom: 1rem;
-        padding: 0.2rem;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .tabLink {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-    }
-
-    /* Hide Desktop Table on Mobile */
-    .rankingTableWrapper {
-        display: none !important;
-    }
-
-    /* Show Mobile List on Mobile */
-    .mobileRankingList {
-        display: flex !important;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .mobileRankingCard {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 16px;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.2s ease;
-    }
-
-    .mobileRankingCard:active {
-        background: rgba(255, 255, 255, 0.06);
-        transform: scale(0.995);
-    }
-
-    .cardHeader {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 12px;
-    }
-
-    .rankBadge {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .rankNumberMobile {
-        font-size: 1.25rem;
-        font-weight: 800;
-        font-style: italic;
-        font-family: 'Rajdhani', sans-serif;
-        color: var(--text-secondary);
-    }
-
-    .rank1 {
-        color: #FFD700;
-        text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-    }
-
-    .rank2 {
-        color: #C0C0C0;
-        text-shadow: 0 0 10px rgba(192, 192, 192, 0.4);
-    }
-
-    .rank3 {
-        color: #CD7F32;
-        text-shadow: 0 0 10px rgba(205, 127, 50, 0.4);
-    }
-
-    .cardBody {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 16px;
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .avatarMobile {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: var(--bg-hover);
-        border: 2px solid var(--border);
-        overflow: hidden;
-        flex-shrink: 0;
-    }
-
-    .infoMobile {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .nameMobile {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .metaMobile {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 6px;
-        row-gap: 8px;
-        /* Gap when wrapped */
-    }
-
-    .separator {
-        color: #444;
-        font-size: 0.7rem;
-    }
-
-    .inlineStats {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-
-    .statTag {
-        display: inline-flex;
-        align-items: center;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-family: 'Pretendard', monospace;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
-    .loadMoreButton {
-        width: 100%;
-        font-size: 0.9rem;
-        padding: 1rem;
-    }
-
-    .valPvp {
-        color: #ef4444;
-    }
-
-    .valPve {
-        color: #3b82f6;
-    }
-
-    /* Consistent with blueprint */
-    .valItem {
-        color: #10b981;
-    }
-
-    .loadMoreButton {
-        width: 100%;
-        font-size: 0.9rem;
-        padding: 1rem;
-    }
-}
-
-/* Default Desktop: Hide Mobile List */
 .mobileRankingList {
     display: none;
+}
+
+/* Mobile View (< 1024px) */
+@media (max-width: 1024px) {
+    .rankingTableWrapper {
+        display: none;
+    }
+
+    .mobileRankingList {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .rankingCard {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+}
+
+/* Mobile Card Styling */
+.mobileRankingCard {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rankBadge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rankNumberMobile {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.rank1 {
+    color: #FFD700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.rank2 {
+    color: #C0C0C0;
+    text-shadow: 0 0 10px rgba(192, 192, 192, 0.3);
+}
+
+.rank3 {
+    color: #CD7F32;
+    text-shadow: 0 0 10px rgba(205, 127, 50, 0.3);
+}
+
+.cardBody {
+    display: flex;
+    padding: 1rem;
+    gap: 1rem;
+    text-decoration: none;
+    color: inherit;
+    align-items: center;
+}
+
+.avatarMobile {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.infoMobile {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nameMobile {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-main);
+}
+
+.metaMobile {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.separator {
+    color: rgba(255, 255, 255, 0.1);
+}
+
+.inlineStats {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.statTag {
+    font-size: 0.75rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
 }

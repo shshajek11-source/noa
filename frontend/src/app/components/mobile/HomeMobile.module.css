@@ -328,6 +328,12 @@
   background: #111;
   border: 1px solid #1a1a1a;
   border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.rankingItem:active {
+  background: #1a1a1a;
 }
 
 .rankBadge {
@@ -429,6 +435,80 @@
   color: #6B7280;
 }
 
+.serverPercent {
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.serverElyos .serverPercent {
+  color: #2DD4BF;
+}
+
+.serverAsmo .serverPercent {
+  color: #A78BFA;
+}
+
+.serverCount {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+.statsMeta {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+/* 비율 바 */
+.ratioBar {
+  display: flex;
+  height: 6px;
+  background: #1a1a1a;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.ratioElyos {
+  background: #2DD4BF;
+  transition: width 0.3s;
+}
+
+.ratioAsmo {
+  background: #A78BFA;
+  transition: width 0.3s;
+}
+
+/* 인기 직업 */
+.topClasses {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #1a1a1a;
+}
+
+.topClassesLabel {
+  font-size: 0.75rem;
+  color: #6B7280;
+  flex-shrink: 0;
+}
+
+.topClassesList {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.topClassItem {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  background: #1a1a1a;
+  border-radius: 6px;
+  color: #9CA3AF;
+}
+
 /* 공지사항 */
 .noticeList {
   display: flex;
@@ -445,6 +525,13 @@
   gap: 10px;
   padding: 14px 16px;
   background: #111;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.noticeItem:active {
+  background: #1a1a1a;
 }
 
 .noticeDot {
@@ -466,6 +553,30 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 로딩/빈 상태 */
+.loadingState {
+  padding: 24px;
+  text-align: center;
+  color: #6B7280;
+  font-size: 0.85rem;
+}
+
+.emptyState {
+  padding: 24px;
+  text-align: center;
+  color: #6B7280;
+  font-size: 0.85rem;
+}
+
+/* 공지 날짜 */
+.noticeDate {
+  font-size: 0.75rem;
+  color: #f59e0b;
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 36px;
 }
 
 /* 하단 여백 */

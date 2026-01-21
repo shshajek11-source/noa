@@ -113,7 +113,8 @@ export async function POST(request: NextRequest) {
         character_level: body.character_level,
         character_item_level: body.character_item_level,
         character_breakthrough: body.character_breakthrough,
-        character_combat_power: body.character_combat_power
+        character_combat_power: body.character_combat_power,
+        profile_image: body.profile_image
       })
       .select()
       .single()
@@ -172,6 +173,7 @@ export async function POST(request: NextRequest) {
         character_item_level: body.character_item_level,
         character_breakthrough: body.character_breakthrough,
         character_combat_power: body.character_combat_power,
+        profile_image: body.profile_image,
         role: 'leader',
         status: 'approved'
       })

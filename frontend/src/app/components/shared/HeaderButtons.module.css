@@ -182,7 +182,19 @@
     font-size: 0.9rem;
 }
 
-.userEmail {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
+
+.profileButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 9999px;
+    transition: background 0.2s;
+}
+
+.profileButton:hover {
+    background: rgba(255, 255, 255, 0.05);
 }

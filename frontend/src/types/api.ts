@@ -181,6 +181,8 @@ export interface LocalCharacterRecord {
     profile_image?: string
     item_level?: number
     noa_score?: number
+    pve_score?: number
+    pvp_score?: number
 }
 
 // 전투력 계산용 장비 데이터

@@ -5,23 +5,30 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 20px;
+  padding: 10px;
 }
 
 /* 모달 컨테이너 */
 .modal {
-  background: var(--bg-card, #1a1d24);
+  background: #111;
+  border: 1px solid #333;
   border-radius: 12px;
   width: 100%;
   max-width: 680px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+}
+
+@media (max-width: 600px) {
+  .modal {
+    max-height: 95vh;
+  }
 }
 
 /* 헤더 */
@@ -29,8 +36,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border-color, #374151);
+  background: #111;
 }
 
 .modalHeader h2 {
@@ -61,7 +69,14 @@
 
 /* 모달 컨텐츠 */
 .modalContent {
-  padding: 16px 20px;
+  padding: 12px 16px;
+  background: #111;
+}
+
+@media (max-width: 600px) {
+  .modalContent {
+    padding: 12px 10px;
+  }
 }
 
 /* 섹션 */
@@ -71,7 +86,7 @@
 
 /* 캐릭터 선택 섹션 */
 .characterSection {
-  background: rgba(245, 158, 11, 0.05);
+  background: #0a0a0a;
   border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 8px;
   padding: 12px;
@@ -114,7 +129,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  background: #0a0a0a;
+  background: #111;
   border: 2px solid #222;
   border-radius: 8px;
   cursor: pointer;
@@ -125,12 +140,12 @@
 
 .characterCard:hover {
   border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.05);
+  background: rgba(245, 158, 11, 0.1);
 }
 
 .characterCard.selected {
   border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(245, 158, 11, 0.15);
 }
 
 .cardIcon {
@@ -140,8 +155,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #111;
+  background: #000;
   border-radius: 8px;
+  overflow: hidden;
+}
+
+.cardIcon .profileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .cardInfo {
@@ -190,20 +212,30 @@
 /* 던전 타입 버튼 */
 .dungeonTypes {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.dungeonTypes::-webkit-scrollbar {
+  display: none;
 }
 
 .typeButton {
-  padding: 8px 16px;
-  font-size: 0.85rem;
-  background: var(--bg-main, #0B0D12);
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: #0a0a0a;
   border: 1px solid var(--border-color, #374151);
   border-radius: 6px;
   color: var(--text-secondary, #9CA3AF);
   cursor: pointer;
   transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .typeButton:hover {
@@ -212,7 +244,7 @@
 }
 
 .typeButton.active {
-  background: rgba(250, 204, 21, 0.15);
+  background: #222;
   border-color: var(--primary, #f59e0b);
   color: var(--primary, #f59e0b);
 }
@@ -222,7 +254,7 @@
 }
 
 .typeButton.pvp.active {
-  background: rgba(239, 68, 68, 0.15);
+  background: #221111;
   border-color: #EF4444;
   color: #EF4444;
 }
@@ -251,16 +283,34 @@
 .dungeonSelect select {
   padding: 8px 12px;
   font-size: 0.85rem;
-  background: var(--bg-main, #0B0D12);
-  border: 1px solid var(--border-color, #374151);
-  border-radius: 4px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 8px;
   color: var(--text-main, #E5E7EB);
-  min-width: 120px;
+  min-width: 140px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239CA3AF'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .dungeonSelect {
+    width: 100%;
+  }
+
+  .dungeonSelect select {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .dungeonSelect select:focus {
   outline: none;
   border-color: var(--primary, #f59e0b);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
 }
 
 /* 단계 선택 */
@@ -275,25 +325,46 @@
   gap: 4px;
 }
 
+@media (max-width: 600px) {
+  .tiers {
+    gap: 2px;
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 .tierButton {
-  width: 28px;
-  height: 28px;
-  font-size: 0.75rem;
-  background: var(--bg-main, #0B0D12);
-  border: 1px solid var(--border-color, #374151);
-  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  font-size: 0.9rem;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 6px;
   color: var(--text-secondary, #9CA3AF);
   cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .tierButton {
+    width: calc((100% - 18px) / 10);
+    height: 28px;
+    font-size: 0.8rem;
+  }
 }
 
 .tierButton:hover {
-  border-color: var(--primary, #f59e0b);
+  border-color: #f59e0b;
+  color: #E5E7EB;
 }
 
 .tierButton.active {
-  background: var(--primary, #f59e0b);
-  border-color: var(--primary, #f59e0b);
+  background: #f59e0b;
+  border-color: #f59e0b;
   color: #000;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
 }
 
 /* 진행 횟수 */
@@ -306,29 +377,35 @@
 .runCount {
   display: flex;
   align-items: center;
-  gap: 4px;
+  padding: 2px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 8px;
 }
 
 .runCount button {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   font-size: 1rem;
-  background: var(--bg-main, #0B0D12);
-  border: 1px solid var(--border-color, #374151);
-  border-radius: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
   color: var(--text-main, #E5E7EB);
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .runCount button:hover {
-  border-color: var(--primary, #f59e0b);
+  background: #222;
+  color: #f59e0b;
 }
 
 .runCount span {
-  min-width: 40px;
+  min-width: 44px;
   text-align: center;
-  font-size: 0.85rem;
-  color: var(--text-main, #E5E7EB);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f59e0b;
 }
 
 /* 진행 방식 */
@@ -353,26 +430,68 @@
 }
 
 .scheduleInputs {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 8px;
+}
+
+.dateChips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dateChip {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 20px;
+  color: #9CA3AF;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dateChip:hover {
+  border-color: #f59e0b;
+  color: #E5E7EB;
+}
+
+.dateChip.active {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.timeSelectRow {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
 }
 
-.scheduleInputs input {
-  padding: 6px 8px;
-  font-size: 0.8rem;
-  background: var(--bg-main, #0B0D12);
-  border: 1px solid var(--border-color, #374151);
-  border-radius: 4px;
-  color: var(--text-main, #E5E7EB);
+.timeGroup {
+  display: flex;
+  gap: 4px;
 }
 
-.scheduleInputs input[type="date"] {
-  width: 130px;
+.timeGroup select {
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #E5E7EB;
+  cursor: pointer;
+  outline: none;
 }
 
-.scheduleInputs input[type="time"] {
-  width: 90px;
+.timeGroup select:focus {
+  border-color: #f59e0b;
 }
 
 .scheduleInputs span {
@@ -385,7 +504,7 @@
   gap: 16px;
   margin-bottom: 16px;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.2);
+  background: #0a0a0a;
   border-radius: 8px;
 }
 
@@ -399,6 +518,34 @@
   min-width: 0;
   padding-left: 16px;
   border-left: 1px solid var(--border-color, #374151);
+}
+
+/* 수정 모드: 전체 너비 */
+.columnFull {
+  width: 100%;
+}
+
+/* 수정 모드: 던전/파티장 정보 */
+.editInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.editDungeon {
+  color: #f59e0b;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.editLeader {
+  color: #9CA3AF;
+  font-size: 0.85rem;
 }
 
 /* 참가 방식 */
@@ -437,12 +584,23 @@
 
 .slotSelect {
   flex: 1;
-  padding: 4px 8px;
-  font-size: 0.8rem;
-  background: var(--bg-main, #0B0D12);
-  border: 1px solid var(--border-color, #374151);
-  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 6px;
   color: var(--text-main, #E5E7EB);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239CA3AF'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+}
+
+.slotSelect:focus {
+  outline: none;
+  border-color: #f59e0b;
 }
 
 /* 캐릭터 선택 */
@@ -488,13 +646,13 @@
 
 .specInput {
   flex: 1;
-  padding: 4px 8px;
-  font-size: 0.8rem;
-  background: var(--bg-main, #0B0D12);
-  border: 1px solid var(--border-color, #374151);
-  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 6px;
   color: var(--text-main, #E5E7EB);
-  max-width: 100px;
+  max-width: 120px;
 }
 
 .specInput:disabled {
@@ -599,6 +757,7 @@
   .dungeonRow {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
 
   .scheduleRow {

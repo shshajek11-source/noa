@@ -47,6 +47,19 @@
     border-color: #333;
 }
 
+.userAvatar {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #f59e0b;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* 검색창 별도 줄 */
 .searchRow {
     padding: 0 16px 12px;
@@ -61,11 +74,6 @@
     color: #fff;
 }
 
-.logoGg {
-    font-size: 0.9rem;
-    color: #6B7280;
-    margin-left: 1px;
-}
 
 .searchWrapper {
     flex: 1;

@@ -1,11 +1,21 @@
 /* MyCharacters - Black Theme Design System */
 
-.container {
-  background: #111;
-  border: 1px solid #222;
+/* 기본 컨테이너 (모바일/스토리 기준) */
+.container.mobile {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 24px;
+}
+
+/* PC 버전 박스 스타일 */
+.container.pc {
+  background: linear-gradient(180deg, rgba(20, 20, 20, 0.4) 0%, rgba(10, 10, 10, 0.6) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
+  backdrop-filter: blur(8px);
 }
 
 .header {
@@ -295,40 +305,188 @@
 /* 등록된 캐릭터 섹션 */
 .characterSection {
   margin-top: 8px;
+  overflow: hidden;
 }
 
-.characterSectionTitle {
-  font-size: 0.85rem;
-  color: #9CA3AF;
+.characterSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #222;
 }
 
+.characterSectionTitle {
+  font-size: 0.85rem;
+  color: #9CA3AF;
+}
+
+.refreshAllButton {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #9CA3AF;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.refreshAllButton:hover:not(:disabled) {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.refreshAllButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .characterList {
   display: flex;
   overflow-x: auto;
-  gap: 12px;
-  padding-bottom: 8px;
+  gap: 20px;
+  padding: 10px 4px 15px 4px;
   /* 스크롤바 공간 */
   scroll-behavior: smooth;
   /* 스크롤바 스타일링 */
-  scrollbar-width: thin;
-  scrollbar-color: #333 #111;
+  scrollbar-width: none;
+  /* Hide scrollbar for cleaner look */
 }
 
 .characterList::-webkit-scrollbar {
-  height: 6px;
+  display: none;
 }
 
-.characterList::-webkit-scrollbar-track {
+/* Story Style Item */
+.storyItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.storyItem:hover {
+  transform: translateY(-4px);
+}
+
+.storyProfileWrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(45deg, #f59e0b, #d97706, #fbbf24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.storyProfileInner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
   background: #111;
-  border-radius: 3px;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.characterList::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
+.storyProfileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.storyProfilePlaceholder {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #444;
+}
+
+.storyInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.storyName {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  width: 76px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.storyStats {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.storyStatPve,
+.storyStatPvp {
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.storyStatPve {
+  color: #4ade80;
+}
+
+.storyStatPvp {
+  color: #f87171;
+}
+
+/* Action buttons for Story Style */
+.storyActions {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+
+.storyActionButton {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.storyActionButton:hover {
+  background: #f59e0b;
+  color: #000;
+  transform: scale(1.1);
+}
+
+.storyDeleteButton:hover {
+  background: #ef4444 !important;
+  color: #fff !important;
 }
 
 .loading,
@@ -337,10 +495,10 @@
   color: #6B7280;
   text-align: center;
   padding: 40px 20px;
-  background: #111;
+  background: #0a0a0a;
   border-radius: 8px;
   border: 1px dashed #333;
-  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 캐릭터 카드 (Mini) */
@@ -352,17 +510,19 @@
   /* 고정 너비 */
   min-width: 260px;
   padding: 12px;
-  background: #0a0a0a;
-  border: 1px solid #222;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   gap: 10px;
-  transition: transform 0.2s, border-color 0.2s, background 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(4px);
 }
 
 .characterCard:hover {
-  border-color: #444;
-  background: #111;
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(255, 255, 255, 0.06);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* 카드 헤더 (프로필 + 기본정보) */
@@ -403,6 +563,13 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
+  min-width: 0;
+}
+
+.charNameWrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -523,12 +690,13 @@
 }
 
 .deleteButton {
-  color: #9CA3AF;
+  color: #6B7280;
+  background: transparent !important;
 }
 
 .deleteButton:hover {
   color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.1) !important;
 }
 
 .debugButton {

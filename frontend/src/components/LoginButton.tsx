@@ -4,6 +4,7 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useAuth } from '@/context/AuthContext'
 import { LogIn, LogOut, User, Star } from 'lucide-react'
+import { MainCharacter } from '@/app/components/SearchBar'
 import styles from '@/app/components/shared/HeaderButtons.module.css'
 
 // 모달 지연 로딩 (클릭 시에만 로드)
@@ -20,8 +21,12 @@ export default function LoginButton() {
     )
   }
 
-  const handleSetMainCharacter = async (character: { server: string; name: string; className: string; level: number }) => {
-    await setMainCharacter(character)
+  const handleSetMainCharacter = async (character: MainCharacter) => {
+    await setMainCharacter({
+      ...character,
+      className: character.className || '',
+      level: character.level || 0
+    })
     setShowMainCharacterModal(false)
     setShowDropdown(false)
   }
@@ -44,7 +49,7 @@ export default function LoginButton() {
     <div style={{ position: 'relative' }}>
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="flex items-center gap-2 p-1 bg-transparent border-none cursor-pointer rounded-full hover:bg-white/5 transition-colors"
+        className={styles.profileButton}
       >
         {user.user_metadata?.avatar_url ? (
           <div className={styles.avatarWrapper}>
@@ -116,8 +121,7 @@ export default function LoginButton() {
       <MainCharacterModal
         isOpen={showMainCharacterModal}
         onClose={() => setShowMainCharacterModal(false)}
-        onSubmit={handleSetMainCharacter}
-        currentCharacter={mainCharacter}
+        onSelect={handleSetMainCharacter}
       />
     </div>
   )

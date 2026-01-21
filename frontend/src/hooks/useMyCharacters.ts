@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { PartyUserCharacter } from '@/types/party'
 import { CharacterSearchResult } from '@/lib/supabaseApi'
 
@@ -13,11 +13,11 @@ export function useMyCharacters(options: UseMyCharactersOptions = {}) {
   const [characters, setCharacters] = useState<PartyUserCharacter[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const prevTokenRef = useRef<string | null | undefined>(undefined)
 
   const fetchCharacters = useCallback(async () => {
     // 로그인 필수: accessToken이 없으면 빈 배열 반환
     if (!accessToken) {
+      console.log('[useMyCharacters] No accessToken, returning empty array')
       setCharacters([])
       setLoading(false)
       return
@@ -27,10 +27,12 @@ export function useMyCharacters(options: UseMyCharactersOptions = {}) {
     setError(null)
 
     try {
+      console.log('[useMyCharacters] Fetching characters...')
       const response = await fetch('/api/party/my-characters', {
         headers: {
           'Authorization': `Bearer ${accessToken}`
-        }
+        },
+        cache: 'no-store'  // 캐시 방지
       })
 
       if (!response.ok) {
@@ -39,8 +41,10 @@ export function useMyCharacters(options: UseMyCharactersOptions = {}) {
       }
 
       const data = await response.json()
-      setCharacters(data.characters)
+      console.log('[useMyCharacters] Fetched characters:', data.characters?.length || 0)
+      setCharacters(data.characters || [])
     } catch (err) {
+      console.error('[useMyCharacters] Fetch error:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
@@ -48,12 +52,8 @@ export function useMyCharacters(options: UseMyCharactersOptions = {}) {
   }, [accessToken])
 
   useEffect(() => {
-    // accessToken이 변경되면 다시 fetch
-    if (prevTokenRef.current !== accessToken) {
-      prevTokenRef.current = accessToken
-      fetchCharacters()
-    }
-  }, [accessToken, fetchCharacters])
+    fetchCharacters()
+  }, [fetchCharacters])
 
   // 캐릭터 추가
   const addCharacter = useCallback(async (characterData: {
@@ -257,11 +257,23 @@ export function useMyCharacters(options: UseMyCharactersOptions = {}) {
       }, 0)
     }
 
-    // 3. 아이템레벨, 전투력 가져오기
+    // 3. 아이템레벨, 전투력, 직업 정보, 프로필 이미지 가져오기
     let itemLevel: number | undefined
     let combatPower: number | undefined
     let pveScore: number | undefined
     let pvpScore: number | undefined
+    let className: string | undefined
+    let profileImage: string | undefined
+
+    // 직업 정보
+    if (detailData.profile?.className) {
+      className = detailData.profile.className
+    }
+
+    // 프로필 이미지 (캐릭터 상세 페이지에서 가져온 이미지)
+    if (detailData.profile_image || detailData.profile?.profileImage) {
+      profileImage = detailData.profile_image || detailData.profile?.profileImage
+    }
 
     // 전투력: pve_score, pvp_score 사용
     if (detailData.profile?.pve_score) {
@@ -282,15 +294,27 @@ export function useMyCharacters(options: UseMyCharactersOptions = {}) {
       }
     }
 
-    // 4. 캐릭터 정보 업데이트
-    await updateCharacter(id, {
+    // 4. 캐릭터 정보 업데이트 (직업 정보, 프로필 이미지 포함)
+    const updateData: Record<string, unknown> = {
       character_level: detailData.profile?.characterLevel,
       character_item_level: itemLevel,
       character_breakthrough: breakthrough,
       character_combat_power: combatPower,
       character_pve_score: pveScore,
       character_pvp_score: pvpScore
-    })
+    }
+
+    // 직업 정보가 있으면 업데이트
+    if (className) {
+      updateData.character_class = className
+    }
+
+    // 프로필 이미지가 있으면 업데이트
+    if (profileImage) {
+      updateData.profile_image = profileImage
+    }
+
+    await updateCharacter(id, updateData)
 
     return { success: true }
   }, [updateCharacter])

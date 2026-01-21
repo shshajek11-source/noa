@@ -7,7 +7,7 @@ export type DungeonType = 'transcend' | 'expedition' | 'sanctuary' | 'subjugatio
 export type PartyStatus = 'recruiting' | 'full' | 'in_progress' | 'completed' | 'cancelled'
 
 // 참가 방식
-export type JoinType = 'approval' | 'first_come'
+export type JoinType = 'approval'
 
 // 파티원 상태
 export type MemberStatus = 'pending' | 'approved' | 'rejected' | 'cancelled' | 'kicked'
@@ -105,6 +105,7 @@ export interface PartyMember {
   character_level?: number
   character_item_level?: number
   character_breakthrough?: number
+  profile_image?: string
   character_combat_power?: number
   character_equipment?: Record<string, unknown>
   character_stats?: Record<string, unknown>
@@ -203,6 +204,7 @@ export interface CreatePartyRequest {
   character_item_level?: number
   character_breakthrough?: number
   character_combat_power?: number
+  profile_image?: string
   // 슬롯 설정
   slots: { slot_number: number; party_number: number; required_class?: string }[]
 }
@@ -225,6 +227,7 @@ export interface ApplyPartyRequest {
   character_level?: number
   character_item_level?: number
   character_breakthrough?: number
+  profile_image?: string
   character_combat_power?: number
   character_equipment?: Record<string, unknown>
   character_stats?: Record<string, unknown>

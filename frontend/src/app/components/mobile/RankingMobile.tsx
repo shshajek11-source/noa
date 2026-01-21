@@ -126,7 +126,7 @@ export default function RankingMobile({ type }: RankingMobileProps) {
                     className={`${styles.typeTab} ${activeType === 'hiton' ? styles.typeTabActive : ''}`}
                     onClick={() => handleTypeChange('hiton')}
                 >
-                    HITON 전투력
+                    PVE/PVP 전투력
                 </button>
                 <button
                     className={`${styles.typeTab} ${activeType === 'content' ? styles.typeTabActive : ''}`}

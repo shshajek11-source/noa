@@ -10,7 +10,7 @@ import styles from './MyCharacters.module.css'
 import PartyLoginRequired from './PartyLoginRequired'
 
 
-export default function MyCharacters() {
+export default function MyCharacters({ isMobile = false }: { isMobile?: boolean }) {
   // 인증 관련
   const { session, isLoading: isAuthLoading, isAuthenticated, signInWithGoogle } = useAuth()
 
@@ -43,6 +43,7 @@ export default function MyCharacters() {
   // 등록/갱신 상태
   const [registering, setRegistering] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState<string | null>(null)
+  const [refreshingAll, setRefreshingAll] = useState(false)
 
   // 디버그 상태
   const [showDebug, setShowDebug] = useState(false)
@@ -104,6 +105,36 @@ export default function MyCharacters() {
       alert(err instanceof Error ? err.message : '갱신에 실패했습니다.')
     } finally {
       setRefreshing(null)
+    }
+  }
+
+  // 전체 캐릭터 갱신
+  const handleRefreshAll = async () => {
+    if (characters.length === 0) return
+
+    setRefreshingAll(true)
+    let successCount = 0
+    let failCount = 0
+
+    for (const char of characters) {
+      if (!char.character_id) {
+        failCount++
+        continue
+      }
+      try {
+        await refreshCharacter(char.id, char.character_id, char.character_server_id)
+        successCount++
+      } catch {
+        failCount++
+      }
+    }
+
+    setRefreshingAll(false)
+
+    if (failCount === 0) {
+      alert(`${successCount}개 캐릭터 갱신 완료`)
+    } else {
+      alert(`갱신 완료: ${successCount}개 성공, ${failCount}개 실패`)
     }
   }
 
@@ -213,12 +244,15 @@ export default function MyCharacters() {
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <span className={styles.title}>내 모집 캐릭터</span>
-      </div>
-
-      <p className={styles.description}>파티 모집에 사용할 캐릭터를 검색하여 등록하세요.</p>
+    <div className={`${styles.container} ${isMobile ? styles.mobile : styles.pc}`}>
+      {!isMobile && (
+        <>
+          <div className={styles.header}>
+            <span className={styles.title}>내 모집 캐릭터</span>
+          </div>
+          <p className={styles.description}>파티 모집에 사용할 캐릭터를 검색하여 등록하세요.</p>
+        </>
+      )}
 
       {/* 검색 입력창 (상단 검색 스타일) */}
       <div className={styles.searchWrapper} ref={wrapperRef}>
@@ -396,79 +430,139 @@ export default function MyCharacters() {
           <span className={styles.empty}>등록된 캐릭터가 없습니다.</span>
         ) : (
           <>
-            <div className={styles.characterSectionTitle}>
-              등록된 캐릭터 ({characters.length})
+            <div className={styles.characterSectionHeader}>
+              <div className={styles.characterSectionTitle}>
+                등록된 캐릭터 ({characters.length})
+              </div>
+              <button
+                className={styles.refreshAllButton}
+                onClick={handleRefreshAll}
+                disabled={refreshingAll}
+                title="전체 캐릭터 스펙 갱신"
+              >
+                {refreshingAll ? '갱신 중...' : '🔄 전체 갱신'}
+              </button>
             </div>
             <div className={styles.characterList}>
               {characters.map(char => {
-                const serverName = SERVERS.find(s => s.id === String(char.character_server_id))?.name || ''
-                return (
-                  <div key={char.id} className={styles.characterCard}>
-                    {/* 좌측: 프로필 + 기본 정보 */}
-                    <div className={styles.cardHeader}>
-                      <div className={styles.cardProfileWrapper}>
-                        {char.profile_image ? (
-                          <img
-                            src={char.profile_image}
-                            alt=""
-                            className={styles.cardProfileImage}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none'
-                            }}
-                          />
-                        ) : (
-                          <span className={styles.cardProfilePlaceholder}>{char.character_name.charAt(0)}</span>
-                        )}
-                      </div>
-                      <div className={styles.characterCardMain}>
-                        <div className={styles.charName}>{char.character_name}</div>
-                        <div className={styles.charMeta}>
-                          <span className={styles.className}>{char.character_class}</span>
-                          <span className={styles.level}>Lv{char.character_level || '?'}</span>
+                // PC용 원래 디자인
+                if (!isMobile) {
+                  return (
+                    <div key={char.id} className={styles.characterCard}>
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardProfileWrapper}>
+                          {char.profile_image ? (
+                            <img
+                              src={char.profile_image}
+                              alt=""
+                              className={styles.cardProfileImage}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none'
+                              }}
+                            />
+                          ) : (
+                            <span className={styles.cardProfilePlaceholder}>{char.character_name.charAt(0)}</span>
+                          )}
+                        </div>
+                        <div className={styles.characterCardMain}>
+                          <div className={styles.charNameWrapper}>
+                            <div className={styles.charName}>{char.character_name}</div>
+                            {char.character_breakthrough && char.character_breakthrough > 0 && (
+                              <div className={styles.breakthroughBadge} title={`돌파 ${char.character_breakthrough}`}>
+                                <span className={styles.breakthroughText}>{char.character_breakthrough}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className={styles.charMeta}>
+                            <span className={styles.className}>{char.character_class || '직업없음'}</span>
+                            <span className={styles.level}>Lv{char.character_level || '?'}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* 우측: 스탯 (PVE/PVP Stack) */}
-                    <div className={styles.characterCardStats}>
-                      <div className={styles.statRow}>
-                        <span className={styles.statLabelMini}>PVE</span>
-                        <span className={styles.statValuePve}>
-                          {formatCombatPower(char.character_pve_score)}
-                        </span>
+                      <div className={styles.characterCardStats}>
+                        <div className={styles.statRow}>
+                          <span className={styles.statLabelMini}>PVE</span>
+                          <span className={styles.statValuePve}>
+                            {formatCombatPower(char.character_pve_score)}
+                          </span>
+                        </div>
+                        <div className={styles.statRow}>
+                          <span className={styles.statLabelMini}>PVP</span>
+                          <span className={styles.statValuePvp}>
+                            {formatCombatPower(char.character_pvp_score)}
+                          </span>
+                        </div>
                       </div>
-                      <div className={styles.statRow}>
-                        <span className={styles.statLabelMini}>PVP</span>
-                        <span className={styles.statValuePvp}>
-                          {formatCombatPower(char.character_pvp_score)}
-                        </span>
+
+                      <div className={styles.characterCardActions}>
+                        <button
+                          className={styles.debugButton}
+                          onClick={() => handleDebugFetch(char)}
+                          title="디버그 정보"
+                        >
+                          🔍
+                        </button>
+                        <button
+                          className={styles.refreshButton}
+                          onClick={() => handleRefresh(char)}
+                          disabled={refreshing === char.id}
+                          title="최신 스펙으로 갱신"
+                        >
+                          {refreshing === char.id ? '...' : '🔄'}
+                        </button>
+                        <button
+                          className={styles.deleteButton}
+                          onClick={() => handleDelete(char.id)}
+                          title="삭제"
+                        >
+                          ×
+                        </button>
                       </div>
                     </div>
+                  )
+                }
 
-                    {/* 호버 액션 버튼 */}
-                    <div className={styles.characterCardActions}>
+                // 모바일용 인스타 스토리 디자인
+                return (
+                  <div key={char.id} className={styles.storyItem}>
+                    <div className={styles.storyActions}>
                       <button
-                        className={styles.debugButton}
-                        onClick={() => handleDebugFetch(char)}
-                        title="디버그 정보"
-                      >
-                        🔍
-                      </button>
-                      <button
-                        className={styles.refreshButton}
-                        onClick={() => handleRefresh(char)}
-                        disabled={refreshing === char.id}
-                        title="최신 스펙으로 갱신"
-                      >
-                        {refreshing === char.id ? '...' : '🔄'}
-                      </button>
-                      <button
-                        className={styles.deleteButton}
+                        className={`${styles.storyActionButton} ${styles.storyDeleteButton}`}
                         onClick={() => handleDelete(char.id)}
                         title="삭제"
                       >
                         ×
                       </button>
+                    </div>
+
+                    <div className={styles.storyProfileWrapper}>
+                      <div className={styles.storyProfileInner}>
+                        {char.profile_image ? (
+                          <img
+                            src={char.profile_image}
+                            alt=""
+                            className={styles.storyProfileImage}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        ) : (
+                          <span className={styles.storyProfilePlaceholder}>{char.character_name.charAt(0)}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className={styles.storyInfo}>
+                      <div className={styles.storyName}>{char.character_name}</div>
+                      <div className={styles.storyStats}>
+                        <span className={styles.storyStatPve}>
+                          {formatCombatPower(char.character_pve_score)}
+                        </span>
+                        <span className={styles.storyStatPvp}>
+                          {formatCombatPower(char.character_pvp_score)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )

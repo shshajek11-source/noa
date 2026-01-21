@@ -50,8 +50,8 @@ export async function getOrCreateUserByDeviceId(device_id: string): Promise<Ledg
 }
 
 /**
- * Request에서 인증된 유저 조회
- * 우선순위: 1. device_id (X-Device-ID 헤더) 2. Bearer 토큰
+ * Request에서 인증된 유저 조회 (Google 로그인 전용)
+ * Bearer 토큰으로만 인증합니다.
  *
  * @param request - HTTP Request 객체
  * @returns 유저 정보 또는 null
@@ -59,50 +59,65 @@ export async function getOrCreateUserByDeviceId(device_id: string): Promise<Ledg
 export async function getUserFromRequest(request: Request): Promise<LedgerUser | null> {
   const supabase = getSupabase()
 
-  // 1. device_id로 먼저 조회 (우선순위) - 대소문자 모두 지원
+  // Bearer 토큰으로 인증 확인 (Google 로그인)
+  const authHeader = request.headers.get('Authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null
+  }
+
+  const token = authHeader.slice(7)
+  const { data: { user }, error } = await supabase.auth.getUser(token)
+
+  if (!user || error) {
+    return null
+  }
+
+  // auth_user_id로 ledger_users 조회
+  let { data: ledgerUser } = await supabase
+    .from('ledger_users')
+    .select('id')
+    .eq('auth_user_id', user.id)
+    .single()
+
+  // ledger_users 레코드가 없으면 자동 생성
+  if (!ledgerUser) {
+    console.log('[Auth] Creating ledger_users for auth_user_id:', user.id)
+    const { data: newLedgerUser, error: createError } = await supabase
+      .from('ledger_users')
+      .insert({
+        auth_user_id: user.id,
+        created_at: new Date().toISOString(),
+        last_seen_at: new Date().toISOString()
+      })
+      .select('id')
+      .single()
+
+    if (createError) {
+      console.error('[Auth] Failed to create ledger_users:', createError)
+      return null
+    }
+
+    ledgerUser = newLedgerUser
+  }
+
+  return ledgerUser
+}
+
+/**
+ * Request에서 인증된 유저 조회 (device_id 또는 Bearer 토큰)
+ * 가계부 등 비로그인 사용자도 사용하는 기능용
+ * 우선순위: 1. device_id 2. Bearer 토큰
+ *
+ * @param request - HTTP Request 객체
+ * @returns 유저 정보 또는 null
+ */
+export async function getUserFromRequestWithDevice(request: Request): Promise<LedgerUser | null> {
+  // 1. device_id로 먼저 조회 (가계부 등 비로그인 기능)
   const device_id = request.headers.get('X-Device-ID') || request.headers.get('x-device-id')
   if (device_id) {
     return getOrCreateUserByDeviceId(device_id)
   }
 
-  // 2. Bearer 토큰으로 인증 확인 (폴백)
-  const authHeader = request.headers.get('Authorization')
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7)
-    const { data: { user }, error } = await supabase.auth.getUser(token)
-
-    if (user && !error) {
-      // auth_user_id로 ledger_users 조회
-      let { data: ledgerUser } = await supabase
-        .from('ledger_users')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single()
-
-      // ledger_users 레코드가 없으면 자동 생성
-      if (!ledgerUser) {
-        console.log('[Auth] Creating ledger_users for auth_user_id:', user.id)
-        const { data: newLedgerUser, error: createError } = await supabase
-          .from('ledger_users')
-          .insert({
-            auth_user_id: user.id,
-            created_at: new Date().toISOString(),
-            last_seen_at: new Date().toISOString()
-          })
-          .select('id')
-          .single()
-
-        if (createError) {
-          console.error('[Auth] Failed to create ledger_users:', createError)
-          return null
-        }
-
-        ledgerUser = newLedgerUser
-      }
-
-      if (ledgerUser) return ledgerUser
-    }
-  }
-
-  return null
+  // 2. Bearer 토큰으로 폴백
+  return getUserFromRequest(request)
 }

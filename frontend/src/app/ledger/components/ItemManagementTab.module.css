@@ -35,13 +35,14 @@
 .categorySelect,
 .statusSelect {
   padding: 10px 14px;
-  background: rgba(26, 29, 36, 0.9);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   color: #E5E7EB;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
+  backdrop-filter: blur(4px);
 }
 
 .categorySelect {
@@ -68,12 +69,13 @@
 .searchInput {
   flex: 1;
   padding: 10px 14px;
-  background: rgba(26, 29, 36, 0.9);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   color: #E5E7EB;
   font-size: 14px;
   transition: all 0.2s;
+  backdrop-filter: blur(4px);
 }
 
 .searchInput:focus {
@@ -113,8 +115,9 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: #1a1a1f;
-  border: 1px solid #333;
+  background: rgba(17, 19, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
   border-radius: 8px;
   max-height: 300px;
   overflow-y: auto;
@@ -381,10 +384,11 @@
 
 /* 날짜별 섹션 */
 .dateSection {
-  background: rgba(26, 29, 36, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 12px;
+  backdrop-filter: blur(4px);
 }
 
 .dateSection.soldSection {

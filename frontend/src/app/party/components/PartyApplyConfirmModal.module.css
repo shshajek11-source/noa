@@ -1,0 +1,298 @@
+/* 파티 신청 확인 모달 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #222;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #E5E7EB;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #6B7280;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #E5E7EB;
+}
+
+.content {
+  padding: 20px;
+}
+
+/* 파티 정보 */
+.partyInfo {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.dungeonRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dungeonType {
+  background: #f59e0b;
+  color: #000;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.dungeonName {
+  color: #E5E7EB;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.title {
+  color: #9CA3AF;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #222;
+}
+
+.timeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #E5E7EB;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.timeSub {
+  color: #f59e0b;
+  font-size: 0.8rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  color: #9CA3AF;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.emptySlots {
+  color: #10B981;
+}
+
+.requirements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #222;
+  font-size: 0.8rem;
+  color: #9CA3AF;
+}
+
+.reqLabel {
+  color: #f59e0b;
+}
+
+/* 확인 텍스트 */
+.confirmText {
+  color: #E5E7EB;
+  font-size: 1rem;
+  text-align: center;
+  margin: 0 0 8px 0;
+}
+
+.subText {
+  color: #6B7280;
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 0;
+}
+
+/* 버튼 영역 */
+.actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #222;
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 12px;
+  background: #222;
+  color: #E5E7EB;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: #333;
+}
+
+.applyButton {
+  flex: 1;
+  padding: 12px;
+  background: #f59e0b;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.applyButton:hover {
+  background: #d97706;
+}
+
+/* 캐릭터 선택 섹션 */
+.characterSection {
+  margin-top: 16px;
+}
+
+.sectionLabel {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #E5E7EB;
+  margin-bottom: 10px;
+}
+
+.loading {
+  color: #9CA3AF;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 16px;
+}
+
+.noCharacter {
+  color: #ef4444;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+}
+
+.singleCharacter {
+  background: #0a0a0a;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #E5E7EB;
+  font-size: 0.9rem;
+}
+
+.characterList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.characterOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.characterOption:hover {
+  background: #111;
+  border-color: #333;
+}
+
+.characterOption.selected {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+}
+
+.charInfo {
+  color: #E5E7EB;
+  font-size: 0.9rem;
+}
+
+.charStats {
+  color: #f59e0b;
+  font-size: 0.8rem;
+}
+
+.error {
+  color: #ef4444;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 12px;
+}
+
+/* 모바일 */
+@media (max-width: 480px) {
+  .modal {
+    max-width: 100%;
+  }
+
+  .partyInfo {
+    padding: 12px;
+  }
+
+  .characterList {
+    max-height: 150px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}

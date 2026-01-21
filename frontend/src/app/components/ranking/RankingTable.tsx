@@ -4,7 +4,7 @@ import { useEffect, useState, memo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Trophy, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react'
+import { Trophy } from 'lucide-react'
 import styles from './Ranking.module.css'
 import { SERVER_MAP } from '../../constants/servers'
 import { RankingCharacter } from '../../../types/character'
@@ -14,33 +14,11 @@ interface RankingTableProps {
     type: 'hiton' | 'cp' | 'content'
 }
 
-// 순위 변동 계산
-interface RankChange {
-    type: 'up' | 'down' | 'same' | 'new'
-    amount?: number
-}
-
-const getRankChange = (currentRank: number, prevRank?: number | null): RankChange => {
-    if (prevRank === null || prevRank === undefined) {
-        return { type: 'new' }
-    }
-    if (prevRank === currentRank) {
-        return { type: 'same' }
-    }
-    if (prevRank > currentRank) {
-        return { type: 'up', amount: prevRank - currentRank }
-    }
-    return { type: 'down', amount: currentRank - prevRank }
-}
-
-
-
 const RankingSkeleton = () => (
     <div style={{ paddingBottom: '2rem' }}>
         <table className={styles.rankingTable}>
             <thead>
                 <tr>
-                    <th style={{ width: '60px', textAlign: 'center' }}>변동</th>
                     <th style={{ width: '60px', textAlign: 'center' }}>순위</th>
                     <th>캐릭터</th>
                     <th style={{ width: '100px', textAlign: 'center' }}>서버/종족</th>
@@ -51,9 +29,6 @@ const RankingSkeleton = () => (
             <tbody>
                 {[...Array(10)].map((_, i) => (
                     <tr key={i}>
-                        <td style={{ textAlign: 'center' }}>
-                            <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '30px', margin: '0 auto' }}></div>
-                        </td>
                         <td style={{ textAlign: 'center' }}>
                             <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '20px', margin: '0 auto' }}></div>
                         </td>
@@ -82,66 +57,6 @@ const RankingSkeleton = () => (
         </table>
     </div>
 )
-
-// 변동 셀 컴포넌트
-const RankChangeCell = memo(function RankChangeCell({ change, prevRank, currentRank }: { change: RankChange, prevRank?: number | null, currentRank: number }) {
-    const [showTooltip, setShowTooltip] = useState(false)
-
-    const getChangeDisplay = () => {
-        switch (change.type) {
-            case 'up':
-                return (
-                    <div className={`${styles.rankChange} ${styles.rankChangeUp}`}>
-                        <TrendingUp size={14} />
-                        <span>{change.amount}</span>
-                    </div>
-                )
-            case 'down':
-                return (
-                    <div className={`${styles.rankChange} ${styles.rankChangeDown}`}>
-                        <TrendingDown size={14} />
-                        <span>{change.amount}</span>
-                    </div>
-                )
-            case 'new':
-                return (
-                    <div className={`${styles.rankChange} ${styles.rankChangeNew}`}>
-                        <span>NEW</span>
-                    </div>
-                )
-            default:
-                return (
-                    <div className={`${styles.rankChange} ${styles.rankChangeSame}`}>
-                        <Minus size={14} />
-                    </div>
-                )
-        }
-    }
-
-    const getTooltipText = () => {
-        if (change.type === 'new') return '신규 진입'
-        if (change.type === 'same') return '변동 없음'
-        if (change.type === 'up') return `어제 ${prevRank}위 → 오늘 ${currentRank}위`
-        return `어제 ${prevRank}위 → 오늘 ${currentRank}위`
-    }
-
-    return (
-        <div
-            className={styles.rankChangeWrapper}
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-        >
-            {getChangeDisplay()}
-            {showTooltip && (
-                <div className={styles.rankChangeTooltip}>
-                    {getTooltipText()}
-                </div>
-            )}
-        </div>
-    )
-})
-
-
 
 export default function RankingTable({ type }: RankingTableProps) {
     const searchParams = useSearchParams()
@@ -246,7 +161,7 @@ export default function RankingTable({ type }: RankingTableProps) {
                 <table className={styles.rankingTable}>
                     <thead>
                         <tr>
-                            {isHitonTab && <th style={{ width: '60px', textAlign: 'center' }}>변동</th>}
+                            {/* 변동 제거됨 */}
                             <th style={{ width: '60px', textAlign: 'center' }}>순위</th>
                             <th>캐릭터</th>
                             <th style={{ width: '100px', textAlign: 'center' }}>서버/종족</th>
@@ -262,9 +177,6 @@ export default function RankingTable({ type }: RankingTableProps) {
                     </thead>
                     <tbody>
                         {data.map((char, idx) => {
-                            const currentRank = idx + 1
-                            const rankChange = getRankChange(currentRank, char.prev_rank)
-
                             return (
                                 <tr
                                     key={`${char.character_id}_${idx}`}
@@ -274,15 +186,6 @@ export default function RankingTable({ type }: RankingTableProps) {
                                         ${idx === 2 ? styles.rankRow3 : ''}
                                     `}
                                 >
-                                    {isHitonTab && (
-                                        <td style={{ textAlign: 'center' }}>
-                                            <RankChangeCell
-                                                change={rankChange}
-                                                prevRank={char.prev_rank}
-                                                currentRank={currentRank}
-                                            />
-                                        </td>
-                                    )}
                                     <td style={{ textAlign: 'center' }}>
                                         <div className={styles.rankCell}>
                                             {getRankIcon(idx)}
@@ -322,7 +225,10 @@ export default function RankingTable({ type }: RankingTableProps) {
                                         <div style={{ fontSize: '0.9rem', color: '#E5E7EB' }}>
                                             {SERVER_MAP[char.server_id] || char.server_id}
                                         </div>
-                                        <div className={`${styles.charDetail} ${char.race_name === 'Elyos' ? styles.elyos : styles.asmodian}`}>
+                                        <div
+                                            className={`${styles.charDetail} ${char.race_name === 'Elyos' ? styles.elyos : styles.asmodian}`}
+                                            style={{ justifyContent: 'center' }}
+                                        >
                                             {char.race_name === 'Elyos' ? '천족' : '마족'}
                                         </div>
                                     </td>

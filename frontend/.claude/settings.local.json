@@ -1,4 +1,4 @@
-{
+2{
   "permissions": {
     "allow": [
       "Bash(npm run build:*)",
@@ -29,9 +29,15 @@
       "Bash(ls:*)",
       "mcp__supabase__execute_sql",
       "mcp__supabase__apply_migration",
-      "Bash(npm install)",
-      "Bash(cmd //c \"taskkill /PID 4272 /F\")",
-      "Bash(cmd //c \"taskkill /PID 3780 /F\")"
+      "Bash(node -e:*)",
+      "Bash(echo:*)",
+      "mcp__supabase__get_project",
+      "Bash(git mv:*)",
+      "mcp__stitch__*",
+      "mcp__github__*",
+      "mcp__context7__*",
+      "mcp__sequential-thinking__*",
+      "mcp__desktop-commander__*"
     ]
   }
 }

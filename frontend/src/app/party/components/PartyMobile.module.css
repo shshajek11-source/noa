@@ -1,165 +1,235 @@
-/* PartyMobile.module.css */
+/* PartyMobile.module.css - 10년차 시니어 디자이너 감성 프리미엄 디자인 */
 
 .mobileContainer {
     display: flex;
     flex-direction: column;
-    padding-bottom: 80px;
-    /* Floating Button Space */
     background: #000;
     min-height: 100vh;
+    color: #E5E7EB;
 }
 
+/* 1. 헤더 */
 .header {
-    padding: 16px 20px;
+    padding: 20px 20px 10px;
+}
+
+.headerTop {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #000;
 }
 
 .title {
-    font-size: 1.4rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.8rem;
     font-weight: 800;
-    color: #fff;
+    letter-spacing: 1px;
+    color: #f59e0b;
+    margin: 0;
 }
 
 .actions {
     display: flex;
     align-items: center;
+    gap: 16px;
+}
+
+/* 2. 내 캐릭터 섹션 */
+.characterSection {
+    margin-bottom: 20px;
+    padding: 0 4px;
+    /* 내 캐릭터 카드 좌우 여백 살짝 조절 */
+}
+
+/* 3. 메인 탭 시스템 */
+.mainTabs {
+    display: flex;
+    padding: 0 16px;
     gap: 12px;
+    margin-bottom: 20px;
 }
 
-.myPartyLink {
-    font-size: 0.9rem;
+.mainTab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 16px;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mainTab.active {
+    background: #111;
+    border-color: #f59e0b;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
+}
+
+.tabLabel {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6B7280;
+    margin-bottom: 4px;
+    transition: color 0.2s;
+}
+
+.mainTab.active .tabLabel {
+    color: #9CA3AF;
+}
+
+.tabCount {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #444;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.mainTab.active .tabCount {
     color: #f59e0b;
-    font-weight: 600;
-    text-decoration: none;
 }
 
-/* 탭 및 필터 섹션 (가로 스크롤) */
-.filterSection {
-    padding: 0 16px 12px 16px;
+/* 4. 필터 AREA */
+.filterArea {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background: #000;
+    padding: 0 16px;
+    margin-bottom: 20px;
 }
 
-.tabs {
-    display: flex;
-    gap: 8px;
-    padding: 4px;
-    background: #111;
-    border-radius: 8px;
-}
-
-.tab {
-    flex: 1;
-    padding: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #6B7280;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.tab.active {
-    background: #222;
-    color: #E5E7EB;
-}
-
-.filters {
+.dungeonFilters {
     display: flex;
     overflow-x: auto;
     gap: 8px;
+    padding-bottom: 4px;
     scrollbar-width: none;
-    /* Firefox */
 }
 
-.filters::-webkit-scrollbar {
+.dungeonFilters::-webkit-scrollbar {
     display: none;
-    /* Chrome/Safari */
 }
 
 .filterChip {
-    padding: 8px 16px;
+    padding: 8px 14px;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
     border-radius: 20px;
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
+    color: #6B7280;
     white-space: nowrap;
-    background: #111;
-    color: #9CA3AF;
-    border: 1px solid #222;
-    cursor: pointer;
     transition: all 0.2s;
 }
 
 .filterChip.active {
     background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
     border-color: #f59e0b;
+    color: #f59e0b;
+    backdrop-filter: blur(4px);
+    /* Glassmorphism 느낌 살짝 추가 */
 }
 
-.statusFilter {
+/* 상태 행 (모집중/전체 + 새로고침) */
+.statusRow {
     display: flex;
     align-items: center;
-    padding: 0 16px 12px 16px;
-    gap: 8px;
+    justify-content: space-between;
+}
+
+.statusChips {
+    display: flex;
+    gap: 6px;
+    background: #0a0a0a;
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid #1a1a1a;
 }
 
 .statusChip {
+    padding: 6px 12px;
     font-size: 0.8rem;
-    color: #6B7280;
-    padding: 4px 10px;
-    border-radius: 4px;
-    background: #111;
-    border: 1px solid #222;
+    font-weight: 600;
+    color: #4B5563;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    transition: all 0.2s;
 }
 
 .statusChip.active {
-    color: #fff;
-    border-color: #444;
+    background: #1a1a1a;
+    color: #f59e0b;
 }
 
-/* 파티 리스트 컨테이너 */
-.partyList {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 0 16px;
-}
-
-.empty {
-    text-align: center;
-    padding: 40px 0;
-    color: #6B7280;
-    font-size: 0.9rem;
-}
-
-/* 플로팅 버튼 */
-.fab {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #f59e0b;
-    color: #000;
+.refreshButton {
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-    z-index: 100;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    color: #6B7280;
+    transition: all 0.2s;
+}
+
+.refreshButton:active {
+    transform: rotate(180deg);
+    color: #f59e0b;
+}
+
+/* 5. 파티 리스트 */
+.partyList {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.myParties {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    /* 섹션간 간격 */
+}
+
+.empty {
+    padding: 60px 0;
+    text-align: center;
+    color: #4B5563;
+    font-size: 0.9rem;
+}
+
+/* 6. 플로팅 버튼 (FAB) */
+.fab {
+    position: fixed;
+    bottom: 30px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: #f59e0b;
+    color: #000;
     border: none;
-    cursor: pointer;
-    transition: transform 0.2s;
+    border-radius: 30px;
+    font-size: 1.8rem;
+    font-weight: 400;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
 
 .fab:active {
-    transform: scale(0.95);
+    transform: scale(0.9) translateY(4px);
+}
+
+/* 광고 여백 */
+.bottomSpacer {
+    height: 100px;
 }
