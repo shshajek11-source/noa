@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchNickname = useCallback(async (accessToken: string) => {
     setIsNicknameLoading(true)
     try {
+      console.log('[Auth] Fetching nickname with token:', accessToken?.substring(0, 20) + '...')
       const res = await fetch('/api/ledger/nickname', {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -60,6 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         const data = await res.json()
         setNicknameState(data.nickname)
+        console.log('[Auth] Nickname fetched:', data.nickname)
+      } else {
+        console.error('[Auth] Nickname fetch failed:', res.status, await res.text())
       }
     } catch (err) {
       console.error('Failed to fetch nickname:', err)
@@ -71,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchMainCharacter = useCallback(async (accessToken: string) => {
     setIsMainCharacterLoading(true)
     try {
+      console.log('[Auth] Fetching main character with token:', accessToken?.substring(0, 20) + '...')
       const res = await fetch('/api/user/main-character', {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -78,8 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       if (res.ok) {
         const data = await res.json()
-        console.log('[AuthContext] Fetched main character:', data.mainCharacter)
+        console.log('[Auth] Main character fetched:', data.mainCharacter)
         setMainCharacterState(data.mainCharacter)
+      } else {
+        console.error('[Auth] Main character fetch failed:', res.status, await res.text())
       }
     } catch (err) {
       console.error('Failed to fetch main character:', err)
@@ -131,12 +138,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('[Auth] onAuthStateChange:', event, session?.user?.email)
         setSession(session)
         setUser(session?.user ?? null)
         setIsLoading(false)
 
-        // Fetch nickname and main character when user signs in
-        if (event === 'SIGNED_IN' && session?.access_token) {
+        // Fetch nickname and main character when user signs in or token is refreshed
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session?.access_token) {
+          console.log('[Auth] Fetching user data for event:', event)
           fetchNickname(session.access_token)
           fetchMainCharacter(session.access_token)
         }
