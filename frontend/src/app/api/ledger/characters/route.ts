@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getSupabase, getUserFromRequest } from '../../../../lib/auth'
+import { getSupabase, getUserFromRequest, getUserFromRequestWithDevice } from '../../../../lib/auth'
 
 export async function GET(request: Request) {
-  const user = await getUserFromRequest(request)
+  const user = await getUserFromRequestWithDevice(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const supabase = getSupabase()
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
   try {
     console.log('[API] POST /api/ledger/characters 시작')
 
-    const user = await getUserFromRequest(request)
+    const user = await getUserFromRequestWithDevice(request)
     if (!user) {
       console.log('[API] 인증 실패 - user 없음')
       return NextResponse.json({ error: '인증이 필요합니다. 페이지를 새로고침 후 다시 시도해주세요.' }, { status: 401 })
