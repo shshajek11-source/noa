@@ -1036,131 +1036,93 @@ export default function MobileLedgerPage() {
                             </div>
 
                             {/* 초월 */}
-                            <div className={styles.complexCard}>
-                                <div className={styles.cardHead} onClick={() => setShowDungeonModal('transcend')}>
-                                    <span className={styles.cardTitle}>초월</span>
-                                    <div className={styles.cardHeadRight}>
-                                        <span className={styles.cardCount}>
-                                            {transcendRecords.reduce((sum, r) => sum + r.count, 0)}/
-                                            {characterState.baseTickets.transcend}
-                                            {characterState.bonusTickets.transcend > 0 && (
-                                                <span className={styles.bonusCount}>(+{characterState.bonusTickets.transcend})</span>
-                                            )}
-                                        </span>
-                                    </div>
+                            <div className={styles.simpleCard}>
+                                <div className={styles.simpleCardLeft}>
+                                    <div className={styles.simpleCardBar}></div>
+                                    <span className={styles.simpleCardTitle}>초월</span>
                                 </div>
-                                {transcendRecords.length > 0 && (
-                                    <div className={styles.cardBody}>
-                                        <div className={styles.logList}>
-                                            {transcendRecords.map((record) => (
-                                                <div key={record.id} className={styles.logItem}>
-                                                    <div className={styles.logLeft}>
-                                                        <span className={styles.logBadge}>T{record.tier}</span>
-                                                        <span>{record.bossName}</span>
-                                                    </div>
-                                                    <div className={styles.logRight}>
-                                                        <span className={styles.logCount}>x{record.count}</span>
-                                                        <span className={styles.logValue}>{formatMoney(record.kina)}</span>
-                                                        {canEdit && (
-                                                            <button
-                                                                className={styles.btnLogDelete}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDeleteTranscendRecord(record.id);
-                                                                }}
-                                                            >×</button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                <div className={styles.simpleCardRight}>
+                                    <span className={styles.simpleCardCount}>
+                                        {transcendRecords.reduce((sum, r) => sum + r.count, 0)}/
+                                        {characterState.baseTickets.transcend}
+                                        {characterState.bonusTickets.transcend > 0 && `(+${characterState.bonusTickets.transcend})`}
+                                    </span>
+                                    <button className={styles.btnStepSmall} onClick={() => setShowDungeonModal('transcend')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => {
+                                        if (transcendRecords.length > 0) {
+                                            const lastRecord = transcendRecords[transcendRecords.length - 1];
+                                            if (lastRecord.count > 1) {
+                                                setTranscendRecords(prev => prev.map(r =>
+                                                    r.id === lastRecord.id
+                                                        ? { ...r, count: r.count - 1, kina: Math.round(r.kina / r.count * (r.count - 1)) }
+                                                        : r
+                                                ));
+                                            } else {
+                                                handleDeleteTranscendRecord(lastRecord.id);
+                                            }
+                                        }
+                                    }}>-</button>
+                                </div>
                             </div>
 
                             {/* 원정 */}
-                            <div className={styles.complexCard}>
-                                <div className={styles.cardHead} onClick={() => setShowDungeonModal('expedition')}>
-                                    <span className={styles.cardTitle}>원정</span>
-                                    <div className={styles.cardHeadRight}>
-                                        <span className={styles.cardCount}>
-                                            {expeditionRecords.reduce((sum, r) => sum + r.count, 0)}/
-                                            {characterState.baseTickets.expedition}
-                                            {characterState.bonusTickets.expedition > 0 && (
-                                                <span className={styles.bonusCount}>(+{characterState.bonusTickets.expedition})</span>
-                                            )}
-                                        </span>
-                                    </div>
+                            <div className={styles.simpleCard}>
+                                <div className={styles.simpleCardLeft}>
+                                    <div className={styles.simpleCardBar}></div>
+                                    <span className={styles.simpleCardTitle}>원정</span>
                                 </div>
-                                {expeditionRecords.length > 0 && (
-                                    <div className={styles.cardBody}>
-                                        <div className={styles.logList}>
-                                            {expeditionRecords.map((record) => (
-                                                <div key={record.id} className={styles.logItem}>
-                                                    <div className={styles.logLeft}>
-                                                        <span className={styles.logBadge}>{record.category}</span>
-                                                        <span>{record.bossName}</span>
-                                                    </div>
-                                                    <div className={styles.logRight}>
-                                                        <span className={styles.logCount}>x{record.count}</span>
-                                                        <span className={styles.logValue}>{formatMoney(record.kina)}</span>
-                                                        {canEdit && (
-                                                            <button
-                                                                className={styles.btnLogDelete}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDeleteExpeditionRecord(record.id);
-                                                                }}
-                                                            >×</button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                <div className={styles.simpleCardRight}>
+                                    <span className={styles.simpleCardCount}>
+                                        {expeditionRecords.reduce((sum, r) => sum + r.count, 0)}/
+                                        {characterState.baseTickets.expedition}
+                                        {characterState.bonusTickets.expedition > 0 && `(+${characterState.bonusTickets.expedition})`}
+                                    </span>
+                                    <button className={styles.btnStepSmall} onClick={() => setShowDungeonModal('expedition')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => {
+                                        if (expeditionRecords.length > 0) {
+                                            const lastRecord = expeditionRecords[expeditionRecords.length - 1];
+                                            if (lastRecord.count > 1) {
+                                                setExpeditionRecords(prev => prev.map(r =>
+                                                    r.id === lastRecord.id
+                                                        ? { ...r, count: r.count - 1, kina: Math.round(r.kina / r.count * (r.count - 1)) }
+                                                        : r
+                                                ));
+                                            } else {
+                                                handleDeleteExpeditionRecord(lastRecord.id);
+                                            }
+                                        }
+                                    }}>-</button>
+                                </div>
                             </div>
 
                             {/* 성역 */}
-                            <div className={styles.complexCard}>
-                                <div className={styles.cardHead} onClick={() => setShowDungeonModal('sanctuary')}>
-                                    <span className={styles.cardTitle}>성역</span>
-                                    <div className={styles.cardHeadRight}>
-                                        <span className={styles.cardCount}>
-                                            {sanctuaryRecords.reduce((sum, r) => sum + r.count, 0)}/
-                                            {characterState.baseTickets.sanctuary}
-                                            {characterState.bonusTickets.sanctuary > 0 && (
-                                                <span className={styles.bonusCount}>(+{characterState.bonusTickets.sanctuary})</span>
-                                            )}
-                                        </span>
-                                    </div>
+                            <div className={styles.simpleCard}>
+                                <div className={styles.simpleCardLeft}>
+                                    <div className={styles.simpleCardBar}></div>
+                                    <span className={styles.simpleCardTitle}>성역</span>
                                 </div>
-                                {sanctuaryRecords.length > 0 && (
-                                    <div className={styles.cardBody}>
-                                        <div className={styles.logList}>
-                                            {sanctuaryRecords.map((record) => (
-                                                <div key={record.id} className={styles.logItem}>
-                                                    <div className={styles.logLeft}>
-                                                        <span>{record.bossName}</span>
-                                                    </div>
-                                                    <div className={styles.logRight}>
-                                                        <span className={styles.logCount}>x{record.count}</span>
-                                                        <span className={styles.logValue}>{formatMoney(record.kina)}</span>
-                                                        {canEdit && (
-                                                            <button
-                                                                className={styles.btnLogDelete}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDeleteSanctuaryRecord(record.id);
-                                                                }}
-                                                            >×</button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                <div className={styles.simpleCardRight}>
+                                    <span className={styles.simpleCardCount}>
+                                        {sanctuaryRecords.reduce((sum, r) => sum + r.count, 0)}/
+                                        {characterState.baseTickets.sanctuary}
+                                        {characterState.bonusTickets.sanctuary > 0 && `(+${characterState.bonusTickets.sanctuary})`}
+                                    </span>
+                                    <button className={styles.btnStepSmall} onClick={() => setShowDungeonModal('sanctuary')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => {
+                                        if (sanctuaryRecords.length > 0) {
+                                            const lastRecord = sanctuaryRecords[sanctuaryRecords.length - 1];
+                                            if (lastRecord.count > 1) {
+                                                setSanctuaryRecords(prev => prev.map(r =>
+                                                    r.id === lastRecord.id
+                                                        ? { ...r, count: r.count - 1, kina: Math.round(r.kina / r.count * (r.count - 1)) }
+                                                        : r
+                                                ));
+                                            } else {
+                                                handleDeleteSanctuaryRecord(lastRecord.id);
+                                            }
+                                        }
+                                    }}>-</button>
+                                </div>
                             </div>
 
                             {/* 일일 컨텐츠 */}
