@@ -11,7 +11,7 @@ import { AuthProvider } from '../../context/AuthContext'
 import GatePage from '../../components/GatePage'
 
 // 게이트 페이지 활성화 여부 (true: 비밀코드 입력 필요, false: 바로 접근 가능)
-const GATE_ENABLED = true
+const GATE_ENABLED = false
 
 export default function LayoutClient({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
