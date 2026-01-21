@@ -86,10 +86,16 @@ export default function MobileHeader() {
                 ) : isAuthenticated ? (
                     <button
                         className={styles.googleLoginBtn}
-                        onClick={(e) => {
+                        onClick={async (e) => {
                             e.preventDefault()
                             e.stopPropagation()
-                            signOut()
+                            console.log('[MobileHeader] 로그아웃 버튼 클릭')
+                            try {
+                                await signOut()
+                                console.log('[MobileHeader] 로그아웃 완료')
+                            } catch (err) {
+                                console.error('[MobileHeader] 로그아웃 실패:', err)
+                            }
                         }}
                         type="button"
                     >

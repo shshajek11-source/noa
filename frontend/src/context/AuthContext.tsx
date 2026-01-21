@@ -243,8 +243,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    console.log('[Auth] 로그아웃 시도...')
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('[Auth] 로그아웃 오류:', error)
+        throw error
+      }
+      console.log('[Auth] 로그아웃 성공')
+      // 상태 즉시 초기화
+      setUser(null)
+      setSession(null)
+      setNicknameState(null)
+      setMainCharacterState(null)
+      // localStorage 정리
+      localStorage.removeItem(NICKNAME_KEY)
+      localStorage.removeItem(MAIN_CHARACTER_KEY)
+    } catch (err) {
+      console.error('[Auth] 로그아웃 예외:', err)
+      throw err
+    }
   }
 
   const setNickname = async (newNickname: string) => {
