@@ -579,6 +579,12 @@
   min-width: 36px;
 }
 
+/* 광고 섹션 */
+.adSection {
+  padding: 0 16px;
+  margin-top: 20px;
+}
+
 /* 하단 여백 */
 .bottomSpacer {
   height: 40px;

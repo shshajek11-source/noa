@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useCharacterSearch } from '@/hooks/useCharacterSearch'
 import { CharacterSearchResult } from '@/lib/supabaseApi'
 import SearchAutocomplete from '../SearchAutocomplete'
+import AdSenseBanner from '@/components/AdSenseBanner'
 import styles from './HomeMobile.module.css'
 
 // 서버 ID -> 이름 매핑
@@ -404,7 +405,15 @@ export default function HomeMobile() {
                 </div>
             </section>
 
-            {/* 하단 여백 (광고 영역용) */}
+            {/* 하단 광고 */}
+            <section className={styles.adSection}>
+                <AdSenseBanner
+                    adFormat="horizontal"
+                    style={{ marginTop: '16px' }}
+                />
+            </section>
+
+            {/* 하단 여백 */}
             <div className={styles.bottomSpacer} />
         </div>
     )
