@@ -208,11 +208,21 @@ export async function POST(request: NextRequest) {
         filteredApiResults.forEach(item => {
             const key = normalizeKey(item.characterId)
             if (!mergedMap.has(key) || skipDbResults) {
+                // className 결정: 한글 직업명만 유효하게 판단
+                // className/jobName이 null이거나 영문/숫자만인 경우 pcId 매핑 사용
+                const isValidKoreanClass = (name: string | null | undefined) => {
+                    return name && /[가-힣]/.test(name)
+                }
+                const resolvedClassName = isValidKoreanClass(item.className)
+                    ? item.className
+                    : isValidKoreanClass(item.jobName)
+                        ? item.jobName
+                        : pcIdToClassName[item.pcId] || null
+
                 mergedMap.set(key, {
                     ...item,
                     name: cleanName(item.name),  // HTML 태그 제거
-                    // className 결정: className > jobName > pcId 매핑 순서
-                    className: item.className || item.jobName || pcIdToClassName[item.pcId] || null
+                    className: resolvedClassName
                 })
             }
         })
@@ -312,14 +322,39 @@ async function cacheSearchResults(supabase: any, results: any[]) {
         existingData?.map((d: any) => [normalizeCharacterId(d.character_id), d]) || []
     )
 
+    // pcId를 직업명으로 변환하는 맵
+    const pcIdToClassName: Record<number, string> = {
+        6: '검성', 7: '검성', 8: '검성', 9: '검성',
+        10: '수호성', 11: '수호성', 12: '수호성', 13: '수호성',
+        14: '궁성', 15: '궁성', 16: '궁성', 17: '궁성',
+        18: '살성', 19: '살성', 20: '살성', 21: '살성',
+        22: '정령성', 23: '정령성', 24: '정령성', 25: '정령성',
+        26: '마도성', 27: '마도성', 28: '마도성', 29: '마도성',
+        30: '치유성', 31: '치유성', 32: '치유성', 33: '치유성',
+        34: '호법성', 35: '호법성', 36: '호법성', 37: '호법성'
+    }
+
+    // 한글 직업명 유효성 검사
+    const isValidKoreanClass = (name: string | null | undefined) => {
+        return name && /[가-힣]/.test(name)
+    }
+
     const charactersToUpsert = results.map(item => {
         const normalizedId = normalizeCharacterId(item.characterId)
         const existing = existingMap.get(normalizedId)
+
+        // className 결정: 한글 직업명만 유효하게 판단
+        const resolvedClassName = isValidKoreanClass(item.className)
+            ? item.className
+            : isValidKoreanClass(item.jobName)
+                ? item.jobName
+                : pcIdToClassName[item.pcId] || null
+
         return {
             character_id: normalizedId,
             name: item.name?.replace(/<[^>]*>/g, '') || item.name,
             server_id: item.serverId,
-            class_name: item.className || item.jobName,
+            class_name: resolvedClassName,
             race_name: item.raceName || (item.race === 1 ? '천족' : '마족'),
             level: item.level,
             profile_image: item.profileImageUrl?.startsWith('http')
