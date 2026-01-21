@@ -28,7 +28,10 @@
       "Bash(npm run lint)",
       "Bash(ls:*)",
       "mcp__supabase__execute_sql",
-      "mcp__supabase__apply_migration"
+      "mcp__supabase__apply_migration",
+      "Bash(npm install)",
+      "Bash(cmd //c \"taskkill /PID 4272 /F\")",
+      "Bash(cmd //c \"taskkill /PID 3780 /F\")"
     ]
   }
 }

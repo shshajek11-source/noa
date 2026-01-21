@@ -234,17 +234,31 @@
   align-items: center;
   gap: 2px;
   width: 100%;
-  margin-bottom: 0;
 }
 
 .memberName {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #E5E7EB;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.memberMainInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.combatPower {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4ade80;
 }
 
 /* 직업 + 아이템 레벨 한줄 표시 */
@@ -256,12 +270,16 @@
 }
 
 .memberClass {
-  color: #9CA3AF;
+  font-size: 0.75rem;
+  color: #e5e7eb;
+  font-weight: 500;
 }
 
 .itemLevel {
-  color: #60A5FA;
-  font-weight: 600;
+  font-size: 0.7rem;
+  color: #9CA3AF;
+  font-family: 'Pretendard', monospace;
+  letter-spacing: -0.02em;
 }
 
 .memberServer {
@@ -311,30 +329,39 @@
 .partyStats {
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  padding: 10px 12px;
-  margin-top: 8px;
-  background: rgba(0, 0, 0, 0.4);
+  justify-content: space-between;
+  padding: 0;
+  margin-top: 12px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(20, 20, 20, 0.8));
   border-radius: 8px;
-  border: 1px solid #222;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
 }
 
 .partyStatItem {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 4px;
+  transition: background 0.2s;
+}
+
+.partyStatItem:hover {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .partyStatIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: #1a1a1a;
-  border-radius: 6px;
-  color: #f59e0b;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
   font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 .partyStatContent {
@@ -345,13 +372,17 @@
 .partyStatLabel {
   font-size: 0.65rem;
   color: #9CA3AF;
+  margin-bottom: 1px;
+  letter-spacing: -0.01em;
 }
 
 .partyStatValue {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: #E5E7EB;
-  font-family: monospace;
+  font-family: 'Pretendard', sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 /* 푸터 */
@@ -405,35 +436,103 @@
 }
 
 /* 반응형 */
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
+  .membersGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px;
+  }
 
-  /* 모바일에서도 4열 유지 (작게) */
+  /* 멤버 카드: 가로 배치 */
+  .memberCard {
+    flex-direction: row;
+    /* 가로 정렬 */
+    align-items: center;
+    justify-content: flex-start;
+    padding: 8px 10px;
+    gap: 10px;
+    min-height: 80px;
+    /* 높이 약간 축소 */
+  }
+
+  .leaderBadge {
+    top: -4px;
+    left: 4px;
+    /* 왼쪽 상단으로 이동 */
+    transform: none;
+    font-size: 0.6rem;
+    padding: 1px 6px;
+  }
+
+  .profileWrapper {
+    margin-bottom: 0;
+    margin-right: 0;
+    flex-shrink: 0;
+  }
+
   .profileImage,
   .profilePlaceholder {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .raceIndicator {
+    width: 10px;
+    height: 10px;
+    right: -2px;
+    bottom: -2px;
+  }
+
+  .memberInfo {
+    align-items: flex-start;
+    /* 왼쪽 정렬 */
+    gap: 2px;
+    width: auto;
+    flex: 1;
+    min-width: 0;
+    /* 텍스트 말줄임용 */
+  }
+
+  .memberMainInfo {
+    display: flex;
+    flex-wrap: wrap;
+    /* 내용 많으면 줄바꿈 */
+    align-items: center;
+    gap: 4px;
+    line-height: 1.2;
+    margin-bottom: 2px;
+    flex-direction: row !important;
+    /* 강제로 가로 방향 지정 */
   }
 
   .memberName {
-    font-size: 0.7rem;
+    font-size: 0.85rem;
+    max-width: 100%;
   }
 
-  .classRow {
-    font-size: 0.65rem;
+  .memberClass {
+    font-size: 0.75rem;
+    color: #9CA3AF;
+  }
+
+  .itemLevel {
+    font-size: 0.75rem;
+    color: #6B7280;
+  }
+
+  .combatPower {
+    font-size: 0.85rem !important;
+    /* 조금 더 크게 */
+    margin-top: 0;
+    align-self: flex-start;
   }
 
   .memberSlot,
   .emptySlot {
-    min-height: 100px;
+    min-height: auto;
+    /* 높이 자동 조절 */
   }
 
-  .partyStats {
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
-  }
-
-  .partyStatItem {
-    width: 100%;
+  .emptySlot {
+    padding: 20px 0;
   }
 }

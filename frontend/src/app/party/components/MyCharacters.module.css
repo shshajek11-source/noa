@@ -307,41 +307,84 @@
 
 .characterList {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 8px;
+  /* 스크롤바 공간 */
+  scroll-behavior: smooth;
+  /* 스크롤바 스타일링 */
+  scrollbar-width: thin;
+  scrollbar-color: #333 #111;
 }
 
-.loading, .empty {
+.characterList::-webkit-scrollbar {
+  height: 6px;
+}
+
+.characterList::-webkit-scrollbar-track {
+  background: #111;
+  border-radius: 3px;
+}
+
+.characterList::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.loading,
+.empty {
   font-size: 0.85rem;
   color: #6B7280;
   text-align: center;
-  padding: 20px;
+  padding: 40px 20px;
+  background: #111;
+  border-radius: 8px;
+  border: 1px dashed #333;
+  width: 100%;
 }
 
-/* 캐릭터 카드 */
+/* 캐릭터 카드 (Mini) */
 .characterCard {
+  position: relative;
   display: flex;
   align-items: center;
-  padding: 10px 12px;
-  background: rgba(245, 158, 11, 0.05);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 8px;
+  width: 260px;
+  /* 고정 너비 */
+  min-width: 260px;
+  padding: 12px;
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 10px;
   gap: 10px;
-  flex-wrap: wrap;
+  transition: transform 0.2s, border-color 0.2s, background 0.2s;
 }
 
-/* 카드 프로필 이미지 */
+.characterCard:hover {
+  border-color: #444;
+  background: #111;
+  transform: translateY(-2px);
+}
+
+/* 카드 헤더 (프로필 + 기본정보) */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
 .cardProfileWrapper {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
-  background: #0a0a0a;
+  background: #151515;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(245, 158, 11, 0.5);
+  border: 1px solid #333;
 }
 
 .cardProfileImage {
@@ -351,32 +394,150 @@
 }
 
 .cardProfilePlaceholder {
-  font-size: 14px;
-  color: #9CA3AF;
+  font-size: 1rem;
+  color: #555;
   font-weight: 600;
 }
 
 .characterCardMain {
   display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
 }
 
-.characterCardStats {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: #9CA3AF;
-  margin-left: auto;
+.charName {
+  font-size: 0.95rem;
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.characterCardActions {
+.charMeta {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: 8px;
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  white-space: nowrap;
+}
+
+.className {
+  color: #D1D5DB;
+  font-weight: 500;
+}
+
+.level {
+  color: #6B7280;
+}
+
+/* 우측 스탯 (PVE/PVP) */
+.characterCardStats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statLabelMini {
+  font-size: 0.65rem;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.statValuePve {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #4ade80;
+  /* Green */
+  font-family: 'Pretendard', sans-serif;
+  line-height: 1.1;
+}
+
+.statValuePvp {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #F87171;
+  /* Red */
+  font-family: 'Pretendard', sans-serif;
+  line-height: 1.1;
+}
+
+/* 액션 버튼 (호버 시 표시) */
+.characterCardActions {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: flex;
+  gap: 2px;
+  background: #1a1a1a;
+  padding: 2px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  opacity: 0;
+  transition: opacity 0.2s, top 0.2s;
+  pointer-events: none;
+}
+
+.characterCard:hover .characterCardActions {
+  opacity: 1;
+  pointer-events: auto;
+  top: -10px;
+  /* 약간 위로 떠오르는 효과 */
+}
+
+.refreshButton,
+.deleteButton,
+.debugButton {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+  background: transparent;
+  border: none;
+}
+
+.refreshButton {
+  color: #9CA3AF;
+}
+
+.refreshButton:hover {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.deleteButton {
+  color: #9CA3AF;
+}
+
+.deleteButton:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.debugButton {
+  color: #9CA3AF;
+}
+
+.debugButton:hover {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
 }
 
 /* 공통 스타일 */
@@ -431,9 +592,9 @@
   border: 1px solid #93C5FD;
   border-radius: 2px;
   box-shadow: 0 0 4px rgba(59, 130, 246, 0.8),
-              0 0 8px rgba(96, 165, 250, 0.4),
-              inset 0 -1px 2px rgba(0, 0, 0, 0.4),
-              inset 1px 1px 2px rgba(147, 197, 253, 0.6);
+    0 0 8px rgba(96, 165, 250, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+    inset 1px 1px 2px rgba(147, 197, 253, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -451,9 +612,12 @@
 }
 
 @keyframes gemSparkle {
-  0%, 100% {
+
+  0%,
+  100% {
     filter: brightness(1);
   }
+
   50% {
     filter: brightness(1.15);
   }
@@ -623,7 +787,8 @@
     flex-direction: column;
   }
 
-  .select, .searchInput {
+  .select,
+  .searchInput {
     width: 100%;
     min-width: unset;
   }

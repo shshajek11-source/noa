@@ -253,11 +253,163 @@ return (
 5. **실시간 업데이트** → SyncContext 통한 전역 상태 관리
 
 ## 주요 기술 스택
-- **프론트엔드**: Next.js 14 (App Router), TypeScript, CSS Variables
-- **데이터**: Supabase (PostgreSQL), Realtime Subscriptions  
+- **프론트엔드**: Next.js 14 (App Router), React 18, TypeScript, CSS Variables
+- **데이터**: Supabase (PostgreSQL), Realtime Subscriptions
 - **스타일링**: DAK.GG 스타일 (다크 모드 + 옐로우 액센트)
 - **아이콘**: Lucide React
 - **API**: AION 2 공식 API (웹스크래핑)
+
+## Vercel React Best Practices (필수 준수)
+
+### 1. React Server Components (RSC) 우선
+```typescript
+// ✅ 기본적으로 Server Component 사용 (데이터 페칭, 정적 콘텐츠)
+// app/page.tsx - 'use client' 없으면 자동으로 Server Component
+export default async function Page() {
+    const data = await fetchData() // 서버에서 직접 데이터 페칭
+    return <div>{data}</div>
+}
+
+// ❌ 불필요하게 'use client' 사용 금지
+// 'use client'는 인터랙션(onClick, useState 등)이 필요할 때만 사용
+```
+
+### 2. Dynamic Imports로 번들 최적화
+```typescript
+import dynamic from 'next/dynamic'
+
+// 무거운 컴포넌트는 동적 임포트
+const HeavyChart = dynamic(() => import('@/components/HeavyChart'), {
+    loading: () => <div>로딩 중...</div>,
+    ssr: false // 클라이언트 전용 컴포넌트
+})
+
+// 모달, 드롭다운 등 초기 렌더링 불필요한 컴포넌트
+const Modal = dynamic(() => import('@/components/Modal'))
+```
+
+### 3. Streaming SSR & Suspense 활용
+```typescript
+import { Suspense } from 'react'
+
+export default function Page() {
+    return (
+        <div>
+            <h1>캐릭터 정보</h1>
+            {/* 느린 데이터는 Suspense로 스트리밍 */}
+            <Suspense fallback={<SkeletonLoader />}>
+                <CharacterStats />
+            </Suspense>
+            <Suspense fallback={<SkeletonLoader />}>
+                <RankingList />
+            </Suspense>
+        </div>
+    )
+}
+```
+
+### 4. 이미지 최적화 (next/image 필수)
+```typescript
+import Image from 'next/image'
+
+// ✅ 항상 next/image 사용
+<Image
+    src="/character.png"
+    alt="캐릭터"
+    width={200}
+    height={200}
+    priority // LCP 이미지에만 사용
+    placeholder="blur" // 또는 "empty"
+/>
+
+// ❌ <img> 태그 직접 사용 금지
+```
+
+### 5. 폰트 최적화 (next/font 필수)
+```typescript
+import { Noto_Sans_KR } from 'next/font/google'
+
+const notoSansKr = Noto_Sans_KR({
+    subsets: ['latin'],
+    weight: ['400', '700'],
+    display: 'swap',
+    preload: true,
+})
+
+export default function RootLayout({ children }) {
+    return (
+        <html className={notoSansKr.className}>
+            <body>{children}</body>
+        </html>
+    )
+}
+```
+
+### 6. 메모이제이션 전략
+```typescript
+'use client'
+import { useMemo, useCallback, memo } from 'react'
+
+// 비용이 큰 계산은 useMemo
+const sortedData = useMemo(() => {
+    return data.sort((a, b) => b.score - a.score)
+}, [data])
+
+// 자식에게 전달하는 콜백은 useCallback
+const handleSearch = useCallback((query: string) => {
+    performSearch(query)
+}, [])
+
+// 자주 리렌더링되는 자식은 memo
+const CharacterCard = memo(function CharacterCard({ character }) {
+    return <div>{character.name}</div>
+})
+```
+
+### 7. 데이터 페칭 패턴
+```typescript
+// Server Component에서 직접 fetch (캐싱 자동)
+async function getData() {
+    const res = await fetch('https://api.example.com/data', {
+        next: { revalidate: 3600 } // 1시간 캐시
+    })
+    return res.json()
+}
+
+// 여러 API 병렬 호출
+const [characters, rankings] = await Promise.all([
+    fetchCharacters(),
+    fetchRankings()
+])
+```
+
+### 8. Route Segment Config
+```typescript
+// 페이지별 캐싱/리밸리데이션 설정
+export const revalidate = 60 // 60초마다 재검증
+export const dynamic = 'force-static' // 정적 생성 강제
+export const runtime = 'edge' // Edge Runtime 사용
+```
+
+### 9. Loading UI & Error Boundaries
+```
+app/
+├── page.tsx
+├── loading.tsx      // 자동 로딩 UI
+├── error.tsx        // 에러 바운더리
+└── not-found.tsx    // 404 페이지
+```
+
+### 10. 성능 체크리스트
+- [ ] Server Component 최대 활용 (기본값)
+- [ ] 'use client'는 인터랙션 필요 시에만
+- [ ] next/image로 모든 이미지 최적화
+- [ ] next/font로 폰트 최적화
+- [ ] Dynamic imports로 코드 스플리팅
+- [ ] Suspense로 점진적 로딩
+- [ ] 불필요한 리렌더링 방지 (memo, useMemo, useCallback)
+- [ ] API 호출 병렬화 (Promise.all)
+- [ ] 적절한 캐싱 전략 (revalidate)
 
 ## 중요 고려사항
 - **타겟 언어**: 한국어 (모든 UI 텍스트)

@@ -30,12 +30,14 @@ interface Member {
     profileImage?: string;
     characterId?: string;
     isFromDb?: boolean;
+    race?: string; // 종족 추가
+    pvpScore?: number; // PVP 점수 추가
 }
 
 // 선택 정보
 interface SelectionInfo {
     type: 'server' | 'name';
-    ocrName: string; // OCR로 인식된 이름
+    ocrName: string;
     candidates: ServerCandidate[];
 }
 
@@ -44,538 +46,215 @@ interface PartyCardProps {
     index: number;
     spec?: DetailedSpec;
     isLoadingSpec?: boolean;
-    // 선택 관련 props
     selectionInfo?: SelectionInfo;
     onSelect?: (selectedServer: string, characterData: PartyMember) => void;
 }
 
-// 돌파 아이콘 컴포넌트 (메달/3.png 사용)
-const BreakthroughIcon = ({ value, size = 'medium' }: { value: number; size?: 'small' | 'medium' | 'large' }) => {
-    // 크기 2.25배 적용 (1.5 * 1.5)
-    const iconSize = size === 'large' ? 81 : size === 'medium' ? 68 : 54;
-    const fontSize = size === 'large' ? '27px' : size === 'medium' ? '24px' : '21px';
-
-    return (
-        <div style={{
-            position: 'relative',
-            width: `${iconSize}px`,
-            height: `${iconSize}px`,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: '-4px', // 왼쪽으로 4px 이동
-        }}>
-            <img
-                src="/메달/3.png"
-                alt="돌파"
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                }}
-            />
-            <span style={{
-                position: 'absolute',
-                top: '45%',
-                left: 'calc(50% + 2px)',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 1,
-                color: '#fff',
-                fontWeight: 'bold',
-                fontSize,
-                textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5)',
-            }}>
-                {value}
-            </span>
-        </div>
-    );
-};
-
 export default function PartyCard({ member, index, spec, isLoadingSpec, selectionInfo, onSelect }: PartyCardProps) {
-    // MVP & Main Character Styling
     const isMvp = member.isMvp;
     const isMain = member.isMainCharacter;
     const hasSelection = selectionInfo && selectionInfo.candidates.length > 0;
 
-    // 프로필 이미지 또는 아이콘 렌더링
-    const renderProfileIcon = () => {
-        const hasProfileImage = member.profileImage;
+    // 종족 색상 결정
+    const getRaceColor = (race?: string) => {
+        if (!race) return 'var(--text-secondary)';
+        const r = race.toLowerCase();
+        if (r.includes('elyos') || r.includes('천족') || r === '1' || r === '0') return '#2DD4BF'; // Teal
+        if (r.includes('asmodian') || r.includes('마족') || r === '2') return '#A78BFA'; // Violet
+        return 'var(--text-secondary)';
+    };
 
-        if (hasProfileImage) {
+    // 종족 텍스트
+    const getRaceText = (race?: string) => {
+        if (!race) return '';
+        const r = race.toLowerCase();
+        if (r.includes('elyos') || r.includes('천족') || r === '1' || r === '0') return '천족';
+        if (r.includes('asmodian') || r.includes('마족') || r === '2') return '마족';
+        return race;
+    };
+
+    const raceColor = getRaceColor(member.race);
+    const raceText = getRaceText(member.race);
+
+    // PVP 점수 (API 없으면 0)
+    const pvpScore = member.pvpScore || 0;
+    // PVE 점수 (Hiton CP)
+    const pveScore = spec?.hitonCP || member.cp;
+
+    // 프로필 아이콘
+    const renderProfileIcon = () => {
+        if (member.profileImage) {
             return (
                 <div style={{
                     position: 'relative',
-                    width: '40px', height: '40px',
+                    width: '42px', height: '42px',
                     borderRadius: '50%',
                     overflow: 'hidden',
                     border: isMvp ? '2px solid #F59E0B' : '1px solid #374151',
-                    boxShadow: isMvp ? '0 4px 6px rgba(0,0,0,0.2)' : 'none',
                     flexShrink: 0
                 }}>
                     <img
                         src={member.profileImage}
                         alt={member.name}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover'
-                        }}
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                        }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
-                    {isMvp && (
-                        <div style={{
-                            position: 'absolute',
-                            bottom: -2, right: -2,
-                            background: '#F59E0B',
-                            borderRadius: '50%',
-                            padding: '2px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <Star size={8} fill="white" color="white" />
-                        </div>
-                    )}
                 </div>
             );
         }
-
-        // 이미지 없을 때 기본 아이콘
         return (
             <div style={{
-                width: '40px', height: '40px',
+                width: '42px', height: '42px',
                 borderRadius: '50%',
-                background: isMvp ? 'linear-gradient(135deg, #F59E0B, #B45309)' : '#1F2937',
+                background: '#1F2937',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: isMvp ? '2px solid #FFF' : '1px solid #374151',
-                color: isMvp ? 'white' : '#9CA3AF',
-                boxShadow: isMvp ? '0 4px 6px rgba(0,0,0,0.2)' : 'none',
+                border: '1px solid #374151',
+                color: '#9CA3AF',
                 flexShrink: 0
             }}>
-                {isMvp ? <Star size={18} fill="white" /> : <User size={18} />}
+                <User size={20} />
             </div>
         );
     };
 
-    const itemLevel = spec?.itemLevel || member.gearScore || 0;
-
     return (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {/* ACE 뱃지 - 카드 바깥 윗부분 */}
-            {isMvp && (
+        <div
+            className="party-card-hover"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '12px 16px',
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '12px',
+                marginBottom: '8px',
+                animation: `fadeInUp 0.3s ease-out forwards ${index * 50}ms`,
+                opacity: 0,
+                position: 'relative',
+                gap: '16px'
+            }}
+        >
+            <style>{`
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .party-card-hover:hover {
+                    background: rgba(255, 255, 255, 0.04) !important;
+                    border-color: rgba(255, 255, 255, 0.15) !important;
+                }
+            `}</style>
+
+            {/* 1. Rank & Avatar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
-                    background: 'linear-gradient(135deg, #FACC15, #F59E0B)',
-                    color: '#000',
-                    fontWeight: 'bold',
-                    padding: '4px 12px',
-                    fontSize: '0.7rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '4px',
-                    borderRadius: '8px 8px 0 0',
-                    marginBottom: '-1px',
+                    width: '28px', height: '28px',
+                    background: '#1F2937',
+                    borderRadius: '8px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#E5E7EB', fontWeight: 700, fontSize: '0.9rem'
                 }}>
-                    <Star size={12} fill="#000" /> ACE
+                    {index + 1}
                 </div>
-            )}
+                {renderProfileIcon()}
+            </div>
 
-            {/* 카드 본체 */}
-            <div
-                className="party-card-hover"
-                style={{
-                    position: 'relative',
-                    background: isMvp
-                        ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(0,0,0,0.2))'
-                        : 'rgba(255, 255, 255, 0.02)',
-                    border: isMvp ? '2px solid #F59E0B' : '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: isMvp ? '0 0 12px 12px' : '12px',
-                    transition: 'all 0.2s',
-                    boxShadow: isMvp
-                        ? `0 0 30px rgba(250, 204, 21, 0.3), 0 0 60px rgba(250, 204, 21, 0.15)`
-                        : 'none',
-                    animation: `fadeInUp 0.5s ease-out forwards ${index * 50}ms`,
-                    opacity: 0,
-                    overflow: 'hidden',
-                }}
-            >
-                <style>{`
-                    @keyframes fadeInUp {
-                        from { opacity: 0; transform: translateY(10px); }
-                        to { opacity: 1; transform: translateY(0); }
-                    }
-                    .party-card-hover:hover {
-                        transform: translateY(-2px);
-                        box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
-                    }
-                `}</style>
-
-                {/* 내캐릭터 표시 - 오른쪽 상단 */}
-                {isMain && (
-                    <div style={{
-                        position: 'absolute',
-                        top: '6px',
-                        right: '8px',
-                        background: 'rgba(250, 204, 21, 0.2)',
-                        border: '1px solid rgba(250, 204, 21, 0.5)',
-                        color: '#FACC15',
-                        fontSize: '0.55rem',
-                        fontWeight: 700,
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        zIndex: 10,
+            {/* 2. Main Info (Name, Class, Server) */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{
+                        fontSize: '1.1rem', fontWeight: 700, color: '#FFFFFF',
+                        letterSpacing: '-0.02em'
                     }}>
-                        내캐릭터
-                    </div>
-                )}
-
-                {/* 상단: 기본 정보 */}
-                <div style={{
-                    padding: '10px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                }}>
-                    {/* Rank # */}
-                    <div style={{
-                        fontSize: '0.8rem', fontWeight: 700,
-                        color: isMvp ? '#F59E0B' : 'var(--text-secondary)',
-                        width: '1rem', textAlign: 'center',
-                        flexShrink: 0
-                    }}>
-                        {index + 1}
-                    </div>
-
-                    {/* Icon */}
-                    {renderProfileIcon()}
-
-                    {/* Name & Meta */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                            <span style={{
-                                color: isMvp ? '#FDE68A' : 'var(--text-main)',
-                                fontWeight: 600, fontSize: '0.85rem',
-                                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                            }}>
-                                {member.name}
-                            </span>
-                        </div>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            fontSize: '0.65rem',
-                            color: 'var(--text-secondary)',
-                            flexWrap: 'wrap'
-                        }}>
-                            <span>{member.server}</span>
-                            <span style={{ opacity: 0.3 }}>·</span>
-                            <span>{member.class}</span>
-                        </div>
-                        {/* 레벨 + 아이템레벨 (같은 줄, 크게) */}
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            marginTop: '2px'
-                        }}>
-                            <span style={{
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                color: 'var(--text-main)'
-                            }}>
-                                Lv.{member.level || '?'}
-                            </span>
-                            <span style={{
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                color: '#60A5FA'
-                            }}>
-                                iLv.{itemLevel}
-                            </span>
-                        </div>
-                    </div>
+                        {member.name}
+                    </span>
+                    {isMvp && <div style={{ background: '#F59E0B', padding: '1px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold', color: '#000' }}>ACE</div>}
+                    {isMain && <div style={{ border: '1px solid #FACC15', color: '#FACC15', padding: '0px 4px', borderRadius: '4px', fontSize: '0.65rem' }}>ME</div>}
                 </div>
 
-                {/* 중앙: HITON 전투력 + 돌파 (나란히 정렬) */}
-                {spec && (
-                    <div style={{
-                        padding: '10px 12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        background: isMvp
-                            ? 'linear-gradient(135deg, rgba(250, 204, 21, 0.15), rgba(250, 204, 21, 0.05))'
-                            : 'rgba(0, 0, 0, 0.15)',
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    fontSize: '0.85rem', color: '#9CA3AF'
+                }}>
+                    <span>{member.server}</span>
+                    <span style={{ width: '3px', height: '3px', background: '#4B5563', borderRadius: '50%' }} />
+                    <span style={{ color: raceColor, fontWeight: 500 }}>{raceText}</span>
+                    <span style={{ width: '3px', height: '3px', background: '#4B5563', borderRadius: '50%' }} />
+                    <span>{member.class}</span>
+                </div>
+            </div>
+
+            {/* 3. Stats (Right Aligned) */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', minWidth: '100px' }}>
+                {/* PVE Score */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6B7280' }}>PVE</span>
+                    <span style={{
+                        fontSize: '1rem', fontWeight: 700,
+                        color: '#4ADE80',
+                        fontFamily: 'monospace'
                     }}>
-                        {/* HITON 전투력 */}
-                        <div style={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                        }}>
-                            <div style={{
-                                fontSize: '0.6rem',
-                                color: 'var(--text-secondary)',
-                                marginBottom: '2px',
-                                letterSpacing: '0.5px',
-                            }}>
-                                HITON
-                            </div>
-                            <div style={{
-                                fontSize: '1.5rem',
-                                fontWeight: 800,
-                                color: '#FACC15',
-                                fontFamily: '"Pretendard", "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-                                textShadow: isMvp ? '0 0 12px rgba(250, 204, 21, 0.6)' : '0 1px 2px rgba(0,0,0,0.3)',
-                                lineHeight: 1,
-                            }}>
-                                {(spec.hitonCP || member.cp).toLocaleString()}
-                            </div>
-                        </div>
+                        {pveScore.toLocaleString()}
+                    </span>
+                </div>
 
-                        {/* 구분선 */}
-                        <div style={{
-                            width: '1px',
-                            height: '40px',
-                            background: 'rgba(255, 255, 255, 0.15)',
-                        }} />
-
-                        {/* 돌파 */}
-                        <div style={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                        }}>
-                            <div style={{
-                                fontSize: '0.6rem',
-                                color: 'var(--text-secondary)',
-                                marginBottom: '2px',
-                            }}>
-                                돌파
-                            </div>
-                            <BreakthroughIcon value={spec.totalBreakthrough} size="medium" />
-                        </div>
-                    </div>
-                )}
-
-                {/* 스펙 없을 때 기본 전투력 표시 */}
-                {!spec && !isLoadingSpec && (
-                    <div style={{
-                        padding: '10px 12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        background: 'rgba(0, 0, 0, 0.15)',
+                {/* PVP Score */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6B7280' }}>PVP</span>
+                    <span style={{
+                        fontSize: '0.9rem', fontWeight: 600,
+                        color: pvpScore > 0 ? '#EF4444' : '#6B7280',
+                        fontFamily: 'monospace'
                     }}>
-                        {/* HITON 전투력 */}
+                        {pvpScore.toLocaleString()}
+                    </span>
+                </div>
+            </div>
+
+            {/* Selection Overlay (if needed) */}
+            {hasSelection && (
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'rgba(15, 23, 42, 0.95)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '0 20px',
+                    zIndex: 10,
+                    borderRadius: '12px'
+                }}>
+                    <div style={{ width: '100%', maxWidth: '300px' }}>
                         <div style={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
+                            display: 'flex', alignItems: 'center', gap: '6px',
+                            color: selectionInfo.type === 'name' ? '#FACC15' : '#60A5FA',
+                            marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600
                         }}>
-                            <div style={{
-                                fontSize: '0.6rem',
-                                color: 'var(--text-secondary)',
-                                marginBottom: '2px',
-                                letterSpacing: '0.5px',
-                            }}>
-                                HITON
-                            </div>
-                            <div style={{
-                                fontSize: '1.5rem',
-                                fontWeight: 800,
-                                color: '#FACC15',
-                                fontFamily: '"Pretendard", "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-                                textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                                lineHeight: 1,
-                            }}>
-                                {member.cp.toLocaleString()}
-                            </div>
+                            <ChevronDown size={14} />
+                            {selectionInfo.type === 'name' ? '캐릭터 선택' : '서버 선택'}
                         </div>
-
-                        {/* 구분선 */}
-                        <div style={{
-                            width: '1px',
-                            height: '40px',
-                            background: 'rgba(255, 255, 255, 0.15)',
-                        }} />
-
-                        {/* 돌파 */}
-                        <div style={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                        }}>
-                            <div style={{
-                                fontSize: '0.6rem',
-                                color: 'var(--text-secondary)',
-                                marginBottom: '2px',
-                            }}>
-                                돌파
-                            </div>
-                            <BreakthroughIcon value={0} size="medium" />
-                        </div>
-                    </div>
-                )}
-
-                {/* 하단: 능력치 (스펙 데이터가 있을 때만) - 3x2 그리드 */}
-                {spec && (
-                    <div style={{
-                        padding: '8px 10px',
-                        background: 'rgba(0, 0, 0, 0.2)',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '4px 6px',
-                        fontSize: '0.65rem',
-                    }}>
-                        <StatItem label="공격력" value={spec.stats.attackPower} />
-                        <StatItem label="전투속도" value={spec.stats.attackSpeed > 0 ? `${spec.stats.attackSpeed.toFixed(2)}` : '-'} />
-                        <StatItem label="무기피증" value={spec.stats.weaponDamageAmp > 0 ? `${spec.stats.weaponDamageAmp.toFixed(1)}%` : '-'} />
-                        <StatItem label="피해증폭" value={spec.stats.damageAmp > 0 ? `${spec.stats.damageAmp.toFixed(1)}%` : '-'} />
-                        <StatItem label="치명타" value={spec.stats.criticalRate > 0 ? `${spec.stats.criticalRate.toFixed(1)}%` : '-'} />
-                        <StatItem label="다단히트" value={spec.stats.multiHitRate > 0 ? `${spec.stats.multiHitRate.toFixed(1)}%` : '-'} />
-                    </div>
-                )}
-
-                {/* 로딩 상태 */}
-                {isLoadingSpec && !spec && (
-                    <div style={{
-                        padding: '10px',
-                        background: 'rgba(0, 0, 0, 0.2)',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                        textAlign: 'center',
-                        fontSize: '0.65rem',
-                        color: 'var(--text-secondary)',
-                    }}>
-                        스펙 로딩 중...
-                    </div>
-                )}
-
-                {/* 선택 필요 시 버튼 목록 */}
-                {hasSelection && (
-                    <div style={{
-                        padding: '8px 10px',
-                        background: selectionInfo.type === 'name'
-                            ? 'rgba(250, 204, 21, 0.08)'
-                            : 'rgba(96, 165, 250, 0.08)',
-                        borderTop: `1px solid ${selectionInfo.type === 'name'
-                            ? 'rgba(250, 204, 21, 0.3)'
-                            : 'rgba(96, 165, 250, 0.3)'}`,
-                    }}>
-                        {/* 헤더 */}
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            marginBottom: '6px',
-                            fontSize: '0.65rem',
-                        }}>
-                            <ChevronDown size={12} color={selectionInfo.type === 'name' ? '#FACC15' : '#60A5FA'} />
-                            <span style={{
-                                color: selectionInfo.type === 'name' ? '#FACC15' : '#60A5FA',
-                                fontWeight: 600
-                            }}>
-                                {selectionInfo.type === 'name' ? '이름 선택' : '서버 선택'}
-                            </span>
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '0.6rem' }}>
-                                (OCR: {selectionInfo.ocrName})
-                            </span>
-                        </div>
-
-                        {/* 버튼 목록 */}
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '4px',
-                        }}>
-                            {selectionInfo.candidates.map((candidate, cIdx) => (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {selectionInfo.candidates.map((candidate, idx) => (
                                 <button
-                                    key={`select-${cIdx}`}
-                                    onClick={() => {
-                                        if (candidate.characterData && onSelect) {
-                                            onSelect(candidate.server, candidate.characterData);
-                                        }
-                                    }}
+                                    key={idx}
+                                    onClick={() => candidate.characterData && onSelect && onSelect(candidate.server, candidate.characterData)}
                                     style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        padding: '6px 10px',
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        display: 'flex', justifyContent: 'space-between',
+                                        padding: '8px 12px',
+                                        background: 'rgba(255,255,255,0.1)',
+                                        border: '1px solid rgba(255,255,255,0.1)',
                                         borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.15s',
-                                        width: '100%',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        const color = selectionInfo.type === 'name' ? '250, 204, 21' : '96, 165, 250';
-                                        e.currentTarget.style.background = `rgba(${color}, 0.15)`;
-                                        e.currentTarget.style.borderColor = `rgba(${color}, 0.4)`;
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                        color: '#fff', fontSize: '0.85rem',
+                                        cursor: 'pointer'
                                     }}
                                 >
-                                    {/* 왼쪽: 이름 또는 서버 */}
-                                    <span style={{
-                                        color: 'var(--brand-white)',
-                                        fontWeight: 600,
-                                        fontSize: '0.75rem'
-                                    }}>
-                                        {selectionInfo.type === 'name'
-                                            ? (candidate.alternativeName || candidate.characterData?.name)
-                                            : candidate.server
-                                        }
-                                    </span>
-
-                                    {/* 오른쪽: 아이템레벨 + 직업 */}
+                                    <span>{selectionInfo.type === 'name' ? (candidate.alternativeName || candidate.characterData?.name) : candidate.server}</span>
                                     {candidate.characterData && (
-                                        <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            fontSize: '0.65rem',
-                                        }}>
-                                            <span style={{ color: 'var(--text-secondary)' }}>
-                                                {candidate.characterData.class}
-                                            </span>
-                                            <span style={{
-                                                color: '#60A5FA',
-                                                fontWeight: 600
-                                            }}>
-                                                iLv.{candidate.characterData.gearScore || 0}
-                                            </span>
-                                        </div>
+                                        <span style={{ color: '#60A5FA', fontSize: '0.75rem' }}>iLv.{candidate.characterData.gearScore}</span>
                                     )}
                                 </button>
                             ))}
                         </div>
                     </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
-// 능력치 아이템 컴포넌트
-function StatItem({ label, value }: { label: string; value: string }) {
-    return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '2px 0',
-        }}>
-            <span style={{ color: 'var(--text-secondary)', fontSize: '0.6rem' }}>{label}</span>
-            <span style={{ color: 'var(--text-main)', fontWeight: 500, fontFamily: 'monospace', fontSize: '0.65rem' }}>{value}</span>
+                </div>
+            )}
         </div>
     );
 }

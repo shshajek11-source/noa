@@ -33,6 +33,7 @@ interface SlotConfig {
 interface CreatePartyModalProps {
   isOpen: boolean
   onClose: () => void
+  onCreated?: (partyId: string) => void
 }
 
 // 직업별 아이콘
@@ -47,7 +48,7 @@ const CLASS_ICONS: Record<string, string> = {
   호법성: '⚡'
 }
 
-export default function CreatePartyModal({ isOpen, onClose }: CreatePartyModalProps) {
+export default function CreatePartyModal({ isOpen, onClose, onCreated }: CreatePartyModalProps) {
   const router = useRouter()
   const { session } = useAuth()
   const { characters, loading: loadingCharacters } = useMyCharacters({ accessToken: session?.access_token })
@@ -225,7 +226,11 @@ export default function CreatePartyModal({ isOpen, onClose }: CreatePartyModalPr
 
       const data = await response.json()
       onClose()
-      router.push(`/party/${data.party.id}`)
+      if (onCreated) {
+        onCreated(data.party.id)
+      } else {
+        router.push(`/party/${data.party.id}`)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '파티 생성에 실패했습니다.')
     } finally {

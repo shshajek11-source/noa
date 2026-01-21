@@ -1,0 +1,385 @@
+/* 모달 오버레이 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* 모달 컨테이너 */
+.modal {
+  background: #1a1d24;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* 헤더 */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #374151;
+  position: sticky;
+  top: 0;
+  background: #1a1d24;
+  z-index: 10;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #E5E7EB;
+  font-weight: 600;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #9CA3AF;
+  cursor: pointer;
+  font-size: 1.5rem;
+  border-radius: 4px;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #E5E7EB;
+}
+
+/* 모달 컨텐츠 */
+.modalContent {
+  padding: 16px 20px;
+}
+
+/* 로딩/에러 */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #9CA3AF;
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  color: #EF4444;
+}
+
+/* 파티장 액션 버튼 */
+.leaderActions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 8px;
+}
+
+.actionButton {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #E5E7EB;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.actionButton:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.actionButton.complete {
+  border-color: #10B981;
+  color: #10B981;
+}
+
+.actionButton.complete:hover {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.actionButton.danger {
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+.actionButton.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* 파티 정보 */
+.partyInfo {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.partyInfo.pvp {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.partyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dungeonName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.status {
+  font-size: 0.85rem;
+  color: #9CA3AF;
+}
+
+.partyTitle {
+  font-size: 1.1rem;
+  color: #E5E7EB;
+  margin: 8px 0 12px;
+  font-weight: 500;
+}
+
+.timeInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.timeIcon {
+  font-size: 1.1rem;
+}
+
+.timeLabel {
+  font-size: 0.9rem;
+  color: #E5E7EB;
+  flex: 1;
+}
+
+.timeRemaining {
+  font-size: 0.8rem;
+  color: #f59e0b;
+}
+
+.specs {
+  font-size: 0.85rem;
+  color: #9CA3AF;
+  padding: 8px 0;
+  border-top: 1px solid #222;
+  margin-top: 8px;
+}
+
+.description {
+  font-size: 0.9rem;
+  color: #9CA3AF;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* 섹션 */
+.section {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #E5E7EB;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 슬롯 그리드 */
+.slotsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+/* 신청 대기 목록 */
+.pendingList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pendingCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+}
+
+.pendingInfo {
+  flex: 1;
+}
+
+.pendingMain {
+  font-size: 0.9rem;
+  color: #E5E7EB;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.pendingStats {
+  font-size: 0.8rem;
+  color: #9CA3AF;
+}
+
+.pendingMessage {
+  font-size: 0.8rem;
+  color: #f59e0b;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.pendingSlot {
+  font-size: 0.75rem;
+  color: #6B7280;
+  margin-top: 4px;
+}
+
+.pendingActions {
+  display: flex;
+  gap: 8px;
+}
+
+.approveButton {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  background: #f59e0b;
+  border: none;
+  border-radius: 6px;
+  color: #000;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.approveButton:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.approveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rejectButton {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  background: transparent;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  color: #9CA3AF;
+  cursor: pointer;
+}
+
+.rejectButton:hover:not(:disabled) {
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+.rejectButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 내 신청 상태 */
+.myApplicationStatus {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.myApplicationStatus span {
+  font-size: 0.9rem;
+  color: #f59e0b;
+}
+
+.cancelButton {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  background: transparent;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  color: #9CA3AF;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+/* 모바일 대응 */
+@media (max-width: 600px) {
+  .overlay {
+    padding: 10px;
+  }
+
+  .modal {
+    max-height: 95vh;
+  }
+
+  .modalContent {
+    padding: 12px 16px;
+  }
+
+  .slotsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .leaderActions {
+    flex-wrap: wrap;
+  }
+
+  .pendingCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .pendingActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

@@ -19,6 +19,8 @@ export interface PartyMember {
     characterId?: string;
     isFromDb?: boolean; // DB에서 조회된 실제 데이터인지 표시
     _ocrName?: string; // OCR로 인식된 원본 이름 (선택 매칭용)
+    race?: string; // 종족 (Elyos/Asmodian)
+    pvpScore?: number; // PVP 전투력
 }
 
 export interface AnalysisResult {
@@ -1043,7 +1045,9 @@ export const usePartyScanner = () => {
                         level: localMatch.match.level,
                         profileImage: localMatch.match.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: localMatch.match.race,
+                        pvpScore: localMatch.match.pvp_score
                     };
                 }
 
@@ -1070,7 +1074,9 @@ export const usePartyScanner = () => {
                             level: detail.profile.characterLevel || localMatch.match.level,
                             profileImage: detail.profile.profileImage || localMatch.match.imageUrl,
                             isMvp: false,
-                            isFromDb: true
+                            isFromDb: true,
+                            race: detail.profile.raceName || detail.profile.race || localMatch.match.race,
+                            pvpScore: detail.profile.pvp_score || detail.profile.pvpScore || localMatch.match.pvp_score || 0
                         };
                     }
 
@@ -1087,7 +1093,9 @@ export const usePartyScanner = () => {
                         level: localMatch.match.level,
                         profileImage: localMatch.match.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: localMatch.match.race,
+                        pvpScore: localMatch.match.pvp_score
                     };
                 } catch (detailErr) {
                     console.error(`[lookupCharacter] Failed to get detail, using search result:`, detailErr);
@@ -1102,7 +1110,9 @@ export const usePartyScanner = () => {
                         level: localMatch.match.level,
                         profileImage: localMatch.match.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: localMatch.match.race,
+                        pvpScore: localMatch.match.pvp_score
                     };
                 }
             }
@@ -1136,7 +1146,9 @@ export const usePartyScanner = () => {
                         level: liveMatch.match.level,
                         profileImage: liveMatch.match.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: liveMatch.match.race,
+                        pvpScore: liveMatch.match.pvp_score
                     };
                 }
 
@@ -1163,7 +1175,9 @@ export const usePartyScanner = () => {
                             level: detail.profile.characterLevel || liveMatch.match.level,
                             profileImage: detail.profile.profileImage || liveMatch.match.imageUrl,
                             isMvp: false,
-                            isFromDb: true
+                            isFromDb: true,
+                            race: detail.profile.raceName || detail.profile.race || liveMatch.match.race,
+                            pvpScore: detail.profile.pvp_score || detail.profile.pvpScore || liveMatch.match.pvp_score || 0
                         };
                     }
 
@@ -1180,7 +1194,9 @@ export const usePartyScanner = () => {
                         level: liveMatch.match.level,
                         profileImage: liveMatch.match.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: liveMatch.match.race,
+                        pvpScore: liveMatch.match.pvp_score
                     };
                 } catch (detailErr) {
                     console.error(`[lookupCharacter] Failed to get detail, using search result:`, detailErr);
@@ -1195,7 +1211,9 @@ export const usePartyScanner = () => {
                         level: liveMatch.match.level,
                         profileImage: liveMatch.match.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: liveMatch.match.race,
+                        pvpScore: liveMatch.match.pvp_score
                     };
                 }
             }
@@ -1232,7 +1250,9 @@ export const usePartyScanner = () => {
                         level: altLocalMatch.match.level,
                         profileImage: altLocalMatch.match.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: altLocalMatch.match.race,
+                        pvpScore: altLocalMatch.match.pvp_score
                     };
                 }
 
@@ -1255,7 +1275,9 @@ export const usePartyScanner = () => {
                             level: altLiveMatch.match.level,
                             profileImage: altLiveMatch.match.imageUrl,
                             isMvp: false,
-                            isFromDb: true
+                            isFromDb: true,
+                            race: altLiveMatch.match.race,
+                            pvpScore: altLiveMatch.match.pvp_score
                         };
                     }
 
@@ -1274,7 +1296,9 @@ export const usePartyScanner = () => {
                                 level: detail.profile.characterLevel || altLiveMatch.match.level,
                                 profileImage: detail.profile.profileImage || altLiveMatch.match.imageUrl,
                                 isMvp: false,
-                                isFromDb: true
+                                isFromDb: true,
+                                race: detail.profile.raceName || detail.profile.race || altLiveMatch.match.race,
+                                pvpScore: detail.profile.pvp_score || detail.profile.pvpScore || altLiveMatch.match.pvp_score || 0
                             };
                         }
                     } catch (e) {
@@ -1294,7 +1318,9 @@ export const usePartyScanner = () => {
                         level: altLiveMatch.match.level,
                         profileImage: altLiveMatch.match.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: altLiveMatch.match.race,
+                        pvpScore: altLiveMatch.match.pvp_score
                     };
                 }
             }
@@ -1351,7 +1377,9 @@ export const usePartyScanner = () => {
                         level: localMatch.level,
                         profileImage: localMatch.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: localMatch.race,
+                        pvpScore: localMatch.pvp_score
                     };
                 }
 
@@ -1372,7 +1400,9 @@ export const usePartyScanner = () => {
                         level: liveMatch.level,
                         profileImage: liveMatch.imageUrl,
                         isMvp: false,
-                        isFromDb: true
+                        isFromDb: true,
+                        race: liveMatch.race,
+                        pvpScore: liveMatch.pvp_score
                     };
                 }
 
@@ -1409,7 +1439,9 @@ export const usePartyScanner = () => {
                             level: localMatch.level,
                             profileImage: localMatch.imageUrl,
                             isMvp: false,
-                            isFromDb: true
+                            isFromDb: true,
+                            race: localMatch.race,
+                            pvpScore: localMatch.pvp_score
                         }
                     };
                 }
@@ -1433,7 +1465,9 @@ export const usePartyScanner = () => {
                             level: liveMatch.level,
                             profileImage: liveMatch.imageUrl,
                             isMvp: false,
-                            isFromDb: true
+                            isFromDb: true,
+                            race: liveMatch.race,
+                            pvpScore: liveMatch.pvp_score
                         }
                     };
                 }

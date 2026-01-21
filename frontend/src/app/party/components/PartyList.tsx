@@ -13,12 +13,14 @@ interface PartyListProps {
   })[]
   loading?: boolean
   emptyMessage?: string
+  onSelect?: (partyId: string) => void
 }
 
 export default function PartyList({
   parties,
   loading = false,
-  emptyMessage = '등록된 파티가 없습니다.'
+  emptyMessage = '등록된 파티가 없습니다.',
+  onSelect
 }: PartyListProps) {
   if (loading) {
     return (
@@ -50,7 +52,7 @@ export default function PartyList({
           </h3>
           <div className={styles.grid}>
             {immediateParties.map(party => (
-              <PartyCard key={party.id} party={party} />
+              <PartyCard key={party.id} party={party} onSelect={onSelect} />
             ))}
           </div>
         </div>
@@ -63,7 +65,7 @@ export default function PartyList({
           </h3>
           <div className={styles.grid}>
             {scheduledParties.map(party => (
-              <PartyCard key={party.id} party={party} />
+              <PartyCard key={party.id} party={party} onSelect={onSelect} />
             ))}
           </div>
         </div>

@@ -404,47 +404,48 @@ export default function MyCharacters() {
                 const serverName = SERVERS.find(s => s.id === String(char.character_server_id))?.name || ''
                 return (
                   <div key={char.id} className={styles.characterCard}>
-                    {/* 프로필 이미지 */}
-                    <div className={styles.cardProfileWrapper}>
-                      {char.profile_image ? (
-                        <img
-                          src={char.profile_image}
-                          alt=""
-                          className={styles.cardProfileImage}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none'
-                          }}
-                        />
-                      ) : (
-                        <span className={styles.cardProfilePlaceholder}>{char.character_name.charAt(0)}</span>
-                      )}
+                    {/* 좌측: 프로필 + 기본 정보 */}
+                    <div className={styles.cardHeader}>
+                      <div className={styles.cardProfileWrapper}>
+                        {char.profile_image ? (
+                          <img
+                            src={char.profile_image}
+                            alt=""
+                            className={styles.cardProfileImage}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        ) : (
+                          <span className={styles.cardProfilePlaceholder}>{char.character_name.charAt(0)}</span>
+                        )}
+                      </div>
+                      <div className={styles.characterCardMain}>
+                        <div className={styles.charName}>{char.character_name}</div>
+                        <div className={styles.charMeta}>
+                          <span className={styles.className}>{char.character_class}</span>
+                          <span className={styles.level}>Lv{char.character_level || '?'}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className={styles.characterCardMain}>
-                      <span className={styles.className}>{char.character_class}</span>
-                      <span className={styles.level}>Lv{char.character_level || '?'}</span>
-                      <span className={styles.separator}>|</span>
-                      <span className={styles.serverName}>{serverName}</span>
-                      <span className={styles.charName}>{char.character_name}</span>
-                    </div>
+
+                    {/* 우측: 스탯 (PVE/PVP Stack) */}
                     <div className={styles.characterCardStats}>
-                      <span className={styles.stat}>
-                        아이템{char.character_item_level || '-'}
-                      </span>
-                      <span className={styles.separator}>|</span>
-                      <span className={styles.breakthrough}>
-                        <span className={styles.breakthroughBadge}>
-                          <span className={styles.breakthroughText}>{char.character_breakthrough || 0}</span>
+                      <div className={styles.statRow}>
+                        <span className={styles.statLabelMini}>PVE</span>
+                        <span className={styles.statValuePve}>
+                          {formatCombatPower(char.character_pve_score)}
                         </span>
-                      </span>
-                      <span className={styles.separator}>|</span>
-                      <span className={styles.stat} style={{ color: '#4ade80' }}>
-                        PVE {formatCombatPower(char.character_pve_score)}
-                      </span>
-                      <span className={styles.separator}>|</span>
-                      <span className={styles.stat} style={{ color: '#f87171' }}>
-                        PVP {formatCombatPower(char.character_pvp_score)}
-                      </span>
+                      </div>
+                      <div className={styles.statRow}>
+                        <span className={styles.statLabelMini}>PVP</span>
+                        <span className={styles.statValuePvp}>
+                          {formatCombatPower(char.character_pvp_score)}
+                        </span>
+                      </div>
                     </div>
+
+                    {/* 호버 액션 버튼 */}
                     <div className={styles.characterCardActions}>
                       <button
                         className={styles.debugButton}

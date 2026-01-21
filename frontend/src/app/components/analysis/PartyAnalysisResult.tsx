@@ -77,8 +77,8 @@ export default function PartyAnalysisResult({ data, isScanning, onReset, onManua
 
     const gridStyle: React.CSSProperties = {
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '1rem',
+        gridTemplateColumns: 'repeat(1, 1fr)',
+        gap: '0.8rem',
     };
 
     const btnStyle: React.CSSProperties = {
