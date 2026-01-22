@@ -484,47 +484,35 @@ export default function CreatePartyModal({ isOpen, onClose, onCreated, editMode,
               ))}
             </div>
 
-            {/* 원정: 타입/난이도 선택 */}
-            {dungeonType === 'expedition' && (
-              <div className={styles.expeditionOptions}>
-                <div className={styles.expeditionTypeRow}>
-                  <button
-                    type="button"
-                    className={`${styles.expTypeButton} ${expeditionType === 'exploration' ? styles.active : ''}`}
-                    onClick={() => setExpeditionType('exploration')}
-                  >
-                    탐험
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.expTypeButton} ${expeditionType === 'conquest' ? styles.active : ''}`}
-                    onClick={() => setExpeditionType('conquest')}
-                  >
-                    정복
-                  </button>
-                </div>
-                {expeditionType === 'conquest' && (
-                  <div className={styles.expeditionDifficultyRow}>
-                    <button
-                      type="button"
-                      className={`${styles.expDiffButton} ${expeditionDifficulty === 'normal' ? styles.active : ''}`}
-                      onClick={() => setExpeditionDifficulty('normal')}
-                    >
-                      보통
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.expDiffButton} ${expeditionDifficulty === 'hard' ? styles.active : ''}`}
-                      onClick={() => setExpeditionDifficulty('hard')}
-                    >
-                      어려움
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
             <div className={styles.dungeonRow}>
+              {/* 원정: 타입 드롭다운 */}
+              {dungeonType === 'expedition' && (
+                <div className={styles.dungeonSelect}>
+                  <label>타입</label>
+                  <select
+                    value={expeditionType}
+                    onChange={e => setExpeditionType(e.target.value as 'exploration' | 'conquest')}
+                  >
+                    <option value="exploration">탐험</option>
+                    <option value="conquest">정복</option>
+                  </select>
+                </div>
+              )}
+
+              {/* 원정 정복: 난이도 드롭다운 */}
+              {dungeonType === 'expedition' && expeditionType === 'conquest' && (
+                <div className={styles.dungeonSelect}>
+                  <label>난이도</label>
+                  <select
+                    value={expeditionDifficulty}
+                    onChange={e => setExpeditionDifficulty(e.target.value as 'normal' | 'hard')}
+                  >
+                    <option value="normal">보통</option>
+                    <option value="hard">어려움</option>
+                  </select>
+                </div>
+              )}
+
               {dungeons.length > 0 && (
                 <div className={styles.dungeonSelect}>
                   <label>던전</label>
