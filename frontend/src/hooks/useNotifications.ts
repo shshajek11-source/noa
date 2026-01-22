@@ -2,15 +2,22 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { PartyNotification } from '@/types/party'
+import { supabase } from '@/lib/supabaseClient'
 
-// device_id 헬퍼 (ledger_device_id 사용)
-function getDeviceId(): string {
-  let deviceId = localStorage.getItem('ledger_device_id')
-  if (!deviceId) {
-    deviceId = crypto.randomUUID()
-    localStorage.setItem('ledger_device_id', deviceId)
+// 인증 헤더 가져오기
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {}
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`
+    }
+  } catch (e) {
+    console.error('[useNotifications] Failed to get auth session:', e)
   }
-  return deviceId
+
+  return headers
 }
 
 // 브라우저 알림 권한 요청
@@ -89,15 +96,22 @@ export function useNotifications(autoFetch = true) {
     setError(null)
 
     try {
-      const deviceId = getDeviceId()
+      const authHeaders = await getAuthHeaders()
+
+      // 로그인 안 되어 있으면 알림 조회 스킵
+      if (!authHeaders['Authorization']) {
+        setNotifications([])
+        setUnreadCount(0)
+        setLoading(false)
+        return
+      }
+
       const params = new URLSearchParams()
       if (options?.limit) params.set('limit', String(options.limit))
       if (options?.unreadOnly) params.set('unread_only', 'true')
 
       const response = await fetch(`/api/notifications?${params.toString()}`, {
-        headers: {
-          'X-Device-ID': deviceId
-        }
+        headers: authHeaders
       })
 
       if (!response.ok) {
@@ -145,12 +159,12 @@ export function useNotifications(autoFetch = true) {
 
   // 읽음 처리
   const markAsRead = useCallback(async (notificationId: string) => {
-    const deviceId = getDeviceId()
+    const authHeaders = await getAuthHeaders()
     const response = await fetch('/api/notifications', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        ...authHeaders
       },
       body: JSON.stringify({ notification_id: notificationId })
     })
@@ -171,12 +185,12 @@ export function useNotifications(autoFetch = true) {
 
   // 모두 읽음 처리
   const markAllAsRead = useCallback(async () => {
-    const deviceId = getDeviceId()
+    const authHeaders = await getAuthHeaders()
     const response = await fetch('/api/notifications', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'X-Device-ID': deviceId
+        ...authHeaders
       },
       body: JSON.stringify({ mark_all_read: true })
     })
@@ -195,12 +209,10 @@ export function useNotifications(autoFetch = true) {
 
   // 알림 삭제
   const deleteNotification = useCallback(async (notificationId: string) => {
-    const deviceId = getDeviceId()
+    const authHeaders = await getAuthHeaders()
     const response = await fetch(`/api/notifications?id=${notificationId}`, {
       method: 'DELETE',
-      headers: {
-        'X-Device-ID': deviceId
-      }
+      headers: authHeaders
     })
 
     if (!response.ok) {
@@ -220,12 +232,10 @@ export function useNotifications(autoFetch = true) {
 
   // 모든 알림 삭제
   const deleteAllNotifications = useCallback(async () => {
-    const deviceId = getDeviceId()
+    const authHeaders = await getAuthHeaders()
     const response = await fetch('/api/notifications?all=true', {
       method: 'DELETE',
-      headers: {
-        'X-Device-ID': deviceId
-      }
+      headers: authHeaders
     })
 
     if (!response.ok) {

@@ -3,6 +3,66 @@ import type { ApplyPartyRequest } from '@/types/party'
 import { supabase } from '../../../../../lib/supabaseClient'
 import { getUserFromRequest } from '../../../../../lib/auth'
 
+// GET: 같은 캐릭터로 다른 파티에 신청 중인지 확인
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: partyId } = await params
+    const { searchParams } = new URL(request.url)
+    const characterName = searchParams.get('character_name')
+    const characterServerId = searchParams.get('character_server_id')
+
+    if (!characterName || !characterServerId) {
+      return NextResponse.json({ error: 'Missing character info' }, { status: 400 })
+    }
+
+    // 같은 캐릭터(이름+서버)로 다른 파티에 pending 상태로 신청 중인지 확인
+    const { data: existingApplications, error } = await supabase
+      .from('party_members')
+      .select(`
+        id,
+        party_id,
+        character_name,
+        status,
+        party:party_posts(id, title, dungeon_name, status)
+      `)
+      .eq('character_name', characterName)
+      .eq('character_server_id', characterServerId)
+      .eq('status', 'pending')
+      .neq('party_id', partyId)
+
+    if (error) {
+      console.error('[Party Apply Check] Error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // 모집 중인 파티의 신청만 필터링
+    const activeApplications = existingApplications?.filter(
+      (app: any) => app.party?.status === 'recruiting'
+    ) || []
+
+    if (activeApplications.length > 0) {
+      const app = activeApplications[0] as any
+      const existingParty = app.party
+      return NextResponse.json({
+        hasExistingApplication: true,
+        existingApplication: {
+          memberId: app.id,
+          partyId: app.party_id,
+          partyTitle: existingParty?.title || existingParty?.dungeon_name || '파티'
+        }
+      })
+    }
+
+    return NextResponse.json({ hasExistingApplication: false })
+  } catch (err) {
+    console.error('[Party Apply Check] Error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
 // POST: 파티 신청
 export async function POST(
   request: NextRequest,

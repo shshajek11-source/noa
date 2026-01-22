@@ -55,6 +55,15 @@ export default function ApplyModal({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // 중복 신청 확인 상태
+  const [existingApplication, setExistingApplication] = useState<{
+    memberId: string
+    partyId: string
+    partyTitle: string
+  } | null>(null)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false)
+
   // 모든 캐릭터 표시 (필터링 없음 - 유저가 직접 판단)
   const eligibleCharacters = characters
 
@@ -64,11 +73,69 @@ export default function ApplyModal({
     }
   }, [eligibleCharacters])
 
-  const handleSubmit = async () => {
-    if (!selectedCharacter) {
-      setError('캐릭터를 선택해주세요.')
-      return
+  // 중복 신청 확인
+  const checkDuplicateApplication = async (): Promise<boolean> => {
+    if (!selectedCharacter || !partyId) return false
+
+    setCheckingDuplicate(true)
+    try {
+      const params = new URLSearchParams({
+        character_name: selectedCharacter.character_name,
+        character_server_id: String(selectedCharacter.character_server_id)
+      })
+
+      const response = await fetch(`/api/party/${partyId}/apply?${params}`)
+      if (!response.ok) return false
+
+      const data = await response.json()
+      if (data.hasExistingApplication) {
+        setExistingApplication(data.existingApplication)
+        return true
+      }
+      return false
+    } catch {
+      return false
+    } finally {
+      setCheckingDuplicate(false)
     }
+  }
+
+  // 기존 신청 취소 후 새 파티에 신청
+  const cancelAndApply = async () => {
+    if (!existingApplication) return
+
+    setSubmitting(true)
+    setError(null)
+
+    try {
+      // 기존 신청 취소
+      const headers: Record<string, string> = {}
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`
+      }
+
+      const cancelResponse = await fetch(`/api/party/${existingApplication.partyId}/apply`, {
+        method: 'DELETE',
+        headers
+      })
+
+      if (!cancelResponse.ok) {
+        throw new Error('기존 신청 취소에 실패했습니다.')
+      }
+
+      // 새 파티에 신청
+      setShowConfirmModal(false)
+      await submitApplication()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '신청에 실패했습니다.')
+      setSubmitting(false)
+    }
+  }
+
+  // 실제 신청 처리
+  const submitApplication = async () => {
+    if (!selectedCharacter) return
 
     setSubmitting(true)
     setError(null)
@@ -120,6 +187,24 @@ export default function ApplyModal({
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleSubmit = async () => {
+    if (!selectedCharacter) {
+      setError('캐릭터를 선택해주세요.')
+      return
+    }
+
+    // partyId가 있을 때만 중복 확인 (직접 API 호출 시)
+    if (partyId) {
+      const hasDuplicate = await checkDuplicateApplication()
+      if (hasDuplicate) {
+        setShowConfirmModal(true)
+        return
+      }
+    }
+
+    await submitApplication()
   }
 
   return (
@@ -211,12 +296,50 @@ export default function ApplyModal({
           <button
             className={styles.submitButton}
             onClick={handleSubmit}
-            disabled={!selectedCharacter || submitting}
+            disabled={!selectedCharacter || submitting || checkingDuplicate}
           >
-            {submitting ? '신청 중...' : '신청하기'}
+            {checkingDuplicate ? '확인 중...' : submitting ? '신청 중...' : '신청하기'}
           </button>
         </div>
       </div>
+
+      {/* 중복 신청 확인 모달 */}
+      {showConfirmModal && existingApplication && (
+        <div className={styles.confirmOverlay} onClick={() => setShowConfirmModal(false)}>
+          <div className={styles.confirmModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.confirmHeader}>
+              <h4>신청 중인 파티가 있습니다</h4>
+            </div>
+            <div className={styles.confirmContent}>
+              <p>
+                <strong>{selectedCharacter?.character_name}</strong> 캐릭터가 이미
+                <br />
+                <span className={styles.existingPartyName}>"{existingApplication.partyTitle}"</span>
+                <br />
+                파티에 신청 중입니다.
+              </p>
+              <p className={styles.confirmQuestion}>
+                기존 신청을 취소하고 이 파티에 신청하시겠습니까?
+              </p>
+            </div>
+            <div className={styles.confirmFooter}>
+              <button
+                className={styles.cancelButton}
+                onClick={() => setShowConfirmModal(false)}
+              >
+                아니오
+              </button>
+              <button
+                className={styles.submitButton}
+                onClick={cancelAndApply}
+                disabled={submitting}
+              >
+                {submitting ? '처리 중...' : '네, 신청 변경'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

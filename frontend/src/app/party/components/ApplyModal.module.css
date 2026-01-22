@@ -182,3 +182,68 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* 중복 신청 확인 모달 */
+.confirmOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 16px;
+}
+
+.confirmModal {
+  width: 100%;
+  max-width: 340px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.confirmHeader {
+  padding: 16px;
+  border-bottom: 1px solid #222;
+}
+
+.confirmHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #f59e0b;
+}
+
+.confirmContent {
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.confirmContent p {
+  margin: 0 0 12px;
+  color: #E5E7EB;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.existingPartyName {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.confirmQuestion {
+  color: #9CA3AF !important;
+  font-size: 0.85rem !important;
+  margin-top: 16px !important;
+}
+
+.confirmFooter {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid #222;
+}

@@ -511,6 +511,7 @@ export default function PartyDetailModal({ partyId, isOpen, onClose, onDeleted }
         {applySlot && party && (
           <ApplyModal
             slot={applySlot}
+            partyId={party.id}
             minItemLevel={party.min_item_level}
             minBreakthrough={party.min_breakthrough}
             minCombatPower={party.min_combat_power}
