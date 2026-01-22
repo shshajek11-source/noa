@@ -65,10 +65,10 @@ export default function MobileLedgerPage() {
     const pathname = usePathname()
 
     // Google 인증
-    const { isLoading: isGoogleLoading } = useAuth()
+    const { isLoading: isGoogleLoading, isAuthenticated: isGoogleAuth, user, signInWithGoogle } = useAuth()
 
     // Device ID 인증
-    const { getAuthHeader, isLoading: isAuthLoading, isAuthenticated, deviceId } = useDeviceId()
+    const { getAuthHeader, isLoading: isAuthLoading, isAuthenticated, isLinked, deviceId } = useDeviceId()
     const isReady = !isAuthLoading && (isAuthenticated || !!deviceId)
 
     // 캐릭터 관리

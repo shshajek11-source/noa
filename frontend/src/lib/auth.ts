@@ -52,6 +52,7 @@ export async function getOrCreateUserByDeviceId(device_id: string): Promise<Ledg
 /**
  * Request에서 인증된 유저 조회 (Google 로그인 전용)
  * Bearer 토큰으로만 인증합니다.
+ * 크로스 기기 동기화를 위해 google_user_id로 조회합니다.
  *
  * @param request - HTTP Request 객체
  * @returns 유저 정보 또는 null
@@ -72,20 +73,33 @@ export async function getUserFromRequest(request: Request): Promise<LedgerUser |
     return null
   }
 
-  // auth_user_id로 ledger_users 조회
+  // google_user_id로 먼저 조회 (link-device로 연동된 경우)
   let { data: ledgerUser } = await supabase
     .from('ledger_users')
     .select('id')
-    .eq('auth_user_id', user.id)
+    .eq('google_user_id', user.id)
     .single()
+
+  // google_user_id로 없으면 auth_user_id로 조회 (기존 방식 호환)
+  if (!ledgerUser) {
+    const { data: authUser } = await supabase
+      .from('ledger_users')
+      .select('id')
+      .eq('auth_user_id', user.id)
+      .single()
+
+    ledgerUser = authUser
+  }
 
   // ledger_users 레코드가 없으면 자동 생성
   if (!ledgerUser) {
-    console.log('[Auth] Creating ledger_users for auth_user_id:', user.id)
+    console.log('[Auth] Creating ledger_users for google_user_id:', user.id)
     const { data: newLedgerUser, error: createError } = await supabase
       .from('ledger_users')
       .insert({
+        google_user_id: user.id,
         auth_user_id: user.id,
+        google_email: user.email,
         created_at: new Date().toISOString(),
         last_seen_at: new Date().toISOString()
       })

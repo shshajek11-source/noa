@@ -51,39 +51,11 @@ export default function LedgerPage() {
 
   // 인증 (Google 또는 device_id)
   const { nickname, setNickname, mainCharacter, setMainCharacter, isAuthenticated: isGoogleAuth, user, signInWithGoogle, isLoading: isGoogleLoading } = useAuth()
-  const { getAuthHeader, isLoading: isAuthLoading, isAuthenticated, deviceId } = useDeviceId()
+  const { getAuthHeader, isLoading: isAuthLoading, isAuthenticated, isLinked, deviceId } = useDeviceId()
   const isReady = !isAuthLoading && (isAuthenticated || !!deviceId)
 
-  // Google 계정과 device_id 연동 (로그인 시 자동 실행)
-  useEffect(() => {
-    if (!isGoogleAuth || !user || !deviceId) return
-
-    // Google 계정과 device_id 연동 API 호출
-    const linkDevice = async () => {
-      try {
-        const response = await fetch('/api/ledger/link-device', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Device-ID': deviceId
-          },
-          body: JSON.stringify({
-            google_user_id: user.id,
-            google_email: user.email
-          })
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          console.log('[Ledger] Device linked to Google account:', data.message)
-        }
-      } catch (err) {
-        console.error('[Ledger] Failed to link device:', err)
-      }
-    }
-
-    linkDevice()
-  }, [isGoogleAuth, user, deviceId])
+  // 동기화 배너 닫기 상태 (세션 동안만 유지)
+  const [showSyncBanner, setShowSyncBanner] = useState(true)
 
   // 상태
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -833,6 +805,38 @@ export default function LedgerPage() {
           }
         }}
       />
+
+      {/* 크로스 기기 동기화 배너 - Google 로그인 안 한 경우에만 표시 */}
+      {showSyncBanner && !isGoogleAuth && activeTab === 'dashboard' && (
+        <div className={styles.syncBanner}>
+          <div className={styles.syncBannerContent}>
+            <span className={styles.syncBannerIcon}>🔄</span>
+            <div className={styles.syncBannerText}>
+              <strong>Google 로그인</strong>하면 PC/모바일 어디서든 데이터가 동기화됩니다
+            </div>
+            <button
+              className={styles.syncBannerLoginBtn}
+              onClick={() => signInWithGoogle()}
+            >
+              로그인
+            </button>
+            <button
+              className={styles.syncBannerCloseBtn}
+              onClick={() => setShowSyncBanner(false)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 동기화 완료 표시 - Google 로그인 + 연동 완료 시 */}
+      {isLinked && activeTab === 'dashboard' && (
+        <div className={styles.syncCompleteBanner}>
+          <span>✓ 크로스 기기 동기화 활성화됨</span>
+          <span className={styles.syncEmail}>{user?.email}</span>
+        </div>
+      )}
 
       {/* 대시보드 뷰 */}
       {activeTab === 'dashboard' && (

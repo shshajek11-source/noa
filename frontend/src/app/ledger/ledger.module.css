@@ -1478,3 +1478,83 @@
   font-size: 0.75rem;
   margin-right: 4px;
 }
+
+/* ============================== */
+/* 크로스 기기 동기화 배너 */
+/* ============================== */
+
+.syncBanner {
+  margin: 0 0 16px 0;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+}
+
+.syncBannerContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.syncBannerIcon {
+  font-size: 1.2rem;
+}
+
+.syncBannerText {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #E5E7EB;
+}
+
+.syncBannerText strong {
+  color: #60A5FA;
+}
+
+.syncBannerLoginBtn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.syncBannerLoginBtn:hover {
+  opacity: 0.9;
+}
+
+.syncBannerCloseBtn {
+  background: transparent;
+  border: none;
+  color: #6B7280;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.syncBannerCloseBtn:hover {
+  color: #9CA3AF;
+}
+
+/* 동기화 완료 배너 */
+.syncCompleteBanner {
+  margin: 0 0 16px 0;
+  padding: 10px 16px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #10B981;
+}
+
+.syncEmail {
+  color: #6B7280;
+  font-size: 0.8rem;
+}
