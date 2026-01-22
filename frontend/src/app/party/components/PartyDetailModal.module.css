@@ -336,6 +336,31 @@
   margin-top: 4px;
 }
 
+/* 돌파 배지 (다이아몬드 아이콘 - SlotCard와 동일) */
+.breakthroughBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+}
+
+.diamondIcon {
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 40%, #2563EB 60%, #1D4ED8 100%);
+  border: 1px solid #93C5FD;
+  border-radius: 1px;
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.6);
+}
+
+.breakthroughValue {
+  color: #60A5FA;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+
 .pendingActions {
   display: flex;
   gap: 8px;

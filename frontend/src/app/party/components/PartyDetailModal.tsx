@@ -395,11 +395,17 @@ export default function PartyDetailModal({ partyId, isOpen, onClose, onDeleted }
                           </div>
                           <div className={styles.pendingInfo}>
                             <div className={styles.pendingMain}>
-                              {member.character_class} Lv{member.character_level} | {memberServerName} {member.character_name}
+                              {member.character_class}
+                              {(member.character_breakthrough || 0) > 0 && (
+                                <span className={styles.breakthroughBadge}>
+                                  <span className={styles.diamondIcon}></span>
+                                  <span className={styles.breakthroughValue}>{member.character_breakthrough}</span>
+                                </span>
+                              )}
+                              {' '}Lv{member.character_level} | {memberServerName} {member.character_name}
                             </div>
                             <div className={styles.pendingStats}>
                               {member.character_item_level && `아이템${member.character_item_level}`}
-                              {member.character_breakthrough && ` 돌파${member.character_breakthrough}`}
                               {member.character_combat_power && ` 전투력${(member.character_combat_power / 10000).toFixed(1)}만`}
                             </div>
                             {member.apply_message && (
