@@ -1,8 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import type { PartyPost, PartySlot, PartyMember } from '@/types/party'
 import PartyCard from './PartyCard'
 import styles from './PartyList.module.css'
+
+type TimeFilter = 'all' | 'immediate' | 'scheduled'
 
 interface PartyListProps {
   parties: (PartyPost & {
@@ -22,6 +25,8 @@ export default function PartyList({
   emptyMessage = '등록된 파티가 없습니다.',
   onSelect
 }: PartyListProps) {
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
+
   if (loading) {
     return (
       <div className={styles.loading}>
@@ -31,9 +36,17 @@ export default function PartyList({
     )
   }
 
-  // 즉시 진행 / 예약 진행 분리
-  const immediateParties = parties.filter(p => p.is_immediate)
-  const scheduledParties = parties.filter(p => !p.is_immediate)
+  // 필터링된 파티
+  const filteredParties = parties.filter(p => {
+    if (timeFilter === 'all') return true
+    if (timeFilter === 'immediate') return p.is_immediate
+    if (timeFilter === 'scheduled') return !p.is_immediate
+    return true
+  })
+
+  // 카운트
+  const immediateCount = parties.filter(p => p.is_immediate).length
+  const scheduledCount = parties.filter(p => !p.is_immediate).length
 
   if (parties.length === 0) {
     return (
@@ -45,29 +58,40 @@ export default function PartyList({
 
   return (
     <div className={styles.container}>
-      {immediateParties.length > 0 && (
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>
-            🔥 즉시 진행 (지금 바로 시작)
-          </h3>
-          <div className={styles.grid}>
-            {immediateParties.map(party => (
-              <PartyCard key={party.id} party={party} onSelect={onSelect} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* 즉시/예약 필터 탭 */}
+      <div className={styles.timeFilterTabs}>
+        <button
+          className={`${styles.timeFilterTab} ${timeFilter === 'all' ? styles.activeTimeFilter : ''}`}
+          onClick={() => setTimeFilter('all')}
+        >
+          전체 <span className={styles.filterCount}>{parties.length}</span>
+        </button>
+        <button
+          className={`${styles.timeFilterTab} ${timeFilter === 'immediate' ? styles.activeTimeFilter : ''}`}
+          onClick={() => setTimeFilter('immediate')}
+        >
+          🔥 즉시 <span className={styles.filterCount}>{immediateCount}</span>
+        </button>
+        <button
+          className={`${styles.timeFilterTab} ${timeFilter === 'scheduled' ? styles.activeTimeFilter : ''}`}
+          onClick={() => setTimeFilter('scheduled')}
+        >
+          📅 예약 <span className={styles.filterCount}>{scheduledCount}</span>
+        </button>
+      </div>
 
-      {scheduledParties.length > 0 && (
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>
-            📅 예약 진행 (약속 시간에 시작)
-          </h3>
-          <div className={styles.grid}>
-            {scheduledParties.map(party => (
-              <PartyCard key={party.id} party={party} onSelect={onSelect} />
-            ))}
-          </div>
+      {/* 파티 목록 */}
+      {filteredParties.length === 0 ? (
+        <div className={styles.empty}>
+          {timeFilter === 'immediate' ? '즉시 진행 파티가 없습니다.' :
+           timeFilter === 'scheduled' ? '예약 진행 파티가 없습니다.' :
+           emptyMessage}
+        </div>
+      ) : (
+        <div className={styles.grid}>
+          {filteredParties.map(party => (
+            <PartyCard key={party.id} party={party} onSelect={onSelect} />
+          ))}
         </div>
       )}
     </div>
