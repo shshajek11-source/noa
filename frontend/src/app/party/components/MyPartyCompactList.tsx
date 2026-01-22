@@ -123,6 +123,7 @@ export default function MyPartyCompactList({
         {parties.map(party => {
           const currentMembers = party.current_members ||
             party.members?.filter(m => m.status === 'approved').length || 0
+          const isCompleted = party.status === 'completed'
 
           // 시간 표시
           let timeStr = ''
@@ -137,8 +138,9 @@ export default function MyPartyCompactList({
           return (
             <div
               key={party.id}
-              className={styles.row}
-              onClick={() => onSelect(party.id)}
+              className={`${styles.row} ${isCompleted ? styles.completedRow : ''}`}
+              onClick={() => !isCompleted && onSelect(party.id)}
+              style={{ cursor: isCompleted ? 'default' : 'pointer' }}
             >
               {/* 던전 타입 뱃지 */}
               <span
@@ -185,8 +187,8 @@ export default function MyPartyCompactList({
               )}
 
               {/* 상태 */}
-              <span className={`${styles.status} ${party.status === 'recruiting' ? styles.recruiting : styles.full}`}>
-                {party.status === 'recruiting' ? '모집중' : '마감'}
+              <span className={`${styles.status} ${party.status === 'recruiting' ? styles.recruiting : party.status === 'completed' ? styles.completed : styles.full}`}>
+                {party.status === 'recruiting' ? '모집중' : party.status === 'completed' ? '완료' : '마감'}
               </span>
 
               {/* 삭제 버튼 (내가 만든 파티만) */}

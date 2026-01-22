@@ -64,6 +64,7 @@ export default memo(function PartyCard({
 }: PartyCardProps) {
   const isPvp = party.dungeon_type === 'pvp'
   const dungeonColor = DUNGEON_TYPE_COLORS[party.dungeon_type] || '#f59e0b'
+  const isCompleted = party.status === 'completed'
 
   // 성역 8인 파티인지 확인
   const isSanctuary8 = party.dungeon_type === 'sanctuary' && (party.max_members || 4) === 8
@@ -183,6 +184,11 @@ export default memo(function PartyCard({
   }, [isSanctuary8, selectedPartyGroup, memberSlots, party1Slots, party2Slots])
 
   const handleClick = () => {
+    // 완료된 파티는 클릭 불가
+    if (isCompleted) {
+      return
+    }
+
     // 모바일에서 접힌 상태면 카드 클릭 시 펼치기 (이벤트 전파 제어 고려)
     if (!isExpanded && window.innerWidth < 1024) {
       setIsExpanded(true)
@@ -200,7 +206,18 @@ export default memo(function PartyCard({
   }
 
   return (
-    <div className={styles.card} onClick={handleClick} style={{ cursor: 'pointer' }}>
+    <div
+      className={`${styles.card} ${isCompleted ? styles.completedCard : ''}`}
+      onClick={handleClick}
+      style={{ cursor: isCompleted ? 'default' : 'pointer' }}
+    >
+      {/* 완료된 파티 블라인드 오버레이 */}
+      {isCompleted && (
+        <div className={styles.completedOverlay}>
+          <span className={styles.completedBadge}>완료됨</span>
+        </div>
+      )}
+
       {/* 파티 제목 (맨 위에 강조) */}
       {party.title && (
         <div className={styles.titleRow}>

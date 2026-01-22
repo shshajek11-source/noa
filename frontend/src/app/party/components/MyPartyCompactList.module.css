@@ -163,6 +163,22 @@
   color: #6B7280;
 }
 
+.completed {
+  background: rgba(107, 114, 128, 0.15);
+  color: #6B7280;
+}
+
+/* 완료된 파티 행 */
+.completedRow {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.completedRow:hover {
+  background: #111;
+  border-color: #222;
+}
+
 /* 삭제 버튼 */
 .deleteButton {
   flex-shrink: 0;
