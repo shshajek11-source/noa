@@ -1849,6 +1849,12 @@
     color: #fff;
 }
 
+.dungeonCardTimer {
+    font-size: 0.75rem;
+    color: #6B7280;
+    font-weight: 400;
+}
+
 .dungeonCardRight {
     display: flex;
     align-items: center;

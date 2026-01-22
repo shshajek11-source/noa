@@ -153,6 +153,108 @@ export default function MobileLedgerPage() {
     // 수정 가능 여부
     const canEdit = isEditable(selectedDate);
 
+    // 충전 타입별 다음 충전까지 남은 시간 계산 (초 단위)
+    const getNextChargeSeconds = useCallback((chargeType: '8h' | 'daily' | 'weekly' | 'charge3h') => {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentSecond = now.getSeconds();
+
+        if (chargeType === '8h') {
+            // 8시간마다 충전 (21시, 05시, 13시)
+            const chargeHours = [5, 13, 21];
+            let nextChargeHour = chargeHours.find(h => h > currentHour);
+            let daysToAdd = 0;
+
+            if (nextChargeHour === undefined) {
+                nextChargeHour = chargeHours[0]; // 다음날 05시
+                daysToAdd = 1;
+            }
+
+            const hoursUntil = nextChargeHour - currentHour + (daysToAdd * 24);
+            return Math.max(0, (hoursUntil - 1) * 3600 + (60 - currentMinute - 1) * 60 + (60 - currentSecond));
+        }
+
+        if (chargeType === 'charge3h') {
+            // 3시간마다 충전 (02, 05, 08, 11, 14, 17, 20, 23)
+            const chargeHours = [2, 5, 8, 11, 14, 17, 20, 23];
+            let nextChargeHour = chargeHours.find(h => h > currentHour);
+            let daysToAdd = 0;
+
+            if (nextChargeHour === undefined) {
+                nextChargeHour = chargeHours[0]; // 다음날 02시
+                daysToAdd = 1;
+            }
+
+            const hoursUntil = nextChargeHour - currentHour + (daysToAdd * 24);
+            return Math.max(0, (hoursUntil - 1) * 3600 + (60 - currentMinute - 1) * 60 + (60 - currentSecond));
+        }
+
+        if (chargeType === 'daily') {
+            // 매일 05시 충전
+            let hoursUntil = 5 - currentHour;
+            if (hoursUntil <= 0) hoursUntil += 24;
+            return Math.max(0, (hoursUntil - 1) * 3600 + (60 - currentMinute - 1) * 60 + (60 - currentSecond));
+        }
+
+        if (chargeType === 'weekly') {
+            // 수요일 05시 리셋
+            const currentDay = now.getDay(); // 0=일, 3=수
+            let daysUntilWed = (3 - currentDay + 7) % 7;
+            if (daysUntilWed === 0 && (currentHour > 5 || (currentHour === 5 && currentMinute > 0))) {
+                daysUntilWed = 7;
+            }
+
+            let hoursUntil = 5 - currentHour;
+            if (daysUntilWed === 0) {
+                return Math.max(0, (hoursUntil - 1) * 3600 + (60 - currentMinute - 1) * 60 + (60 - currentSecond));
+            }
+
+            return Math.max(0, daysUntilWed * 24 * 3600 + (24 + hoursUntil - 1) * 3600 + (60 - currentMinute - 1) * 60 + (60 - currentSecond));
+        }
+
+        return 0;
+    }, []);
+
+    // 충전 시간 타이머 상태
+    const [chargeTimers, setChargeTimers] = useState<Record<string, number>>({
+        '8h': 0,
+        'daily': 0,
+        'weekly': 0,
+        'charge3h': 0
+    });
+
+    // 충전 타이머 업데이트 (1초마다)
+    useEffect(() => {
+        const updateTimers = () => {
+            setChargeTimers({
+                '8h': getNextChargeSeconds('8h'),
+                'daily': getNextChargeSeconds('daily'),
+                'weekly': getNextChargeSeconds('weekly'),
+                'charge3h': getNextChargeSeconds('charge3h')
+            });
+        };
+
+        updateTimers();
+        const interval = setInterval(updateTimers, 1000);
+        return () => clearInterval(interval);
+    }, [getNextChargeSeconds]);
+
+    // 남은 시간 포맷팅 (초 → 시:분:초 또는 N일 시:분:초)
+    const formatTimeRemaining = (seconds: number): string => {
+        if (seconds <= 0) return '0:00:00';
+
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        if (days > 0) {
+            return `${days}일 ${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    };
+
     // 날짜 표시 포맷
     const formatDisplayDate = (dateStr: string) => {
         const date = new Date(dateStr + 'T00:00:00');
@@ -1227,6 +1329,7 @@ export default function MobileLedgerPage() {
                                 <div className={styles.wmHeader}>
                                     <div className={styles.wmTitleGroup}>
                                         <span className={styles.wmTitle}>사명</span>
+                                        <span className={styles.wmTimer}>{formatTimeRemaining(chargeTimers['daily'])}</span>
                                     </div>
                                     <div className={styles.wmControls}>
                                         <span className={styles.wmCount}>
@@ -1263,6 +1366,7 @@ export default function MobileLedgerPage() {
                                 <div className={styles.wmHeader}>
                                     <div className={styles.wmTitleGroup}>
                                         <span className={styles.wmTitle}>주간 지령서</span>
+                                        <span className={styles.wmTimer}>{formatTimeRemaining(chargeTimers['weekly'])}</span>
                                     </div>
                                     <div className={styles.wmControls}>
                                         <span className={styles.wmCount}>
@@ -1299,6 +1403,7 @@ export default function MobileLedgerPage() {
                                 <div className={styles.wmHeader}>
                                     <div className={styles.wmTitleGroup}>
                                         <span className={styles.wmTitle}>어비스 주간 지령서</span>
+                                        <span className={styles.wmTimer}>{formatTimeRemaining(chargeTimers['weekly'])}</span>
                                     </div>
                                     <div className={styles.wmControls}>
                                         <span className={styles.wmCount}>
@@ -1334,6 +1439,7 @@ export default function MobileLedgerPage() {
                             <div className={styles.dualCardGrid}>
                                 <div className={styles.miniCard}>
                                     <div className={styles.miniCardLabel}>슈고 페스타</div>
+                                    <div className={styles.miniCardTimer}>{formatTimeRemaining(chargeTimers['8h'])}</div>
                                     <div className={styles.miniCardValue}>
                                         {records.find(r => r.content_type === 'shugo')?.completion_count || 0}
                                         <span className={styles.miniCardMax}>/ 14</span>
@@ -1351,6 +1457,7 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.miniCard}>
                                     <div className={styles.miniCardLabel}>어비스 회랑</div>
+                                    <div className={styles.miniCardTimer}>{formatTimeRemaining(chargeTimers['weekly'])}</div>
                                     <div className={styles.miniCardValue}>
                                         {records.find(r => r.content_type === 'abyss_corridor')?.completion_count || 0}
                                         <span className={styles.miniCardMax}>/ 3</span>
@@ -1382,6 +1489,7 @@ export default function MobileLedgerPage() {
                                     <div className={styles.dungeonCardLeft}>
                                         <span className={styles.dungeonCardIcon}>🔥</span>
                                         <span className={styles.dungeonCardTitle}>초월</span>
+                                        <span className={styles.dungeonCardTimer}>{formatTimeRemaining(chargeTimers['8h'])}</span>
                                     </div>
                                     <div className={styles.dungeonCardRight}>
                                         <span className={styles.dungeonCardCount}>
@@ -1483,6 +1591,7 @@ export default function MobileLedgerPage() {
                                     <div className={styles.dungeonCardLeft}>
                                         <span className={styles.dungeonCardIcon}>⚔️</span>
                                         <span className={styles.dungeonCardTitle}>원정</span>
+                                        <span className={styles.dungeonCardTimer}>{formatTimeRemaining(chargeTimers['8h'])}</span>
                                     </div>
                                     <div className={styles.dungeonCardRight}>
                                         <span className={styles.dungeonCardCount}>
@@ -1597,6 +1706,7 @@ export default function MobileLedgerPage() {
                                     <div className={styles.dungeonCardLeft}>
                                         <span className={styles.dungeonCardIcon}>🏛️</span>
                                         <span className={styles.dungeonCardTitle}>성역</span>
+                                        <span className={styles.dungeonCardTimer}>{formatTimeRemaining(chargeTimers['weekly'])}</span>
                                     </div>
                                     <div className={styles.dungeonCardRight}>
                                         <span className={styles.dungeonCardCount}>
