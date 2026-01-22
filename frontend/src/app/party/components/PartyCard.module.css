@@ -1,5 +1,17 @@
 /* PartyCard - Black Theme Design System */
 
+/* 새 카드 등장 애니메이션 */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .card {
   display: block;
   background: #111;
@@ -9,6 +21,7 @@
   text-decoration: none;
   color: inherit;
   transition: all 0.2s ease;
+  animation: slideInFromTop 0.3s ease-out;
 }
 
 .card:hover {

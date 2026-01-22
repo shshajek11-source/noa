@@ -68,15 +68,30 @@
   font-weight: 500;
 }
 
-.dungeonName {
+/* 던전 정보 (던전명 + 제목) */
+.dungeonInfo {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dungeonName {
   color: #E5E7EB;
   font-size: 0.85rem;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
+}
+
+.partyTitle {
+  color: #9CA3AF;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tier {
@@ -148,6 +163,149 @@
   color: #6B7280;
 }
 
+/* 삭제 버튼 */
+.deleteButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.deleteButton:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* 삭제 확인 모달 */
+.confirmOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.confirmModal {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 360px;
+  overflow: hidden;
+}
+
+.confirmHeader {
+  padding: 16px;
+  border-bottom: 1px solid #222;
+}
+
+.confirmHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #E5E7EB;
+}
+
+.confirmContent {
+  padding: 20px 16px;
+}
+
+.confirmText {
+  margin: 0 0 16px 0;
+  color: #E5E7EB;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.confirmPartyInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.confirmDungeon {
+  color: #f59e0b;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.confirmTitle {
+  color: #9CA3AF;
+  font-size: 0.8rem;
+}
+
+.confirmWarning {
+  margin: 0;
+  color: #ef4444;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid #222;
+}
+
+.confirmCancel,
+.confirmDelete {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.confirmCancel {
+  background: #222;
+  border: 1px solid #333;
+  color: #E5E7EB;
+}
+
+.confirmCancel:hover {
+  background: #333;
+}
+
+.confirmDelete {
+  background: #ef4444;
+  border: none;
+  color: #fff;
+}
+
+.confirmDelete:hover {
+  background: #dc2626;
+}
+
+.confirmDelete:disabled,
+.confirmCancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* 모바일 반응형 */
 @media (max-width: 768px) {
   .row {
@@ -162,5 +320,10 @@
 
   .dungeonName {
     font-size: 0.8rem;
+  }
+
+  .deleteButton {
+    width: 24px;
+    height: 24px;
   }
 }

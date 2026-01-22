@@ -40,6 +40,11 @@
   gap: 16px;
 }
 
+/* 카드 추가/제거 시 부드러운 레이아웃 전환 */
+.grid > * {
+  transition: transform 0.3s ease-out;
+}
+
 /* 로딩 상태 */
 .loading {
   display: flex;

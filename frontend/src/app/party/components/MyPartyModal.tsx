@@ -16,7 +16,8 @@ export default function MyPartyModal({ isOpen, onClose, onSelectParty }: MyParty
     joined: myJoinedParties,
     pending: myPendingParties,
     counts: myCounts,
-    loading: loadingMyParties
+    loading: loadingMyParties,
+    refresh
   } = useMyParties()
 
   if (!isOpen) return null
@@ -58,6 +59,7 @@ export default function MyPartyModal({ isOpen, onClose, onSelectParty }: MyParty
                 emptyMessage="만든 파티가 없습니다."
                 type="created"
                 onSelect={handleSelectParty}
+                onDelete={refresh}
               />
               <MyPartyCompactList
                 title="참여 중인 파티"
