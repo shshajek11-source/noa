@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const characterIdsParam = searchParams.get('characterIds')
+  const dateParam = searchParams.get('date')  // 선택 날짜 (없으면 오늘)
 
   if (!characterIdsParam) {
     return NextResponse.json({ error: 'Missing characterIds' }, { status: 400 })
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'No valid characterIds' }, { status: 400 })
   }
 
-  const today = getKoreanGameDate()
+  const today = dateParam || getKoreanGameDate()
   const weekKey = getWeekKey(today)
 
   // 주간 시작일/종료일 계산

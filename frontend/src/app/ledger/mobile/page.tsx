@@ -308,6 +308,10 @@ export default function MobileLedgerPage() {
     const [dashboardData, setDashboardData] = useState<Record<string, any>>({});
     const [isDashboardLoading, setIsDashboardLoading] = useState(false);
 
+    // 전체 캐릭터 합산 수입 (API 호출)
+    const [totalIncome, setTotalIncome] = useState({ dailyIncome: 0, weeklyIncome: 0 });
+    const [isIncomeLoading, setIsIncomeLoading] = useState(false);
+
     // 주간 컨텐츠 정의
     const WEEKLY_CONTENT_DEFS = [
         { id: 'transcend', name: '초월', maxPerChar: 14, color: 'purple', ticketKey: 'transcend' },
@@ -329,7 +333,7 @@ export default function MobileLedgerPage() {
         { id: 'abyss_hallway', name: '어비스회랑', maxPerChar: 3, color: 'pink', ticketKey: null, contentType: 'abyss_hallway' },
     ];
 
-    // 대시보드 데이터 로드
+    // 대시보드 데이터 로드 (선택 날짜 기준)
     useEffect(() => {
         if (!isReady || characters.length === 0) return;
 
@@ -338,7 +342,7 @@ export default function MobileLedgerPage() {
             try {
                 const authHeaders = getAuthHeader();
                 const characterIds = characters.map(c => c.id).join(',');
-                const res = await fetch(`/api/ledger/dashboard?characterIds=${characterIds}`, {
+                const res = await fetch(`/api/ledger/dashboard?characterIds=${characterIds}&date=${selectedDate}`, {
                     headers: authHeaders
                 });
 
@@ -354,7 +358,57 @@ export default function MobileLedgerPage() {
         };
 
         loadDashboardData();
-    }, [isReady, characters, getAuthHeader]);
+    }, [isReady, characters, selectedDate, getAuthHeader]);
+
+    // 전체 캐릭터 합산 수입 로드 (선택 날짜 기준)
+    useEffect(() => {
+        if (!isReady || characters.length === 0) {
+            setTotalIncome({ dailyIncome: 0, weeklyIncome: 0 });
+            return;
+        }
+
+        const loadTotalIncome = async () => {
+            setIsIncomeLoading(true);
+            try {
+                const authHeaders = getAuthHeader();
+
+                // 모든 캐릭터의 일일/주간 수입을 병렬로 가져오기
+                const incomePromises = characters.map(async (char) => {
+                    const [dailyRes, weeklyRes] = await Promise.all([
+                        fetch(`/api/ledger/stats?characterId=${char.id}&type=daily&date=${selectedDate}`, { headers: authHeaders }),
+                        fetch(`/api/ledger/stats?characterId=${char.id}&type=weekly&date=${selectedDate}`, { headers: authHeaders })
+                    ]);
+
+                    let daily = 0;
+                    let weekly = 0;
+
+                    if (dailyRes.ok) {
+                        const data = await dailyRes.json();
+                        daily = data.totalIncome || 0;
+                    }
+                    if (weeklyRes.ok) {
+                        const data = await weeklyRes.json();
+                        weekly = data.totalIncome || 0;
+                    }
+
+                    return { daily, weekly };
+                });
+
+                const results = await Promise.all(incomePromises);
+                const dailyTotal = results.reduce((sum, r) => sum + r.daily, 0);
+                const weeklyTotal = results.reduce((sum, r) => sum + r.weekly, 0);
+
+                setTotalIncome({ dailyIncome: dailyTotal, weeklyIncome: weeklyTotal });
+            } catch (error) {
+                console.error('[Mobile Ledger] Failed to load total income:', error);
+                setTotalIncome({ dailyIncome: 0, weeklyIncome: 0 });
+            } finally {
+                setIsIncomeLoading(false);
+            }
+        };
+
+        loadTotalIncome();
+    }, [isReady, characters, selectedDate, getAuthHeader]);
 
     // 캐릭터별 진행현황 계산 함수
     const getCharacterProgress = (characterId: string) => {
@@ -1037,14 +1091,8 @@ export default function MobileLedgerPage() {
         }
     };
 
-    // 일일/주간 수입 계산
-    const calculateIncome = () => {
-        const dailyIncome = characters.reduce((sum, c) => sum + (c.todayIncome || 0), 0);
-        const weeklyIncome = stats?.totalIncome || 0;
-        return { dailyIncome, weeklyIncome };
-    };
-
-    const { dailyIncome, weeklyIncome } = calculateIncome();
+    // 전체 캐릭터 합산 일일/주간 수입 (API에서 로드됨)
+    const { dailyIncome, weeklyIncome } = totalIncome;
 
     // 로딩 상태
     if (isAuthLoading || isCharactersLoading) {
