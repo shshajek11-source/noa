@@ -1851,7 +1851,7 @@ export default function MobileLedgerPage() {
                                 <span className={styles.contentTitle}>일일 컨텐츠</span>
                             </div>
 
-                            {/* 일일던전 */}
+                            {/* 일일던전 - 잔여횟수/최대횟수 (PC와 동일) */}
                             <div className={styles.simpleCard}>
                                 <div className={styles.simpleCardLeft}>
                                     <div className={styles.simpleCardBar}></div>
@@ -1859,7 +1859,7 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {records.find(r => r.content_type === 'daily_dungeon')?.completion_count || 0}/
+                                        {Math.max(0, characterState.baseTickets.daily_dungeon - (records.find(r => r.content_type === 'daily_dungeon')?.completion_count || 0))}/
                                         {characterState.baseTickets.daily_dungeon}
                                     </span>
                                     <button className={styles.btnStepSmall} onClick={() => incrementCompletion('daily_dungeon')}>+</button>
@@ -1867,7 +1867,7 @@ export default function MobileLedgerPage() {
                                 </div>
                             </div>
 
-                            {/* 각성전 */}
+                            {/* 각성전 - 잔여횟수/최대횟수 (PC와 동일) */}
                             <div className={styles.simpleCard}>
                                 <div className={styles.simpleCardLeft}>
                                     <div className={styles.simpleCardBar}></div>
@@ -1875,15 +1875,15 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {records.find(r => r.content_type === 'awakening')?.completion_count || 0}/
+                                        {Math.max(0, characterState.baseTickets.awakening - (records.find(r => r.content_type === 'awakening_battle')?.completion_count || 0))}/
                                         {characterState.baseTickets.awakening}
                                     </span>
-                                    <button className={styles.btnStepSmall} onClick={() => incrementCompletion('awakening')}>+</button>
-                                    <button className={styles.btnStepSmall} onClick={() => decrementCompletion('awakening')}>-</button>
+                                    <button className={styles.btnStepSmall} onClick={() => incrementCompletion('awakening_battle')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => decrementCompletion('awakening_battle')}>-</button>
                                 </div>
                             </div>
 
-                            {/* 악몽 */}
+                            {/* 악몽 - 잔여횟수/최대횟수 (PC와 동일) */}
                             <div className={styles.simpleCard}>
                                 <div className={styles.simpleCardLeft}>
                                     <div className={styles.simpleCardBar}></div>
@@ -1891,7 +1891,7 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {records.find(r => r.content_type === 'nightmare')?.completion_count || 0}/
+                                        {Math.max(0, characterState.baseTickets.nightmare - (records.find(r => r.content_type === 'nightmare')?.completion_count || 0))}/
                                         {characterState.baseTickets.nightmare}
                                     </span>
                                     <button className={styles.btnStepSmall} onClick={() => incrementCompletion('nightmare')}>+</button>
@@ -1899,7 +1899,7 @@ export default function MobileLedgerPage() {
                                 </div>
                             </div>
 
-                            {/* 차원침공 */}
+                            {/* 차원침공 - 잔여횟수/최대횟수 (PC와 동일) */}
                             <div className={styles.simpleCard}>
                                 <div className={styles.simpleCardLeft}>
                                     <div className={styles.simpleCardBar}></div>
@@ -1907,15 +1907,15 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {records.find(r => r.content_type === 'dimension')?.completion_count || 0}/
+                                        {Math.max(0, characterState.baseTickets.dimension - (records.find(r => r.content_type === 'dimension_invasion')?.completion_count || 0))}/
                                         {characterState.baseTickets.dimension}
                                     </span>
-                                    <button className={styles.btnStepSmall} onClick={() => incrementCompletion('dimension')}>+</button>
-                                    <button className={styles.btnStepSmall} onClick={() => decrementCompletion('dimension')}>-</button>
+                                    <button className={styles.btnStepSmall} onClick={() => incrementCompletion('dimension_invasion')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => decrementCompletion('dimension_invasion')}>-</button>
                                 </div>
                             </div>
 
-                            {/* 토벌전 */}
+                            {/* 토벌전 - 잔여횟수/최대횟수 (PC와 동일) */}
                             <div className={styles.simpleCard}>
                                 <div className={styles.simpleCardLeft}>
                                     <div className={styles.simpleCardBar}></div>
@@ -1923,7 +1923,7 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {records.find(r => r.content_type === 'subjugation')?.completion_count || 0}/
+                                        {Math.max(0, characterState.baseTickets.subjugation - (records.find(r => r.content_type === 'subjugation')?.completion_count || 0))}/
                                         {characterState.baseTickets.subjugation}
                                     </span>
                                     <button className={styles.btnStepSmall} onClick={() => incrementCompletion('subjugation')}>+</button>
