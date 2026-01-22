@@ -68,13 +68,16 @@ export default function PartyDesktop() {
         })
     }
 
-    // 내가 만든 파티 ID 목록
+    // 내가 관련된 파티 ID 목록 (만든 파티 + 참여 중 + 신청 대기)
     const myCreatedPartyIds = myCreatedParties.map(p => p.id)
+    const myJoinedPartyIds = myJoinedParties.map(p => p.id)
+    const myPendingPartyIds = myPendingParties.map(p => p.id)
+    const myRelatedPartyIds = [...myCreatedPartyIds, ...myJoinedPartyIds, ...myPendingPartyIds]
 
     // 모든 파티 탭에서 파티 카드 클릭 시
     const handlePartyCardClick = (partyId: string) => {
-        // 본인이 만든 파티면 상세 모달 표시
-        if (myCreatedPartyIds.includes(partyId)) {
+        // 본인이 관련된 파티면 상세 모달 표시 (만든 파티, 참여 중, 신청 대기)
+        if (myRelatedPartyIds.includes(partyId)) {
             setSelectedPartyId(partyId)
             return
         }

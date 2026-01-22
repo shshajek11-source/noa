@@ -36,6 +36,7 @@ export default function PartyApplyConfirmModal({
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const { characters, loading: loadingCharacters } = useMyCharacters({ accessToken })
   const [selectedCharacter, setSelectedCharacter] = useState<PartyUserCharacter | null>(null)
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,16 +70,28 @@ export default function PartyApplyConfirmModal({
     }
   }, [party])
 
-  // 빈 슬롯 찾기
-  const emptySlot = useMemo(() => {
-    return party.slots?.find(s => s.status !== 'filled')
-  }, [party.slots])
+  // 슬롯 정보 계산 (멤버 정보 포함)
+  const slotInfo = useMemo(() => {
+    if (!party.slots) return []
 
-  // 빈 슬롯 수 계산
+    return party.slots.map(slot => {
+      // 해당 슬롯에 배정된 멤버 찾기
+      const member = party.members?.find(m =>
+        m.slot_id === slot.id && m.status === 'approved'
+      )
+
+      return {
+        ...slot,
+        member,
+        isEmpty: !member && slot.status !== 'filled'
+      }
+    }).sort((a, b) => a.slot_number - b.slot_number)
+  }, [party.slots, party.members])
+
+  // 빈 슬롯 목록
   const emptySlots = useMemo(() => {
-    const maxMembers = party.max_members || 4
-    return maxMembers - currentMembers
-  }, [party.max_members, currentMembers])
+    return slotInfo.filter(s => s.isEmpty)
+  }, [slotInfo])
 
   // 모든 캐릭터 표시 (필터링 없음 - 유저가 직접 판단)
   const eligibleCharacters = characters
@@ -103,14 +116,21 @@ export default function PartyApplyConfirmModal({
     }
   }, [eligibleCharacters, selectedCharacter])
 
+  // 빈 슬롯이 1개면 자동 선택
+  useEffect(() => {
+    if (emptySlots.length === 1 && !selectedSlotId) {
+      setSelectedSlotId(emptySlots[0].id)
+    }
+  }, [emptySlots, selectedSlotId])
+
   const handleApply = async () => {
     if (!selectedCharacter) {
       setError('캐릭터를 선택해주세요.')
       return
     }
 
-    if (!emptySlot) {
-      setError('빈 슬롯이 없습니다.')
+    if (!selectedSlotId) {
+      setError('슬롯을 선택해주세요.')
       return
     }
 
@@ -130,7 +150,7 @@ export default function PartyApplyConfirmModal({
         method: 'POST',
         headers,
         body: JSON.stringify({
-          slot_id: emptySlot.id,
+          slot_id: selectedSlotId,
           character_name: selectedCharacter.character_name,
           character_class: selectedCharacter.character_class,
           character_server_id: selectedCharacter.character_server_id,
@@ -203,11 +223,6 @@ export default function PartyApplyConfirmModal({
               <span>서버: {serverName}</span>
             </div>
 
-            <div className={styles.infoRow}>
-              <span>인원: {currentMembers}/{party.max_members}명</span>
-              <span className={styles.emptySlots}>빈 슬롯 {emptySlots}개</span>
-            </div>
-
             {(party.min_item_level || party.min_breakthrough || party.min_combat_power) && (
               <div className={styles.requirements}>
                 <span className={styles.reqLabel}>참여 조건:</span>
@@ -215,6 +230,46 @@ export default function PartyApplyConfirmModal({
                 {party.min_breakthrough && <span>돌파 {party.min_breakthrough}+</span>}
                 {party.min_combat_power && <span>전투력 {(party.min_combat_power / 10000).toFixed(0)}만+</span>}
               </div>
+            )}
+          </div>
+
+          {/* 슬롯 선택 */}
+          <div className={styles.slotSection}>
+            <label className={styles.sectionLabel}>슬롯 선택</label>
+            {slotInfo.length === 0 ? (
+              <p className={styles.noSlots}>슬롯 정보를 불러올 수 없습니다.</p>
+            ) : (
+              <div className={styles.slotGrid}>
+                {slotInfo.map(slot => {
+                  const isSelected = selectedSlotId === slot.id
+                  const canSelect = slot.isEmpty
+
+                  return (
+                    <button
+                      key={slot.id}
+                      className={`${styles.slotItem} ${isSelected ? styles.selectedSlot : ''} ${!canSelect ? styles.filledSlot : ''}`}
+                      onClick={() => canSelect && setSelectedSlotId(slot.id)}
+                      disabled={!canSelect}
+                    >
+                      <span className={styles.slotNumber}>{slot.slot_number}</span>
+                      {slot.member ? (
+                        <span className={styles.slotMember}>
+                          {slot.member.character_class}
+                        </span>
+                      ) : slot.required_class ? (
+                        <span className={styles.slotRequired}>
+                          {slot.required_class}
+                        </span>
+                      ) : (
+                        <span className={styles.slotEmpty}>빈자리</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+            {emptySlots.length === 0 && (
+              <p className={styles.noSlots}>빈 슬롯이 없습니다.</p>
             )}
           </div>
 
@@ -260,7 +315,7 @@ export default function PartyApplyConfirmModal({
           {error && <p className={styles.error}>{error}</p>}
 
           <p className={styles.subText}>
-            파티장이 신청을 승인하면 파티에 참여할 수 있습니다.
+            파티장이 신청을 승인하면 선택한 슬롯에 참여하게 됩니다.
           </p>
         </div>
 
@@ -271,7 +326,7 @@ export default function PartyApplyConfirmModal({
           <button
             className={styles.applyButton}
             onClick={handleApply}
-            disabled={!selectedCharacter || submitting || eligibleCharacters.length === 0}
+            disabled={!selectedCharacter || !selectedSlotId || submitting || eligibleCharacters.length === 0}
           >
             {submitting ? '신청 중...' : '신청하기'}
           </button>

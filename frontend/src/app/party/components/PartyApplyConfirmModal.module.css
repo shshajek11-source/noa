@@ -192,6 +192,82 @@
   background: #d97706;
 }
 
+/* 슬롯 선택 섹션 */
+.slotSection {
+  margin-bottom: 16px;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.slotItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.slotItem:hover:not(:disabled) {
+  background: #111;
+  border-color: #333;
+}
+
+.slotItem.selectedSlot {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+}
+
+.slotItem.filledSlot {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.slotNumber {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6B7280;
+}
+
+.selectedSlot .slotNumber {
+  color: #f59e0b;
+}
+
+.slotMember {
+  font-size: 0.75rem;
+  color: #E5E7EB;
+}
+
+.slotRequired {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+}
+
+.slotEmpty {
+  font-size: 0.7rem;
+  color: #10B981;
+}
+
+.selectedSlot .slotEmpty {
+  color: #f59e0b;
+}
+
+.noSlots {
+  color: #ef4444;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 12px;
+  margin: 0;
+}
+
 /* 캐릭터 선택 섹션 */
 .characterSection {
   margin-top: 16px;
