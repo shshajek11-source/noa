@@ -13,7 +13,9 @@ export default function NotificationBell() {
     markAsRead,
     markAllAsRead,
     browserPermission,
+    notificationsEnabled,
     requestPermission,
+    toggleNotifications,
     refresh
   } = useNotifications()
   const [isOpen, setIsOpen] = useState(false)
@@ -31,13 +33,14 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // 30초마다 알림 새로고침 (브라우저 알림 트리거용)
+  // 30초마다 알림 새로고침 (브라우저 알림 트리거용) - 알림이 활성화된 경우에만
   useEffect(() => {
+    if (!notificationsEnabled) return
     const interval = setInterval(() => {
       refresh()
     }, 30000)
     return () => clearInterval(interval)
-  }, [refresh])
+  }, [refresh, notificationsEnabled])
 
   const handleNotificationClick = async (notificationId: string, partyId?: string) => {
     await markAsRead(notificationId)
@@ -79,8 +82,20 @@ export default function NotificationBell() {
             </div>
           </div>
 
-          {/* 브라우저 알림 권한 요청 배너 */}
-          {browserPermission === 'default' && (
+          {/* 알림 설정 토글 */}
+          <div className={styles.settingsRow}>
+            <span>알림 받기</span>
+            <button
+              className={`${styles.toggleSwitch} ${notificationsEnabled ? styles.toggleOn : ''}`}
+              onClick={() => toggleNotifications()}
+              title={notificationsEnabled ? '알림 끄기' : '알림 켜기'}
+            >
+              <span className={styles.toggleKnob} />
+            </button>
+          </div>
+
+          {/* 브라우저 알림 권한 요청 배너 - 알림이 활성화되어 있고 권한이 없을 때만 */}
+          {notificationsEnabled && browserPermission === 'default' && (
             <div className={styles.permissionBanner}>
               <span>브라우저 알림을 받으시겠습니까?</span>
               <button
@@ -93,7 +108,9 @@ export default function NotificationBell() {
           )}
 
           <div className={styles.dropdownContent}>
-            {loading ? (
+            {!notificationsEnabled ? (
+              <div className={styles.empty}>알림이 꺼져 있습니다.</div>
+            ) : loading ? (
               <div className={styles.loading}>불러오는 중...</div>
             ) : notifications.length === 0 ? (
               <div className={styles.empty}>알림이 없습니다.</div>

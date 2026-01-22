@@ -4,6 +4,21 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import type { PartyNotification } from '@/types/party'
 import { supabase } from '@/lib/supabaseClient'
 
+const NOTIFICATION_ENABLED_KEY = 'party_notifications_enabled'
+
+// 알림 활성화 상태 가져오기
+function getNotificationEnabled(): boolean {
+  if (typeof window === 'undefined') return true
+  const stored = localStorage.getItem(NOTIFICATION_ENABLED_KEY)
+  return stored === null ? true : stored === 'true'
+}
+
+// 알림 활성화 상태 저장
+function setNotificationEnabled(enabled: boolean): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(NOTIFICATION_ENABLED_KEY, String(enabled))
+}
+
 // 인증 헤더 가져오기
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {}
@@ -70,8 +85,22 @@ export function useNotifications(autoFetch = true) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission | 'unsupported'>('default')
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const prevNotificationIds = useRef<Set<string>>(new Set())
   const isFirstLoad = useRef(true)
+
+  // 알림 활성화 상태 초기화
+  useEffect(() => {
+    setNotificationsEnabled(getNotificationEnabled())
+  }, [])
+
+  // 알림 활성화/비활성화 토글
+  const toggleNotifications = useCallback((enabled?: boolean) => {
+    const newValue = enabled !== undefined ? enabled : !notificationsEnabled
+    setNotificationsEnabled(newValue)
+    setNotificationEnabled(newValue)
+    return newValue
+  }, [notificationsEnabled])
 
   // 브라우저 알림 권한 상태 확인
   useEffect(() => {
@@ -122,8 +151,8 @@ export function useNotifications(autoFetch = true) {
       const data = await response.json()
       const newNotifications: PartyNotification[] = data.notifications
 
-      // 새로운 알림이 있으면 브라우저 알림 표시 (첫 로드 제외)
-      if (!isFirstLoad.current && browserPermission === 'granted') {
+      // 새로운 알림이 있으면 브라우저 알림 표시 (첫 로드 제외, 알림 활성화 시에만)
+      if (!isFirstLoad.current && browserPermission === 'granted' && getNotificationEnabled()) {
         const newIds = new Set(newNotifications.map(n => n.id))
         newNotifications.forEach(notification => {
           // 이전에 없던 알림이고 읽지 않은 알림인 경우
@@ -255,7 +284,9 @@ export function useNotifications(autoFetch = true) {
     loading,
     error,
     browserPermission,
+    notificationsEnabled,
     requestPermission,
+    toggleNotifications,
     refresh: fetchNotifications,
     markAsRead,
     markAllAsRead,
