@@ -2,8 +2,18 @@
 
 import { useState } from 'react'
 import type { PartyPost, PartyMember } from '@/types/party'
-import { getAuthHeaders } from '@/lib/auth-client'
+import { supabase } from '@/lib/supabaseClient'
 import styles from './MyPartyCompactList.module.css'
+
+// 인증 헤더 가져오기
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {}
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`
+  }
+  return headers
+}
 
 interface MyPartyCompactListProps {
   title: string
@@ -65,9 +75,10 @@ export default function MyPartyCompactList({
 
     setDeleting(true)
     try {
+      const headers = await getAuthHeaders()
       const res = await fetch(`/api/party/${deleteTarget.id}`, {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers
       })
 
       if (res.ok) {
