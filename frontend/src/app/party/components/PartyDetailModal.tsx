@@ -114,6 +114,24 @@ export default function PartyDetailModal({ partyId, isOpen, onClose, onDeleted }
     )
   }, [party])
 
+  // 파티 통계 계산
+  const partyStats = useMemo(() => {
+    const approvedMembers = party?.members?.filter(m => m.status === 'approved') || []
+    if (approvedMembers.length === 0) {
+      return { totalPower: 0, avgBreakthrough: 0, avgItemLevel: 0 }
+    }
+
+    const totalPower = approvedMembers.reduce((sum, m) => sum + (m.character_combat_power || 0), 0)
+    const totalBreakthrough = approvedMembers.reduce((sum, m) => sum + (m.character_breakthrough || 0), 0)
+    const totalItemLevel = approvedMembers.reduce((sum, m) => sum + (m.character_item_level || 0), 0)
+
+    return {
+      totalPower,
+      avgBreakthrough: Math.round(totalBreakthrough / approvedMembers.length),
+      avgItemLevel: Math.round(totalItemLevel / approvedMembers.length)
+    }
+  }, [party])
+
   const handleApply = async (data: Parameters<typeof apply>[0]) => {
     try {
       await apply(data)
@@ -263,46 +281,72 @@ export default function PartyDetailModal({ partyId, isOpen, onClose, onDeleted }
                 </div>
               )}
 
-              {/* 파티 정보 */}
-              <div className={`${styles.partyInfo} ${isPvp ? styles.pvp : ''}`}>
-                <div className={styles.partyHeader}>
-                  <span className={styles.dungeonName}>
+              {/* 파티 정보 (컴팩트) */}
+              <div className={`${styles.partyInfoCompact} ${isPvp ? styles.pvp : ''}`}>
+                <div className={styles.partyHeaderCompact}>
+                  <span className={styles.dungeonNameCompact}>
                     {DUNGEON_TYPE_ICONS[party.dungeon_type]} {party.dungeon_name}
                     {party.dungeon_tier && ` ${party.dungeon_tier}단`}
                     {party.run_count && party.run_count > 1 && ` ${party.run_count}회`}
                   </span>
-                  <span className={styles.status}>
-                    [{party.status === 'recruiting' ? '모집중' : party.status === 'full' ? '마감' : party.status}]
+                  <span className={styles.statusBadge}>
+                    {party.status === 'recruiting' ? '모집중' : party.status === 'full' ? '마감' : party.status}
                   </span>
                 </div>
 
-                {party.title && <h3 className={styles.partyTitle}>{party.title}</h3>}
+                {party.title && <div className={styles.partyTitleCompact}>{party.title}</div>}
 
-                {timeDisplay && (
-                  <div className={styles.timeInfo}>
-                    <span className={styles.timeIcon}>{timeDisplay.icon}</span>
-                    <span className={styles.timeLabel}>{timeDisplay.label}</span>
-                    <span className={styles.timeRemaining}>
-                      {timeDisplay.remaining || timeDisplay.timeAgo}
+                <div className={styles.infoRow}>
+                  {timeDisplay && (
+                    <span className={styles.timeCompact}>
+                      {timeDisplay.icon} {timeDisplay.label}
+                      {(timeDisplay.remaining || timeDisplay.timeAgo) && (
+                        <span className={styles.timeRemainingCompact}>
+                          {timeDisplay.remaining || timeDisplay.timeAgo}
+                        </span>
+                      )}
                     </span>
-                  </div>
-                )}
-
-                {(party.min_item_level || party.min_breakthrough || party.min_combat_power) && (
-                  <div className={styles.specs}>
-                    조건:
-                    {party.min_item_level && ` 아이템${party.min_item_level}+`}
-                    {party.min_breakthrough && (
-                      <> | <BreakthroughBadge value={party.min_breakthrough} size="small" />+</>
-                    )}
-                    {party.min_combat_power && ` | 전투력${(party.min_combat_power / 10000).toFixed(0)}만+`}
-                  </div>
-                )}
+                  )}
+                  {(party.min_item_level || party.min_breakthrough || party.min_combat_power) && (
+                    <span className={styles.specsCompact}>
+                      조건:
+                      {party.min_item_level && ` 아이템${party.min_item_level}+`}
+                      {party.min_breakthrough && (
+                        <> <BreakthroughBadge value={party.min_breakthrough} size="small" />+</>
+                      )}
+                      {party.min_combat_power && ` 전투력${(party.min_combat_power / 10000).toFixed(0)}만+`}
+                    </span>
+                  )}
+                </div>
 
                 {party.description && (
-                  <div className={styles.description}>"{party.description}"</div>
+                  <div className={styles.descriptionCompact}>"{party.description}"</div>
                 )}
               </div>
+
+              {/* 파티 통계 */}
+              {(partyStats.totalPower > 0 || partyStats.avgBreakthrough > 0 || partyStats.avgItemLevel > 0) && (
+                <div className={styles.partyStatsBar}>
+                  {partyStats.totalPower > 0 && (
+                    <div className={styles.statChip}>
+                      <span className={styles.statChipLabel}>총 전투력</span>
+                      <span className={styles.statChipValue}>{(partyStats.totalPower / 10000).toFixed(1)}만</span>
+                    </div>
+                  )}
+                  {partyStats.avgItemLevel > 0 && (
+                    <div className={styles.statChip}>
+                      <span className={styles.statChipLabel}>평균 아이템</span>
+                      <span className={styles.statChipValue}>{partyStats.avgItemLevel}</span>
+                    </div>
+                  )}
+                  {partyStats.avgBreakthrough > 0 && (
+                    <div className={styles.statChip}>
+                      <BreakthroughBadge value={partyStats.avgBreakthrough} size="small" />
+                      <span className={styles.statChipLabel}>평균 돌파</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* 파티 슬롯 */}
               <div className={styles.section}>

@@ -113,6 +113,7 @@ export async function POST(request: NextRequest) {
         min_item_level: body.min_item_level,
         min_breakthrough: body.min_breakthrough,
         min_combat_power: body.min_combat_power,
+        notification_enabled: body.notification_enabled !== false, // 기본값 true
         character_name: body.character_name,
         character_class: body.character_class,
         character_server_id: body.character_server_id,

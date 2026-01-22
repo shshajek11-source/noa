@@ -9,7 +9,8 @@ interface BreakthroughBadgeProps {
 }
 
 /**
- * 돌파 횟수를 파란 마름모 아이콘으로 표시하는 공통 컴포넌트
+ * 돌파 횟수를 파란 마름모 안에 숫자로 표시하는 공통 컴포넌트
+ * 캐릭터 상세 페이지의 장비 아이템 돌파 스타일과 동일
  */
 export default function BreakthroughBadge({
   value,
@@ -20,8 +21,9 @@ export default function BreakthroughBadge({
 
   return (
     <span className={`${styles.badge} ${styles[size]}`}>
-      <span className={styles.diamond}></span>
-      <span className={styles.value}>{value}</span>
+      <span className={styles.diamond}>
+        <span className={styles.value}>{value}</span>
+      </span>
       {showLabel && <span className={styles.label}>돌파</span>}
     </span>
   )

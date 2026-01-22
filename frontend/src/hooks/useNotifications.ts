@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { PartyNotification } from '@/types/party'
 
 // device_id 헬퍼 (ledger_device_id 사용)
@@ -13,11 +13,76 @@ function getDeviceId(): string {
   return deviceId
 }
 
+// 브라우저 알림 권한 요청
+async function requestNotificationPermission(): Promise<boolean> {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return false
+  }
+
+  if (Notification.permission === 'granted') {
+    return true
+  }
+
+  if (Notification.permission === 'denied') {
+    return false
+  }
+
+  const permission = await Notification.requestPermission()
+  return permission === 'granted'
+}
+
+// 브라우저 알림 표시
+function showBrowserNotification(title: string, body: string, partyId?: string) {
+  if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+    return
+  }
+
+  const notification = new Notification(title, {
+    body,
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    tag: partyId || 'party-notification',
+    requireInteraction: false
+  })
+
+  notification.onclick = () => {
+    window.focus()
+    if (partyId) {
+      window.location.href = `/party/${partyId}`
+    }
+    notification.close()
+  }
+
+  // 5초 후 자동 닫기
+  setTimeout(() => notification.close(), 5000)
+}
+
 export function useNotifications(autoFetch = true) {
   const [notifications, setNotifications] = useState<PartyNotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [browserPermission, setBrowserPermission] = useState<NotificationPermission | 'unsupported'>('default')
+  const prevNotificationIds = useRef<Set<string>>(new Set())
+  const isFirstLoad = useRef(true)
+
+  // 브라우저 알림 권한 상태 확인
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      setBrowserPermission('unsupported')
+      return
+    }
+    setBrowserPermission(Notification.permission)
+  }, [])
+
+  // 브라우저 알림 권한 요청
+  const requestPermission = useCallback(async () => {
+    const granted = await requestNotificationPermission()
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setBrowserPermission(Notification.permission)
+    }
+    return granted
+  }, [])
 
   const fetchNotifications = useCallback(async (options?: { limit?: number; unreadOnly?: boolean }) => {
     setLoading(true)
@@ -41,14 +106,36 @@ export function useNotifications(autoFetch = true) {
       }
 
       const data = await response.json()
-      setNotifications(data.notifications)
+      const newNotifications: PartyNotification[] = data.notifications
+
+      // 새로운 알림이 있으면 브라우저 알림 표시 (첫 로드 제외)
+      if (!isFirstLoad.current && browserPermission === 'granted') {
+        const newIds = new Set(newNotifications.map(n => n.id))
+        newNotifications.forEach(notification => {
+          // 이전에 없던 알림이고 읽지 않은 알림인 경우
+          if (!prevNotificationIds.current.has(notification.id) && !notification.is_read) {
+            showBrowserNotification(
+              notification.title,
+              notification.message || '',
+              notification.party_id
+            )
+          }
+        })
+        prevNotificationIds.current = newIds
+      } else if (isFirstLoad.current) {
+        // 첫 로드 시 ID만 저장 (알림 표시하지 않음)
+        prevNotificationIds.current = new Set(newNotifications.map(n => n.id))
+        isFirstLoad.current = false
+      }
+
+      setNotifications(newNotifications)
       setUnreadCount(data.unread_count)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [browserPermission])
 
   useEffect(() => {
     if (autoFetch) {
@@ -157,6 +244,8 @@ export function useNotifications(autoFetch = true) {
     unreadCount,
     loading,
     error,
+    browserPermission,
+    requestPermission,
     refresh: fetchNotifications,
     markAsRead,
     markAllAsRead,

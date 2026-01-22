@@ -1,4 +1,4 @@
-/* 돌파 배지 공통 스타일 */
+/* 돌파 배지 공통 스타일 - 캐릭터 상세 페이지 장비 아이템과 동일 */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -6,18 +6,29 @@
 }
 
 .diamond {
+  position: relative;
   transform: rotate(45deg);
   background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 40%, #2563EB 60%, #1D4ED8 100%);
   border: 1px solid #93C5FD;
   border-radius: 1px;
-  box-shadow: 0 0 4px rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.8),
+    0 0 8px rgba(96, 165, 250, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+    inset 1px 1px 2px rgba(147, 197, 253, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  animation: gemSparkle 2s ease-in-out infinite;
 }
 
 .value {
-  color: #60A5FA;
-  font-weight: 700;
-  text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+  transform: rotate(-45deg);
+  font-weight: 900;
+  color: #FFFFFF;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+  line-height: 1;
+  letter-spacing: -0.5px;
 }
 
 .label {
@@ -25,14 +36,23 @@
   font-weight: 500;
 }
 
+@keyframes gemSparkle {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}
+
 /* 사이즈 변형 */
 .small .diamond {
-  width: 8px;
-  height: 8px;
+  width: 14px;
+  height: 14px;
 }
 
 .small .value {
-  font-size: 0.75rem;
+  font-size: 0.55rem;
 }
 
 .small .label {
@@ -40,12 +60,12 @@
 }
 
 .medium .diamond {
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
 }
 
 .medium .value {
-  font-size: 0.85rem;
+  font-size: 0.6rem;
 }
 
 .medium .label {
@@ -53,12 +73,12 @@
 }
 
 .large .diamond {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
 }
 
 .large .value {
-  font-size: 0.95rem;
+  font-size: 0.65rem;
 }
 
 .large .label {

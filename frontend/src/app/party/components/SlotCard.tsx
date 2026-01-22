@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { PartySlot, PartyMember } from '@/types/party'
 import CharacterTooltip from './CharacterTooltip'
+import BreakthroughBadge from './BreakthroughBadge'
 import styles from './SlotCard.module.css'
 
 interface SlotCardProps {
@@ -73,10 +74,7 @@ export default function SlotCard({
             )}
 
             {(member.character_breakthrough || 0) > 0 && (
-              <div className={styles.breakthroughBadge}>
-                <div className={styles.diamondIcon}></div>
-                <span className={styles.breakthroughValue}>{member.character_breakthrough}</span>
-              </div>
+              <BreakthroughBadge value={member.character_breakthrough!} size="small" />
             )}
 
             {member.character_combat_power && (

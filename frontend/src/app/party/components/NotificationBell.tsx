@@ -6,7 +6,16 @@ import { getRelativeTime } from '@/types/party'
 import styles from './NotificationBell.module.css'
 
 export default function NotificationBell() {
-  const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications()
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    markAsRead,
+    markAllAsRead,
+    browserPermission,
+    requestPermission,
+    refresh
+  } = useNotifications()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -22,12 +31,24 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // 30초마다 알림 새로고침 (브라우저 알림 트리거용)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refresh()
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [refresh])
+
   const handleNotificationClick = async (notificationId: string, partyId?: string) => {
     await markAsRead(notificationId)
     setIsOpen(false)
     if (partyId) {
       window.location.href = `/party/${partyId}`
     }
+  }
+
+  const handleRequestPermission = async () => {
+    await requestPermission()
   }
 
   return (
@@ -46,15 +67,30 @@ export default function NotificationBell() {
         <div className={styles.dropdown}>
           <div className={styles.dropdownHeader}>
             <span>알림</span>
-            {unreadCount > 0 && (
-              <button
-                className={styles.markAllRead}
-                onClick={() => markAllAsRead()}
-              >
-                모두 읽음
-              </button>
-            )}
+            <div className={styles.headerActions}>
+              {unreadCount > 0 && (
+                <button
+                  className={styles.markAllRead}
+                  onClick={() => markAllAsRead()}
+                >
+                  모두 읽음
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* 브라우저 알림 권한 요청 배너 */}
+          {browserPermission === 'default' && (
+            <div className={styles.permissionBanner}>
+              <span>브라우저 알림을 받으시겠습니까?</span>
+              <button
+                className={styles.permissionButton}
+                onClick={handleRequestPermission}
+              >
+                허용
+              </button>
+            </div>
+          )}
 
           <div className={styles.dropdownContent}>
             {loading ? (

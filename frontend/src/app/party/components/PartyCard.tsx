@@ -4,6 +4,7 @@ import { useMemo, memo, useState, useEffect } from 'react'
 import type { PartyPost, PartySlot, PartyMember } from '@/types/party'
 import { getTimeOfDay, getTimeOfDayIcon, getTimeOfDayLabel, getRelativeTime, getRemainingTime } from '@/types/party'
 import { SERVERS } from '@/app/constants/servers'
+import BreakthroughBadge from './BreakthroughBadge'
 import styles from './PartyCard.module.css'
 
 interface PartyCardProps {
@@ -390,9 +391,7 @@ export default memo(function PartyCard({
 
               {partyStats.avgBreakthrough > 0 && (
                 <div className={styles.partyStatItem}>
-                  <div className={styles.breakthroughBadge}>
-                    <span className={styles.breakthroughText}>{partyStats.avgBreakthrough}</span>
-                  </div>
+                  <BreakthroughBadge value={partyStats.avgBreakthrough} size="small" />
                   <div className={styles.partyStatContent}>
                     <span className={styles.partyStatLabel}>평균 돌파</span>
                     <span className={styles.partyStatValue}>

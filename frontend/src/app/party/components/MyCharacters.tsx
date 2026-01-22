@@ -8,6 +8,7 @@ import { CharacterSearchResult } from '@/lib/supabaseApi'
 import { SERVERS } from '@/app/constants/servers'
 import styles from './MyCharacters.module.css'
 import PartyLoginRequired from './PartyLoginRequired'
+import BreakthroughBadge from './BreakthroughBadge'
 
 
 export default function MyCharacters({ isMobile = false }: { isMobile?: boolean }) {
@@ -468,9 +469,7 @@ export default function MyCharacters({ isMobile = false }: { isMobile?: boolean 
                           <div className={styles.charNameWrapper}>
                             <div className={styles.charName}>{char.character_name}</div>
                             {char.character_breakthrough && char.character_breakthrough > 0 && (
-                              <div className={styles.breakthroughBadge} title={`돌파 ${char.character_breakthrough}`}>
-                                <span className={styles.breakthroughText}>{char.character_breakthrough}</span>
-                              </div>
+                              <BreakthroughBadge value={char.character_breakthrough} size="small" />
                             )}
                           </div>
                           <div className={styles.charMeta}>
