@@ -267,11 +267,11 @@ export function extractCombatStats(aggregatedStats: StatDetail[], baseStats?: an
                    smashStat.percentage > 0 ? smashStat.percentage :
                    getStat('강타 적중').percentage
 
-  // [Calibration] Missing Data Fallback (Mock for verifiable average high-ranker)
-  const finalAttack = attackVal > 0 ? attackVal : 3100
-  const finalAccuracy = accuracyVal > 0 ? accuracyVal : 3800
-  const finalCrit = critVal > 0 ? critVal : 1200
-  const finalSmash = smashVal > 0 ? smashVal : 300
+  // 스탯이 없으면 0으로 처리 (fallback 제거 - 장비 없는 캐릭터가 동일 전투력 나오는 문제 수정)
+  const finalAttack = attackVal
+  const finalAccuracy = accuracyVal
+  const finalCrit = critVal
+  const finalSmash = smashVal
 
   return {
     attackPower: finalAttack,
