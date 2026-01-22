@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback, memo } from 'react'
+import { useState, useEffect, useCallback, memo, useRef } from 'react'
 import { TrendingUp, Calendar, CalendarDays } from 'lucide-react'
 import { LedgerCharacter, ItemGrade } from '@/types/ledger'
 import CharacterStatusTable from './CharacterStatusTable'
 import TotalItemsSummary from './TotalItemsSummary'
-import { getGameDate, getWeekKey } from '../utils/dateUtils'
 import styles from '../ledger.module.css'
 
 interface ItemByCharacter {
@@ -161,6 +160,16 @@ function getNextChargeSeconds(chargeType: ChargeType, lastChargeTime?: string): 
   }
 }
 
+// 캐시 타입 정의
+interface DashboardCache {
+  data: any
+  timestamp: number
+  characterIds: string
+}
+
+// 캐시 유효 시간 (5분)
+const CACHE_TTL = 5 * 60 * 1000
+
 function DashboardSummary({
   characters,
   totalTodayIncome,
@@ -182,283 +191,60 @@ function DashboardSummary({
   const [weeklyContents, setWeeklyContents] = useState<ContentProgress[]>([])
   const [dailyContents, setDailyContents] = useState<ContentProgress[]>([])
 
+  // 캐시 ref (리렌더링 방지)
+  const cacheRef = useRef<DashboardCache | null>(null)
+
   const formatKina = (value: number) => {
     return value.toLocaleString('ko-KR')
   }
 
-  // 대시보드 데이터 로드
+  // 대시보드 데이터 로드 (배치 API 사용 + 캐싱)
   const loadDashboardData = useCallback(async () => {
     if (characters.length === 0) {
       setIsLoading(false)
       return
     }
 
+    const characterIds = characters.map(c => c.id).join(',')
+
+    // 캐시 확인
+    if (cacheRef.current) {
+      const { data, timestamp, characterIds: cachedIds } = cacheRef.current
+      const isValid = Date.now() - timestamp < CACHE_TTL
+      const isSameChars = cachedIds === characterIds
+
+      if (isValid && isSameChars) {
+        // 캐시 데이터 사용 - 로딩 없이 바로 처리
+        processData(data, characters)
+        setIsLoading(false)
+        return
+      }
+    }
+
     setIsLoading(true)
 
     try {
       const authHeaders = getAuthHeader?.() || {}
-      const charStatuses: CharacterStatus[] = []
-      const allItems: any[] = []
-      let totalMonthlyIncome = 0
 
-      const today = getGameDate(new Date())
-      const weekKey = getWeekKey(new Date())
-
-      // 캐릭터별 데이터 로드 (병렬 처리)
-      const charDataPromises = characters.map(async (char) => {
-        try {
-          // 병렬로 데이터 요청 (DB API 사용)
-          const [itemsRes, statsRes, contentRes, weeklyRes, stateRes] = await Promise.all([
-            fetch(`/api/ledger/items?characterId=${char.id}`, { headers: authHeaders }),
-            fetch(`/api/ledger/stats?characterId=${char.id}&type=summary`, { headers: authHeaders }),
-            fetch(`/api/ledger/content-records?characterId=${char.id}&date=${today}`, { headers: authHeaders }),
-            fetch(`/api/ledger/weekly-content?characterId=${char.id}&weekKey=${weekKey}&gameDate=${today}`, { headers: authHeaders }),
-            fetch(`/api/ledger/character-state?characterId=${char.id}`, { headers: authHeaders })
-          ])
-
-          const itemsData = itemsRes.ok ? await itemsRes.json() : []
-          const statsData = statsRes.ok ? await statsRes.json() : {}
-          const contentData = contentRes.ok ? await contentRes.json() : []
-          const weeklyData = weeklyRes.ok ? await weeklyRes.json() : { weekly: null, mission: null }
-          const stateData = stateRes.ok ? await stateRes.json() : { baseTickets: {}, bonusTickets: {}, lastChargeTime: null }
-
-          return { char, itemsData, statsData, contentData, weeklyData, stateData }
-        } catch (e) {
-          console.error('Error loading character data:', char.id, e)
-          return { char, itemsData: [], statsData: {}, contentData: [], weeklyData: { weekly: null, mission: null }, stateData: {} }
-        }
+      // 배치 API로 모든 캐릭터 데이터 한 번에 조회
+      const res = await fetch(`/api/ledger/dashboard?characterIds=${characterIds}`, {
+        headers: authHeaders
       })
 
-      const charDataResults = await Promise.all(charDataPromises)
-
-      // 결과 처리
-      for (const { char, itemsData, statsData, contentData, weeklyData, stateData } of charDataResults) {
-        // 아이템 데이터 수집
-        allItems.push(...itemsData.map((item: any) => ({
-          ...item,
-          characterId: char.id,
-          characterName: char.name
-        })))
-
-        // 월간 수입 합산
-        totalMonthlyIncome += statsData.monthlyIncome || 0
-
-        // 티켓 상태에서 보너스 정보 추출
-        const baseTickets = stateData.baseTickets || {}
-        const bonusTickets = stateData.bonusTickets || {}
-        const lastChargeTime = stateData.lastChargeTime
-
-        // 주간 컨텐츠 데이터
-        const weekly = weeklyData.weekly || {}
-        const mission = weeklyData.mission || {}
-
-        // 일일 컨텐츠 기록 (content_records 배열에서 추출)
-        const contentRecordsMap: Record<string, number> = {}
-        if (Array.isArray(contentData)) {
-          contentData.forEach((record: any) => {
-            contentRecordsMap[record.content_type] = record.completion_count || 0
-          })
-        }
-
-        // 주간 컨텐츠 진행률 계산 (DB 데이터 사용)
-        const weeklyProgressForChar: ContentProgress[] = WEEKLY_CONTENT_DEFS.map(def => {
-          let current = 0
-          let bonus = 0
-          const max = def.maxPerChar  // max는 항상 고정 최대값 사용
-
-          if (def.id === 'transcend') {
-            // baseTickets.transcend는 잔여횟수, 완료횟수 = 최대 - 잔여
-            const remaining = baseTickets.transcend ?? def.maxPerChar
-            current = def.maxPerChar - remaining
-            bonus = bonusTickets.transcend || 0
-          } else if (def.id === 'expedition') {
-            // baseTickets.expedition는 잔여횟수, 완료횟수 = 최대 - 잔여
-            const remaining = baseTickets.expedition ?? def.maxPerChar
-            current = def.maxPerChar - remaining
-            bonus = bonusTickets.expedition || 0
-          } else if (def.id === 'sanctuary') {
-            // baseTickets.sanctuary는 잔여횟수, 완료횟수 = 최대 - 잔여
-            const remaining = baseTickets.sanctuary ?? def.maxPerChar
-            current = def.maxPerChar - remaining
-            bonus = bonusTickets.sanctuary || 0
-          } else if (def.id === 'shugo') {
-            // 슈고페스타: base는 잔여횟수, 완료횟수 = 14 - base
-            const shugoBase = weekly.shugoTickets?.base ?? 14
-            current = 14 - shugoBase
-            bonus = weekly.shugoTickets?.bonus || 0
-          } else if (def.id === 'mission') {
-            current = mission.count || 0
-          } else if (def.id === 'weekly_order') {
-            current = weekly.weeklyOrderCount || 0
-          } else if (def.id === 'abyss_order') {
-            current = weekly.abyssOrderCount || 0
-          }
-
-          return {
-            id: def.id,
-            name: def.name,
-            current,
-            max,
-            bonus: bonus > 0 ? bonus : undefined,
-            chargeType: def.chargeType,
-            nextChargeSeconds: getNextChargeSeconds(def.chargeType, lastChargeTime)
-          }
-        })
-
-        // 일일 컨텐츠 진행률 계산 (DB 데이터 사용)
-        const dailyProgressForChar: ContentProgress[] = DAILY_CONTENT_DEFS.map(def => {
-          let current = 0
-          let bonus = 0
-          const max = def.maxPerChar  // max는 항상 고정 최대값 사용
-
-          // content_records에서 완료 횟수 가져오기
-          const contentTypeMap: Record<string, string> = {
-            'daily_dungeon': 'daily_dungeon',
-            'awakening': 'awakening_battle',
-            'subjugation': 'subjugation',
-            'nightmare': 'nightmare',
-            'dimension': 'dimension_invasion',
-            'abyss_hallway': 'abyss_hallway'
-          }
-
-          const dbContentType = contentTypeMap[def.id] || def.id
-          current = contentRecordsMap[dbContentType] || 0
-
-          // 티켓 상태에서 bonus 가져오기
-          const ticketMap: Record<string, string> = {
-            'daily_dungeon': 'daily_dungeon',
-            'awakening': 'awakening',
-            'subjugation': 'subjugation',
-            'nightmare': 'nightmare',
-            'dimension': 'dimension'
-          }
-
-          const ticketKey = ticketMap[def.id]
-          if (ticketKey) {
-            bonus = bonusTickets[ticketKey] || 0
-          }
-
-          return {
-            id: def.id,
-            name: def.name,
-            current,
-            max,
-            bonus: bonus > 0 ? bonus : undefined,
-            chargeType: def.chargeType,
-            nextChargeSeconds: getNextChargeSeconds(def.chargeType, lastChargeTime)
-          }
-        })
-
-        const sellingCount = itemsData.filter((i: any) => i.sold_price === null).length
-        const soldCount = itemsData.filter((i: any) => i.sold_price !== null).length
-
-        charStatuses.push({
-          character: char,
-          todayIncome: statsData.todayIncome ?? 0,
-          weeklyIncome: statsData.weeklyIncome ?? 0,
-          sellingItemCount: sellingCount,
-          soldItemCount: soldCount,
-          weeklyContents: weeklyProgressForChar,
-          dailyContents: dailyProgressForChar
-        })
+      if (!res.ok) {
+        throw new Error('Failed to load dashboard data')
       }
 
-      setCharacterStatuses(charStatuses)
+      const data = await res.json()
 
-      // 아이템 합산 처리
-      const sellingItemsMap = new Map<string, AggregatedItem>()
-      const soldItemsMap = new Map<string, AggregatedItem>()
-      let soldIncomeTotal = 0
+      // 캐시 저장
+      cacheRef.current = {
+        data,
+        timestamp: Date.now(),
+        characterIds
+      }
 
-      allItems.forEach((item: any) => {
-        const isSold = item.sold_price !== null
-        const map = isSold ? soldItemsMap : sellingItemsMap
-        const key = item.item_name
-        const price = isSold ? (item.sold_price || 0) : (item.total_price || item.unit_price || 0)
-
-        if (isSold) {
-          soldIncomeTotal += item.sold_price || 0
-        }
-
-        if (map.has(key)) {
-          const existing = map.get(key)!
-          existing.totalQuantity += item.quantity || 1
-          existing.totalPrice += price
-          // iconUrl이 없으면 기존 아이템의 것 유지, 있으면 업데이트
-          if (!existing.iconUrl && item.icon_url) {
-            existing.iconUrl = item.icon_url
-          }
-          existing.byCharacter.push({
-            characterId: item.characterId,
-            characterName: item.characterName,
-            quantity: item.quantity || 1,
-            price: price
-          })
-        } else {
-          map.set(key, {
-            itemName: item.item_name,
-            itemGrade: item.item_grade || 'common',
-            iconUrl: item.icon_url,
-            totalQuantity: item.quantity || 1,
-            totalPrice: price,
-            byCharacter: [{
-              characterId: item.characterId,
-              characterName: item.characterName,
-              quantity: item.quantity || 1,
-              price: price
-            }]
-          })
-        }
-      })
-
-      setSellingItems(Array.from(sellingItemsMap.values()))
-      setSoldItems(Array.from(soldItemsMap.values()))
-      setTotalSoldIncome(soldIncomeTotal)
-
-      // 전체 컨텐츠 진행률 합산 (bonus와 chargeType 포함)
-      const weeklyTotal: ContentProgress[] = WEEKLY_CONTENT_DEFS.map(def => {
-        const total = charStatuses.reduce((acc, cs) => {
-          const content = cs.weeklyContents.find(c => c.id === def.id)
-          return {
-            current: acc.current + (content?.current || 0),
-            max: acc.max + (content?.max || def.maxPerChar),
-            bonus: acc.bonus + (content?.bonus || 0)
-          }
-        }, { current: 0, max: 0, bonus: 0 })
-        return {
-          id: def.id,
-          name: def.name,
-          current: total.current,
-          max: total.max,
-          bonus: total.bonus > 0 ? total.bonus : undefined,
-          chargeType: def.chargeType,
-          nextChargeSeconds: getNextChargeSeconds(def.chargeType)
-        }
-      })
-
-      const dailyTotal: ContentProgress[] = DAILY_CONTENT_DEFS.map(def => {
-        const total = charStatuses.reduce((acc, cs) => {
-          const content = cs.dailyContents.find(c => c.id === def.id)
-          return {
-            current: acc.current + (content?.current || 0),
-            max: acc.max + (content?.max || def.maxPerChar),
-            bonus: acc.bonus + (content?.bonus || 0)
-          }
-        }, { current: 0, max: 0, bonus: 0 })
-        return {
-          id: def.id,
-          name: def.name,
-          current: total.current,
-          max: total.max,
-          bonus: total.bonus > 0 ? total.bonus : undefined,
-          chargeType: def.chargeType,
-          nextChargeSeconds: getNextChargeSeconds(def.chargeType)
-        }
-      })
-
-      setWeeklyContents(weeklyTotal)
-      setDailyContents(dailyTotal)
-      setMonthlyIncome(totalMonthlyIncome)
+      processData(data, characters)
 
     } catch (error) {
       console.error('Error loading dashboard data:', error)
@@ -466,6 +252,218 @@ function DashboardSummary({
       setIsLoading(false)
     }
   }, [characters, getAuthHeader])
+
+  // 데이터 처리 함수 분리
+  const processData = (data: any, chars: LedgerCharacter[]) => {
+    const charStatuses: CharacterStatus[] = []
+    const allItems: any[] = []
+
+    // 캐릭터별 데이터 처리
+    for (const char of chars) {
+      const charData = data.characters[char.id]
+      if (!charData) continue
+
+      const baseTickets = charData.baseTickets || {}
+      const bonusTickets = charData.bonusTickets || {}
+      const lastChargeTime = charData.lastChargeTime
+      const contentRecordsMap = charData.contentRecords || {}
+      const weeklyData = charData.weeklyData || {}
+      const missionCount = charData.missionCount || 0
+
+      // 아이템 데이터 수집
+      const itemsData = charData.sellingItems || []
+      allItems.push(...itemsData.map((item: any) => ({
+        ...item,
+        characterId: char.id,
+        characterName: char.name
+      })))
+
+      // 주간 컨텐츠 진행률 계산
+      const weeklyProgressForChar: ContentProgress[] = WEEKLY_CONTENT_DEFS.map(def => {
+        let current = 0
+        let bonus = 0
+        const max = def.maxPerChar
+
+        if (def.id === 'transcend') {
+          const remaining = baseTickets.transcend ?? def.maxPerChar
+          current = def.maxPerChar - remaining
+          bonus = bonusTickets.transcend || 0
+        } else if (def.id === 'expedition') {
+          const remaining = baseTickets.expedition ?? def.maxPerChar
+          current = def.maxPerChar - remaining
+          bonus = bonusTickets.expedition || 0
+        } else if (def.id === 'sanctuary') {
+          const remaining = baseTickets.sanctuary ?? def.maxPerChar
+          current = def.maxPerChar - remaining
+          bonus = bonusTickets.sanctuary || 0
+        } else if (def.id === 'shugo') {
+          const shugoBase = weeklyData.shugoBase ?? 14
+          current = 14 - shugoBase
+          bonus = weeklyData.shugoBonus || 0
+        } else if (def.id === 'mission') {
+          current = missionCount
+        } else if (def.id === 'weekly_order') {
+          current = weeklyData.weeklyOrderCount || 0
+        } else if (def.id === 'abyss_order') {
+          current = weeklyData.abyssOrderCount || 0
+        }
+
+        return {
+          id: def.id,
+          name: def.name,
+          current,
+          max,
+          bonus: bonus > 0 ? bonus : undefined,
+          chargeType: def.chargeType,
+          nextChargeSeconds: getNextChargeSeconds(def.chargeType, lastChargeTime)
+        }
+      })
+
+      // 일일 컨텐츠 진행률 계산
+      const dailyProgressForChar: ContentProgress[] = DAILY_CONTENT_DEFS.map(def => {
+        let current = 0
+        let bonus = 0
+        const max = def.maxPerChar
+
+        const contentTypeMap: Record<string, string> = {
+          'daily_dungeon': 'daily_dungeon',
+          'awakening': 'awakening_battle',
+          'subjugation': 'subjugation',
+          'nightmare': 'nightmare',
+          'dimension': 'dimension_invasion',
+          'abyss_hallway': 'abyss_hallway'
+        }
+
+        const dbContentType = contentTypeMap[def.id] || def.id
+        current = contentRecordsMap[dbContentType] || 0
+
+        const ticketMap: Record<string, string> = {
+          'daily_dungeon': 'daily_dungeon',
+          'awakening': 'awakening',
+          'subjugation': 'subjugation',
+          'nightmare': 'nightmare',
+          'dimension': 'dimension'
+        }
+
+        const ticketKey = ticketMap[def.id]
+        if (ticketKey) {
+          bonus = bonusTickets[ticketKey] || 0
+        }
+
+        return {
+          id: def.id,
+          name: def.name,
+          current,
+          max,
+          bonus: bonus > 0 ? bonus : undefined,
+          chargeType: def.chargeType,
+          nextChargeSeconds: getNextChargeSeconds(def.chargeType, lastChargeTime)
+        }
+      })
+
+      const sellingCount = itemsData.length
+      const soldCount = 0 // 배치 API는 미판매 아이템만 반환
+
+      charStatuses.push({
+        character: char,
+        todayIncome: charData.todayIncome ?? 0,
+        weeklyIncome: charData.weeklyIncome ?? 0,
+        sellingItemCount: sellingCount,
+        soldItemCount: soldCount,
+        weeklyContents: weeklyProgressForChar,
+        dailyContents: dailyProgressForChar
+      })
+    }
+
+    setCharacterStatuses(charStatuses)
+
+    // 아이템 합산 처리
+    const sellingItemsMap = new Map<string, AggregatedItem>()
+    let soldIncomeTotal = 0
+
+    allItems.forEach((item: any) => {
+      const key = item.item_name
+      const price = item.expected_price || 0
+
+      if (sellingItemsMap.has(key)) {
+        const existing = sellingItemsMap.get(key)!
+        existing.totalQuantity += item.quantity || 1
+        existing.totalPrice += price * (item.quantity || 1)
+        if (!existing.iconUrl && item.icon_url) {
+          existing.iconUrl = item.icon_url
+        }
+        existing.byCharacter.push({
+          characterId: item.characterId,
+          characterName: item.characterName,
+          quantity: item.quantity || 1,
+          price: price
+        })
+      } else {
+        sellingItemsMap.set(key, {
+          itemName: item.item_name,
+          itemGrade: item.item_grade || 'common',
+          iconUrl: item.icon_url,
+          totalQuantity: item.quantity || 1,
+          totalPrice: price * (item.quantity || 1),
+          byCharacter: [{
+            characterId: item.characterId,
+            characterName: item.characterName,
+            quantity: item.quantity || 1,
+            price: price
+          }]
+        })
+      }
+    })
+
+    setSellingItems(Array.from(sellingItemsMap.values()))
+    setSoldItems([])
+    setTotalSoldIncome(soldIncomeTotal)
+
+    // 전체 컨텐츠 진행률 합산
+    const weeklyTotal: ContentProgress[] = WEEKLY_CONTENT_DEFS.map(def => {
+      const total = charStatuses.reduce((acc, cs) => {
+        const content = cs.weeklyContents.find(c => c.id === def.id)
+        return {
+          current: acc.current + (content?.current || 0),
+          max: acc.max + (content?.max || def.maxPerChar),
+          bonus: acc.bonus + (content?.bonus || 0)
+        }
+      }, { current: 0, max: 0, bonus: 0 })
+      return {
+        id: def.id,
+        name: def.name,
+        current: total.current,
+        max: total.max,
+        bonus: total.bonus > 0 ? total.bonus : undefined,
+        chargeType: def.chargeType,
+        nextChargeSeconds: getNextChargeSeconds(def.chargeType)
+      }
+    })
+
+    const dailyTotal: ContentProgress[] = DAILY_CONTENT_DEFS.map(def => {
+      const total = charStatuses.reduce((acc, cs) => {
+        const content = cs.dailyContents.find(c => c.id === def.id)
+        return {
+          current: acc.current + (content?.current || 0),
+          max: acc.max + (content?.max || def.maxPerChar),
+          bonus: acc.bonus + (content?.bonus || 0)
+        }
+      }, { current: 0, max: 0, bonus: 0 })
+      return {
+        id: def.id,
+        name: def.name,
+        current: total.current,
+        max: total.max,
+        bonus: total.bonus > 0 ? total.bonus : undefined,
+        chargeType: def.chargeType,
+        nextChargeSeconds: getNextChargeSeconds(def.chargeType)
+      }
+    })
+
+    setWeeklyContents(weeklyTotal)
+    setDailyContents(dailyTotal)
+    setMonthlyIncome(data.totals?.monthlyIncome || 0)
+  }
 
   useEffect(() => {
     loadDashboardData()

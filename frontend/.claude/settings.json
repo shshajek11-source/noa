@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//tmp/claude/c--sugo-gg-frontend/tasks/**)"
+    ]
+  }
+}

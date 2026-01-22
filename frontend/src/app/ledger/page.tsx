@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { Wallet, HelpCircle, X } from 'lucide-react'
 import {
@@ -412,73 +412,63 @@ export default function LedgerPage() {
     }
   })
 
-  // 대시보드 통계 로드
+  // 대시보드 통계 로드 (배치 API 사용)
   const characterIds = characters.map(c => c.id).join(',')
+  const dashboardCacheRef = useRef<{ data: any; timestamp: number; ids: string } | null>(null)
+  const DASHBOARD_CACHE_TTL = 5 * 60 * 1000 // 5분
 
   const loadDashboardStats = useCallback(async () => {
     if (!isReady || characters.length === 0) return
 
-    const authHeaders = getAuthHeader()
+    // 캐시 확인
+    if (dashboardCacheRef.current) {
+      const { data, timestamp, ids } = dashboardCacheRef.current
+      const isValid = Date.now() - timestamp < DASHBOARD_CACHE_TTL
+      const isSameChars = ids === characterIds
 
-    // 모든 캐릭터의 통계와 아이템을 병렬로 조회
-    const results = await Promise.all(
-      characters.map(async (char) => {
-        try {
-          // 각 캐릭터의 stats와 items를 병렬로 조회
-          const [statsRes, itemsRes] = await Promise.all([
-            fetch(`/api/ledger/stats?characterId=${char.id}&type=summary`, { headers: authHeaders }),
-            fetch(`/api/ledger/items?characterId=${char.id}&sold=false`, { headers: authHeaders })
-          ])
-
-          const statsData = statsRes.ok ? await statsRes.json() : { todayIncome: 0, weeklyIncome: 0 }
-          const itemsData = itemsRes.ok ? await itemsRes.json() : []
-
-          return {
-            todayIncome: statsData.todayIncome || 0,
-            weeklyIncome: statsData.weeklyIncome || 0,
-            unsoldItems: itemsData
-          }
-        } catch (e) {
-          console.error('Load stats error:', char.id, e)
-          return { todayIncome: 0, weeklyIncome: 0, unsoldItems: [] }
-        }
-      })
-    )
-
-    // 결과 집계
-    let totalToday = 0
-    let totalWeekly = 0
-    let allUnsoldItems: any[] = []
-
-    results.forEach(result => {
-      totalToday += result.todayIncome
-      totalWeekly += result.weeklyIncome
-      allUnsoldItems = [...allUnsoldItems, ...result.unsoldItems]
-    })
-
-    // 등급별 미판매 아이템 집계
-    const unsoldByGrade = {
-      common: 0,
-      rare: 0,
-      heroic: 0,
-      legendary: 0,
-      ultimate: 0
+      if (isValid && isSameChars) {
+        // 캐시된 데이터 사용
+        setDashboardStats(data)
+        return
+      }
     }
 
-    allUnsoldItems.forEach(item => {
-      const grade = item.item_grade as keyof typeof unsoldByGrade
-      if (grade in unsoldByGrade) {
-        unsoldByGrade[grade]++
-      }
-    })
+    try {
+      const authHeaders = getAuthHeader()
 
-    setDashboardStats({
-      totalTodayIncome: totalToday,
-      totalWeeklyIncome: totalWeekly,
-      unsoldItemCount: allUnsoldItems.length,
-      unsoldItemsByGrade: unsoldByGrade
-    })
-  }, [isReady, getAuthHeader, characterIds, characters])
+      // 배치 API로 한 번에 조회
+      const res = await fetch(`/api/ledger/dashboard?characterIds=${characterIds}`, {
+        headers: authHeaders
+      })
+
+      if (!res.ok) {
+        console.error('Dashboard API error:', res.status)
+        return
+      }
+
+      const data = await res.json()
+
+      const stats = {
+        totalTodayIncome: data.totals?.todayIncome || 0,
+        totalWeeklyIncome: data.totals?.weeklyIncome || 0,
+        unsoldItemCount: data.totals?.unsoldItemCount || 0,
+        unsoldItemsByGrade: data.totals?.unsoldItemsByGrade || {
+          common: 0, rare: 0, heroic: 0, legendary: 0, ultimate: 0
+        }
+      }
+
+      // 캐시 저장
+      dashboardCacheRef.current = {
+        data: stats,
+        timestamp: Date.now(),
+        ids: characterIds
+      }
+
+      setDashboardStats(stats)
+    } catch (e) {
+      console.error('Load dashboard stats error:', e)
+    }
+  }, [isReady, getAuthHeader, characterIds])
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
