@@ -1,7 +1,7 @@
 'use client'
 import { useState, useMemo } from 'react'
-import { aggregateStats, getStatPageCategory } from '../../lib/statsAggregator'
-import type { StatPageCategory } from '../../types/stats'
+import { aggregateStats, getStatCategory } from '../../lib/statsAggregator'
+import type { StatCategory } from '../../types/stats'
 import styles from './ProfileSection.module.css'
 import StatsRadarChart from './StatsRadarChart'
 import StatsDetailAccordion from './StatsDetailAccordion'
@@ -23,62 +23,93 @@ interface StatsSummaryViewProps {
   ocrStats?: OcrStat[]
 }
 
-type TabId = 'total' | 'equipment' | 'titles' | 'daevanion' | 'mainStats'
+type TabId = 'total' | 'detail'
 
-const TABS: { id: TabId, label: string, icon: string }[] = [
-  { id: 'total', label: '전체', icon: '📊' },
-  { id: 'equipment', label: '장비', icon: '⚔️' },
-  { id: 'titles', label: '타이틀', icon: '🏅' },
-  { id: 'daevanion', label: '대바니온', icon: '🔮' },
-  { id: 'mainStats', label: '주요스탯', icon: '⭐' },
+const TABS: { id: TabId, label: string }[] = [
+  { id: 'total', label: '전체' },
+  { id: 'detail', label: '능력치 상세' },
 ]
 
-// 스탯 정렬 순서 정의
-const STAT_SORT_ORDER: Record<string, number> = {
-  // 기본 능력치
-  '공격력': 1, '방어력': 2, '명중': 3, '회피': 4,
-  '치명타': 5, '치명타 저항': 6, '생명력': 7, '정신력': 8,
-  '전투 속도': 9, '이동 속도': 10,
-  // 주요스탯
-  '위력': 11, '민첩': 12, '지식': 13, '정확': 14, '의지': 15, '체력': 16,
+// 섹션 정의
+interface SectionConfig {
+  id: string
+  label: string
+  icon: string
+  color: string
+  bgColor: string
+  categories: StatCategory[]
 }
 
-// 탭에서 제외할 스탯
-const EQUIPMENT_EXCLUDED_STATS = new Set(['위력', '민첩', '정확', '의지', '지식', '체력'])
+const SECTIONS: SectionConfig[] = [
+  {
+    id: 'attack',
+    label: '공격 계열',
+    icon: '⚔️',
+    color: '#EF4444',
+    bgColor: 'rgba(239, 68, 68, 0.1)',
+    categories: ['attack']
+  },
+  {
+    id: 'defense',
+    label: '방어 계열',
+    icon: '🛡️',
+    color: '#3B82F6',
+    bgColor: 'rgba(59, 130, 246, 0.1)',
+    categories: ['defense']
+  },
+  {
+    id: 'utility',
+    label: '유틸리티',
+    icon: '⚡',
+    color: '#10B981',
+    bgColor: 'rgba(16, 185, 129, 0.1)',
+    categories: ['utility']
+  }
+]
 
 export default function StatsSummaryView({ stats, equipment, daevanion, titles, equippedTitleId, ocrStats }: StatsSummaryViewProps) {
   const [activeTab, setActiveTab] = useState<TabId>('total')
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['attack', 'defense', 'utility']))
   const [expandedStats, setExpandedStats] = useState<Set<string>>(new Set())
 
-  // 스탯 집계 (OCR 스탯이 있으면 오버라이드)
+  // 스탯 집계
   const aggregatedStats = useMemo(() => {
     return aggregateStats(equipment, titles, daevanion, stats, equippedTitleId, ocrStats)
   }, [equipment, titles, daevanion, stats, equippedTitleId, ocrStats])
 
-  // 주요스탯 데이터 추출 (기본 API 데이터에서)
-  const mainStatsData = useMemo(() => {
-    if (!stats?.statList) return []
-    return stats.statList.filter((stat: any) => stat.name !== '아이템레벨')
-  }, [stats])
+  // 카테고리별 스탯 분류
+  const statsByCategory = useMemo(() => {
+    const result: Record<string, typeof aggregatedStats> = {
+      attack: [],
+      defense: [],
+      utility: []
+    }
 
-  // 기본 능력치 추출 (aggregatedStats에서)
-  const basicStats = useMemo(() => {
-    const BASIC_NAMES = new Set(['공격력', '방어력', '명중', '회피', '치명타', '치명타 저항', '생명력', '정신력', '전투 속도', '이동 속도'])
-    return aggregatedStats.filter(s => BASIC_NAMES.has(s.name)).sort((a, b) => {
-      return (STAT_SORT_ORDER[a.name] || 99) - (STAT_SORT_ORDER[b.name] || 99)
+    aggregatedStats.forEach(stat => {
+      const category = stat.category || getStatCategory(stat.name)
+      if (result[category]) {
+        result[category].push(stat)
+      } else {
+        result.utility.push(stat) // 기본값은 유틸리티
+      }
     })
+
+    return result
   }, [aggregatedStats])
 
-  // 주요 스탯 추출 (aggregatedStats에서 - 위력, 민첩 등)
-  const primaryStats = useMemo(() => {
-    const PRIMARY_NAMES = new Set(['위력', '민첩', '지식', '정확', '의지', '체력'])
-    return aggregatedStats.filter(s => PRIMARY_NAMES.has(s.name)).sort((a, b) => {
-      return (STAT_SORT_ORDER[a.name] || 99) - (STAT_SORT_ORDER[b.name] || 99)
-    })
-  }, [aggregatedStats])
+  // 섹션 토글
+  const toggleSection = (sectionId: string) => {
+    const newExpanded = new Set(expandedSections)
+    if (newExpanded.has(sectionId)) {
+      newExpanded.delete(sectionId)
+    } else {
+      newExpanded.add(sectionId)
+    }
+    setExpandedSections(newExpanded)
+  }
 
-  // 드롭다운 토글
-  const toggleExpand = (statName: string) => {
+  // 스탯 상세 토글
+  const toggleStatDetail = (statName: string) => {
     const newExpanded = new Set(expandedStats)
     if (newExpanded.has(statName)) {
       newExpanded.delete(statName)
@@ -88,79 +119,127 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
     setExpandedStats(newExpanded)
   }
 
-  // Unified Card Render Function
-  const renderUnifiedCard = (stat: typeof aggregatedStats[0], keyPrefix: string = '') => {
-    const isExpanded = expandedStats.has(keyPrefix + stat.name)
-    const isPercentage = stat.totalPercentage > 0 && stat.totalValue === 0
-
-    const displayValue = isPercentage
-      ? `+${stat.totalPercentage.toFixed(1)}%`
-      : stat.totalValue.toLocaleString()
-
-    const subValue = (!isPercentage && stat.totalPercentage > 0)
-      ? `+${stat.totalPercentage.toFixed(1)}%`
-      : null
-
-    return (
-      <div key={keyPrefix + stat.name}>
-        <div className={styles.unifiedStatCard} onClick={() => toggleExpand(keyPrefix + stat.name)}>
-          {/* Top: Name & Indicator */}
-          <div className={styles.elementsTop}>
-            <div className={styles.colorIndicator} style={{ background: stat.color, boxShadow: `0 0 8px ${stat.color}` }} />
-            <span className={styles.statName}>{stat.name}</span>
-          </div>
-
-          {/* Bottom: Value */}
-          <div className={styles.elementsBottom}>
-            <span className={`${styles.statValue} ${isExpanded ? styles.highlight : ''}`}>
-              {displayValue}
-            </span>
-            {subValue && <span className={styles.statSubValue}>{subValue}</span>}
-          </div>
-        </div>
-
-        {/* Detail View */}
-        {isExpanded && (
-          <div style={{ marginTop: '0.25rem' }}>
-            <StatsDetailAccordion stat={{ ...stat, isExpanded: true }} onToggle={() => { }} />
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  // '전체' 탭 렌더링
+  // '전체' 탭 - 레이더 차트 + 주요 능력치 요약
   const renderTotalTab = () => {
+    // 주요 기본 능력치
+    const basicStatNames = ['공격력', '방어력', '명중', '회피', '치명타', '치명타 저항', '생명력', '정신력']
+    const basicStats = aggregatedStats.filter(s => basicStatNames.includes(s.name))
+
     return (
       <>
-        {/* 1. Radar Chart */}
+        {/* 레이더 차트 */}
         <div className={styles.chartContainer}>
           <StatsRadarChart stats={aggregatedStats || []} />
         </div>
 
-        {/* 2. Basic Stats Section */}
-        <div className={styles.sectionHeader}>기본 능력치</div>
-        <div className={styles.unifiedGrid}>
-          {basicStats.map(stat => renderUnifiedCard(stat, 'total_basic_'))}
-        </div>
+        {/* 주요 능력치 요약 */}
+        <div className={styles.statsSummarySection}>
+          <div className={styles.summaryHeader}>주요 능력치</div>
+          <div className={styles.summaryGrid}>
+            {basicStats.map(stat => {
+              const isPercentage = stat.totalPercentage > 0 && stat.totalValue === 0
+              const displayValue = isPercentage
+                ? `+${stat.totalPercentage.toFixed(1)}%`
+                : stat.totalValue.toLocaleString()
 
-        {/* 3. Main Stats Section */}
-        <div className={styles.sectionHeader}>주요 스탯</div>
-        <div className={styles.unifiedGrid}>
-          {primaryStats.map(stat => renderUnifiedCard(stat, 'total_main_'))}
+              return (
+                <div key={stat.name} className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>{stat.name}</span>
+                  <span className={styles.summaryValue} style={{ color: stat.color }}>
+                    {displayValue}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </>
     )
   }
 
-  // Other tabs render logic (simplified to use unified cards)
-  const renderOtherTab = (filterFn: (s: any) => boolean, keyPrefix: string) => {
-    const validStats = aggregatedStats.filter(filterFn)
-    if (validStats.length === 0) return <div className={styles.noData}>데이터가 없습니다.</div>
-
+  // '능력치 상세' 탭 - 섹션별 펼치기/접기
+  const renderDetailTab = () => {
     return (
-      <div className={styles.unifiedGrid}>
-        {validStats.map(s => renderUnifiedCard(s, keyPrefix))}
+      <div className={styles.detailSections}>
+        {SECTIONS.map(section => {
+          const sectionStats = statsByCategory[section.categories[0]] || []
+          const isExpanded = expandedSections.has(section.id)
+          const statCount = sectionStats.length
+
+          if (statCount === 0) return null
+
+          return (
+            <div key={section.id} className={styles.detailSection}>
+              {/* 섹션 헤더 (클릭하면 펼침/접힘) */}
+              <div
+                className={styles.detailSectionHeader}
+                onClick={() => toggleSection(section.id)}
+                style={{
+                  borderLeftColor: section.color,
+                  background: section.bgColor
+                }}
+              >
+                <span className={styles.detailSectionIcon}>{section.icon}</span>
+                <span className={styles.detailSectionLabel}>{section.label}</span>
+                <span className={styles.detailSectionCount}>{statCount}개</span>
+                <span className={styles.detailSectionArrow}>
+                  {isExpanded ? '▼' : '▶'}
+                </span>
+              </div>
+
+              {/* 섹션 내용 (스탯 목록) */}
+              {isExpanded && (
+                <div className={styles.detailSectionContent}>
+                  {sectionStats.map(stat => {
+                    const isStatExpanded = expandedStats.has(stat.name)
+                    const isPercentage = stat.totalPercentage > 0 && stat.totalValue === 0
+                    const displayValue = isPercentage
+                      ? `+${stat.totalPercentage.toFixed(1)}%`
+                      : stat.totalValue.toLocaleString()
+                    const subValue = (!isPercentage && stat.totalPercentage > 0)
+                      ? `+${stat.totalPercentage.toFixed(1)}%`
+                      : null
+
+                    return (
+                      <div key={stat.name} className={styles.detailStatItem}>
+                        <div
+                          className={styles.detailStatRow}
+                          onClick={() => toggleStatDetail(stat.name)}
+                        >
+                          <div className={styles.detailStatLeft}>
+                            <div
+                              className={styles.detailStatIndicator}
+                              style={{ background: stat.color }}
+                            />
+                            <span className={styles.detailStatName}>{stat.name}</span>
+                          </div>
+                          <div className={styles.detailStatRight}>
+                            <span className={styles.detailStatValue}>
+                              {displayValue}
+                            </span>
+                            {subValue && (
+                              <span className={styles.detailStatSubValue}>{subValue}</span>
+                            )}
+                            <span className={styles.detailStatArrow}>
+                              {isStatExpanded ? '▼' : '▶'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 스탯 상세 (출처별 내역) */}
+                        {isStatExpanded && (
+                          <div className={styles.detailStatAccordion}>
+                            <StatsDetailAccordion stat={{ ...stat, isExpanded: true }} onToggle={() => {}} />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     )
   }
@@ -168,18 +247,14 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
   const renderContent = () => {
     switch (activeTab) {
       case 'total': return renderTotalTab()
-      case 'equipment': return renderOtherTab(s => s.sources.equipment.length > 0 && !EQUIPMENT_EXCLUDED_STATS.has(s.name), 'equip_')
-      case 'titles': return renderOtherTab(s => s.sources.titles.length > 0, 'title_')
-      case 'daevanion': return renderOtherTab(s => s.sources.daevanion.length > 0, 'daevanion_')
-      // MainStats tab duplicate logic but okay for user preference
-      case 'mainStats': return renderOtherTab(s => new Set(['위력', '민첩', '지식', '정확', '의지', '체력']).has(s.name), 'main_')
+      case 'detail': return renderDetailTab()
       default: return null
     }
   }
 
   return (
     <div className={styles.statsContainer}>
-      {/* New Tab Bar */}
+      {/* 탭 바 (2개만) */}
       <div className={styles.modernTabBar}>
         {TABS.map(tab => (
           <button
@@ -187,13 +262,12 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles, 
             onClick={() => setActiveTab(tab.id)}
             className={`${styles.modernTab} ${activeTab === tab.id ? styles.modernTabActive : ''}`}
           >
-            <span>{tab.icon}</span>
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Content */}
+      {/* 콘텐츠 */}
       <div className={styles.statsContent}>
         {renderContent()}
       </div>
