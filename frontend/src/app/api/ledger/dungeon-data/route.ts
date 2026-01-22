@@ -59,6 +59,7 @@ const EXPEDITION_DATA = {
         { id: 'exp_draupnir', name: '드라웁니르', kina: 180000, imageUrl: '/메달/원정/드라웁니르.png' },
         { id: 'exp_barkron', name: '바크론의 공중섬', kina: 200000, imageUrl: '/메달/원정/바크론의 공중섬.png' },
         { id: 'exp_horn', name: '사나운 뿔 암굴', kina: 250000, imageUrl: '/메달/원정/사나운 뿔암굴.png' },
+        { id: 'exp_dramata', name: '죽은 드라마타의 둥지', kina: 300000, imageUrl: '/메달/원정/죽은 드라마타의 둥지.png' },
       ]
     },
     {
@@ -71,6 +72,7 @@ const EXPEDITION_DATA = {
         { id: 'con_n_barkron', name: '바크론의 공중섬', kina: 400000, imageUrl: '/메달/원정/바크론의 공중섬.png' },
         { id: 'con_n_fire', name: '불의 신전', kina: 500000, imageUrl: '/메달/원정/불의신전.png' },
         { id: 'con_n_horn', name: '사나운 뿔 암굴', kina: 500000, imageUrl: '/메달/원정/사나운 뿔암굴.png' },
+        { id: 'con_n_dramata', name: '죽은 드라마타의 둥지', kina: 600000, imageUrl: '/메달/원정/죽은 드라마타의 둥지.png' },
       ]
     },
     {
@@ -83,6 +85,7 @@ const EXPEDITION_DATA = {
         { id: 'con_h_barkron', name: '바크론의 공중섬', kina: 500000, imageUrl: '/메달/원정/바크론의 공중섬.png' },
         { id: 'con_h_fire', name: '불의 신전', kina: 500000, imageUrl: '/메달/원정/불의신전.png' },
         { id: 'con_h_horn', name: '사나운 뿔 암굴', kina: 500000, imageUrl: '/메달/원정/사나운 뿔암굴.png' },
+        { id: 'con_h_dramata', name: '죽은 드라마타의 둥지', kina: 700000, imageUrl: '/메달/원정/죽은 드라마타의 둥지.png' },
       ]
     }
   ]

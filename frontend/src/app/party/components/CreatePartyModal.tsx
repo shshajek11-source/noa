@@ -124,6 +124,10 @@ export default function CreatePartyModal({ isOpen, onClose, onCreated, editMode,
   const [selectedTier, setSelectedTier] = useState<number>(1)
   const [isImmediate, setIsImmediate] = useState(true)
 
+  // 원정 타입/난이도 선택
+  const [expeditionType, setExpeditionType] = useState<'exploration' | 'conquest'>('exploration')
+  const [expeditionDifficulty, setExpeditionDifficulty] = useState<'normal' | 'hard'>('normal')
+
   // 날짜/시간 선택 개선
   const [scheduledDate, setScheduledDate] = useState(new Date().toISOString().split('T')[0])
   const [startHour, setStartHour] = useState('21')
@@ -165,16 +169,26 @@ export default function CreatePartyModal({ isOpen, onClose, onCreated, editMode,
             })
           })
         } else if (dungeonType === 'expedition' && data.expedition?.categories) {
-          // 원정: categories 배열 -> 각 카테고리 안에 bosses 배열
-          data.expedition.categories.forEach((cat: { id: string; name: string; bosses: { id: string; name: string }[] }) => {
-            cat.bosses.forEach(boss => {
+          // 원정: 타입/난이도에 따라 필터링
+          // 선택된 카테고리 ID 결정
+          let categoryId = 'exploration'
+          if (expeditionType === 'conquest') {
+            categoryId = expeditionDifficulty === 'hard' ? 'conquest_hard' : 'conquest_normal'
+          }
+
+          const selectedCategory = data.expedition.categories.find(
+            (cat: { id: string }) => cat.id === categoryId
+          )
+
+          if (selectedCategory) {
+            selectedCategory.bosses.forEach((boss: { id: string; name: string }) => {
               dungeonList.push({
                 id: boss.id,
                 name: boss.name,
-                category: cat.name  // 카테고리명 (탐험, 정복 보통, 정복 어려움)
+                category: selectedCategory.name
               })
             })
-          })
+          }
         } else if (dungeonType === 'sanctuary' && data.sanctuary?.categories) {
           // 성역: categories 배열 -> bosses 배열
           data.sanctuary.categories.forEach((cat: { id: string; name: string; bosses: { id: string; name: string }[] }) => {
@@ -205,7 +219,7 @@ export default function CreatePartyModal({ isOpen, onClose, onCreated, editMode,
         }
       })
       .catch(err => console.error('Failed to load dungeon data:', err))
-  }, [dungeonType, isOpen, editMode, editData])
+  }, [dungeonType, isOpen, editMode, editData, expeditionType, expeditionDifficulty])
 
   // 슬롯 초기화
   useEffect(() => {
@@ -470,6 +484,46 @@ export default function CreatePartyModal({ isOpen, onClose, onCreated, editMode,
               ))}
             </div>
 
+            {/* 원정: 타입/난이도 선택 */}
+            {dungeonType === 'expedition' && (
+              <div className={styles.expeditionOptions}>
+                <div className={styles.expeditionTypeRow}>
+                  <button
+                    type="button"
+                    className={`${styles.expTypeButton} ${expeditionType === 'exploration' ? styles.active : ''}`}
+                    onClick={() => setExpeditionType('exploration')}
+                  >
+                    탐험
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.expTypeButton} ${expeditionType === 'conquest' ? styles.active : ''}`}
+                    onClick={() => setExpeditionType('conquest')}
+                  >
+                    정복
+                  </button>
+                </div>
+                {expeditionType === 'conquest' && (
+                  <div className={styles.expeditionDifficultyRow}>
+                    <button
+                      type="button"
+                      className={`${styles.expDiffButton} ${expeditionDifficulty === 'normal' ? styles.active : ''}`}
+                      onClick={() => setExpeditionDifficulty('normal')}
+                    >
+                      보통
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.expDiffButton} ${expeditionDifficulty === 'hard' ? styles.active : ''}`}
+                      onClick={() => setExpeditionDifficulty('hard')}
+                    >
+                      어려움
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className={styles.dungeonRow}>
               {dungeons.length > 0 && (
                 <div className={styles.dungeonSelect}>
@@ -483,7 +537,7 @@ export default function CreatePartyModal({ isOpen, onClose, onCreated, editMode,
                   >
                     {dungeons.map(d => (
                       <option key={d.id} value={d.id}>
-                        {d.category ? `[${d.category}] ${d.name}` : d.name}
+                        {d.name}
                       </option>
                     ))}
                   </select>
