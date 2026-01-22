@@ -202,6 +202,130 @@ export default function MobileLedgerPage() {
         odEnergy: { timeEnergy: 840, ticketEnergy: 0 }
     });
 
+    // 대시보드 데이터 (모든 캐릭터의 진행현황)
+    const [dashboardData, setDashboardData] = useState<Record<string, any>>({});
+    const [isDashboardLoading, setIsDashboardLoading] = useState(false);
+
+    // 주간 컨텐츠 정의
+    const WEEKLY_CONTENT_DEFS = [
+        { id: 'transcend', name: '초월', maxPerChar: 14, color: 'purple', ticketKey: 'transcend' },
+        { id: 'expedition', name: '원정', maxPerChar: 21, color: 'blue', ticketKey: 'expedition' },
+        { id: 'sanctuary', name: '성역', maxPerChar: 4, color: 'red', ticketKey: 'sanctuary' },
+        { id: 'shugo', name: '슈고', maxPerChar: 14, color: 'orange', ticketKey: null },
+        { id: 'mission', name: '사명', maxPerChar: 5, color: 'green', ticketKey: null },
+        { id: 'weekly_order', name: '주간지령서', maxPerChar: 12, color: 'cyan', ticketKey: null },
+        { id: 'abyss_order', name: '어비스지령서', maxPerChar: 20, color: 'pink', ticketKey: null },
+    ];
+
+    // 일일 컨텐츠 정의
+    const DAILY_CONTENT_DEFS = [
+        { id: 'daily_dungeon', name: '일던', maxPerChar: 7, color: 'blue', ticketKey: 'daily_dungeon', contentType: 'daily_dungeon' },
+        { id: 'awakening', name: '각성전', maxPerChar: 3, color: 'purple', ticketKey: 'awakening', contentType: 'awakening_battle' },
+        { id: 'subjugation', name: '토벌전', maxPerChar: 3, color: 'red', ticketKey: 'subjugation', contentType: 'subjugation' },
+        { id: 'nightmare', name: '악몽', maxPerChar: 14, color: 'gray', ticketKey: 'nightmare', contentType: 'nightmare' },
+        { id: 'dimension', name: '차원침공', maxPerChar: 14, color: 'cyan', ticketKey: 'dimension', contentType: 'dimension_invasion' },
+        { id: 'abyss_hallway', name: '어비스회랑', maxPerChar: 3, color: 'pink', ticketKey: null, contentType: 'abyss_hallway' },
+    ];
+
+    // 대시보드 데이터 로드
+    useEffect(() => {
+        if (!isReady || characters.length === 0) return;
+
+        const loadDashboardData = async () => {
+            setIsDashboardLoading(true);
+            try {
+                const authHeaders = getAuthHeader();
+                const characterIds = characters.map(c => c.id).join(',');
+                const res = await fetch(`/api/ledger/dashboard?characterIds=${characterIds}`, {
+                    headers: authHeaders
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    setDashboardData(data.characters || {});
+                }
+            } catch (error) {
+                console.error('[Mobile Ledger] Failed to load dashboard data:', error);
+            } finally {
+                setIsDashboardLoading(false);
+            }
+        };
+
+        loadDashboardData();
+    }, [isReady, characters, getAuthHeader]);
+
+    // 캐릭터별 진행현황 계산 함수
+    const getCharacterProgress = (characterId: string) => {
+        const charData = dashboardData[characterId];
+        if (!charData) return { weekly: [], daily: [] };
+
+        const baseTickets = charData.baseTickets || {};
+        const bonusTickets = charData.bonusTickets || {};
+        const contentRecords = charData.contentRecords || {};
+        const weeklyData = charData.weeklyData || {};
+        const missionCount = charData.missionCount || 0;
+
+        // 주간 컨텐츠 진행률
+        const weeklyProgress = WEEKLY_CONTENT_DEFS.map(def => {
+            let current = 0;
+            let max = def.maxPerChar;
+            let bonus = 0;
+
+            if (def.id === 'transcend') {
+                const remaining = baseTickets.transcend ?? def.maxPerChar;
+                current = def.maxPerChar - remaining;
+                bonus = bonusTickets.transcend || 0;
+            } else if (def.id === 'expedition') {
+                const remaining = baseTickets.expedition ?? def.maxPerChar;
+                current = def.maxPerChar - remaining;
+                bonus = bonusTickets.expedition || 0;
+            } else if (def.id === 'sanctuary') {
+                const remaining = baseTickets.sanctuary ?? def.maxPerChar;
+                current = def.maxPerChar - remaining;
+                bonus = bonusTickets.sanctuary || 0;
+            } else if (def.id === 'shugo') {
+                const shugoBase = weeklyData.shugoBase ?? 14;
+                current = 14 - shugoBase;
+                bonus = weeklyData.shugoBonus || 0;
+            } else if (def.id === 'mission') {
+                current = missionCount;
+            } else if (def.id === 'weekly_order') {
+                current = weeklyData.weeklyOrderCount || 0;
+            } else if (def.id === 'abyss_order') {
+                current = weeklyData.abyssOrderCount || 0;
+            }
+
+            return { ...def, current, max: max + bonus };
+        });
+
+        // 일일 컨텐츠 진행률
+        const dailyProgress = DAILY_CONTENT_DEFS.map(def => {
+            const current = contentRecords[def.contentType] || 0;
+            let bonus = 0;
+            if (def.ticketKey) {
+                bonus = bonusTickets[def.ticketKey] || 0;
+            }
+            return { ...def, current, max: def.maxPerChar + bonus };
+        });
+
+        return { weekly: weeklyProgress, daily: dailyProgress };
+    };
+
+    // 컨텐츠 칩 색상 클래스
+    const getChipColorClass = (color: string) => {
+        const colorMap: Record<string, string> = {
+            red: styles.chipRed,
+            purple: styles.chipPurple,
+            blue: styles.chipBlue,
+            orange: styles.chipOrange,
+            green: styles.chipGreen,
+            cyan: styles.chipCyan,
+            pink: styles.chipPink,
+            gray: styles.chipGray
+        };
+        return colorMap[color] || styles.chipBlue;
+    };
+
     // 캐릭터 상태 로드
     useEffect(() => {
         if (!selectedCharacterId || !isReady) return;
@@ -978,41 +1102,42 @@ export default function MobileLedgerPage() {
                                         </div>
                                     </div>
 
-                                    {/* 첫 번째 캐릭터만 진행 현황 표시 */}
-                                    {index === 0 && (
-                                        <>
-                                            <div className={styles.progressLabel}>진행 현황</div>
-                                            <div className={styles.chipContainer}>
-                                                {/* 성역 */}
-                                                <div className={`${styles.statusChip} ${styles.chipRed}`}>
-                                                    <span className={`${styles.chipDot} ${styles.dotRed}`}>●</span>
-                                                    <span className={styles.chipTxt}>성역</span>
-                                                    <span className={styles.chipVal}>
-                                                        {records.find(r => r.content_type === 'sanctuary')?.completion_count || 0}/
-                                                        {characterState.baseTickets.sanctuary + characterState.bonusTickets.sanctuary}
-                                                    </span>
+                                    {/* 모든 캐릭터에 진행 현황 표시 */}
+                                    {(() => {
+                                        const progress = getCharacterProgress(character.id);
+                                        if (progress.weekly.length === 0 && progress.daily.length === 0) return null;
+                                        return (
+                                            <>
+                                                {/* 주간 컨텐츠 */}
+                                                <div className={styles.progressLabel}>주간 컨텐츠</div>
+                                                <div className={styles.chipContainerGrid}>
+                                                    {progress.weekly.map(content => (
+                                                        <div
+                                                            key={content.id}
+                                                            className={`${styles.statusChipCompact} ${getChipColorClass(content.color)}`}
+                                                        >
+                                                            <span className={styles.chipTxt}>{content.name}</span>
+                                                            <span className={styles.chipVal}>{content.current}/{content.max}</span>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                                {/* 초월 */}
-                                                <div className={`${styles.statusChip} ${styles.chipPurple}`}>
-                                                    <span className={`${styles.chipDot} ${styles.dotPurple}`}>●</span>
-                                                    <span className={styles.chipTxt}>초월</span>
-                                                    <span className={styles.chipVal}>
-                                                        {records.find(r => r.content_type === 'transcend')?.completion_count || 0}/
-                                                        {characterState.baseTickets.transcend + characterState.bonusTickets.transcend}
-                                                    </span>
+
+                                                {/* 일일 컨텐츠 */}
+                                                <div className={styles.progressLabel}>일일 컨텐츠</div>
+                                                <div className={styles.chipContainerGrid}>
+                                                    {progress.daily.map(content => (
+                                                        <div
+                                                            key={content.id}
+                                                            className={`${styles.statusChipCompact} ${getChipColorClass(content.color)}`}
+                                                        >
+                                                            <span className={styles.chipTxt}>{content.name}</span>
+                                                            <span className={styles.chipVal}>{content.current}/{content.max}</span>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                                {/* 원정 */}
-                                                <div className={`${styles.statusChip} ${styles.chipBlue}`}>
-                                                    <span className={`${styles.chipDot} ${styles.dotBlue}`}>●</span>
-                                                    <span className={styles.chipTxt}>원정</span>
-                                                    <span className={styles.chipVal}>
-                                                        {records.find(r => r.content_type === 'expedition')?.completion_count || 0}/
-                                                        {characterState.baseTickets.expedition + characterState.bonusTickets.expedition}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             ))}
                         </>
