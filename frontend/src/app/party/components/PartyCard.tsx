@@ -364,12 +364,14 @@ export default memo(function PartyCard({
 
               {partyStats.avgBreakthrough > 0 && (
                 <div className={styles.partyStatItem}>
-                  <div className={styles.partyStatIcon} style={{ color: '#60A5FA' }}>🛡️</div>
+                  <div className={styles.breakthroughBadge}>
+                    <svg className={styles.shieldIcon} viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                    </svg>
+                    <span className={styles.breakthroughValue}>+{partyStats.avgBreakthrough}</span>
+                  </div>
                   <div className={styles.partyStatContent}>
                     <span className={styles.partyStatLabel}>평균 돌파</span>
-                    <span className={styles.partyStatValue}>
-                      +{partyStats.avgBreakthrough}
-                    </span>
                   </div>
                 </div>
               )}

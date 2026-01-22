@@ -460,6 +460,35 @@
   line-height: 1.1;
 }
 
+/* 돌파 방패 뱃지 */
+.breakthroughBadge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.shieldIcon {
+  width: 36px;
+  height: 40px;
+  color: #ef4444;
+  filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3));
+}
+
+.breakthroughValue {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
 /* 푸터 */
 .footer {
   display: flex;
