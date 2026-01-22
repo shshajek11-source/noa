@@ -97,26 +97,17 @@ export default function LedgerPage() {
       setSelectedDate(today)
     }
 
-    // 페이지가 다시 포커스될 때 오늘 날짜로 업데이트
+    // 페이지가 다시 포커스될 때 오늘 날짜로 업데이트 (새벽 5시 리셋 대응)
     const handleFocus = () => {
       updateToToday()
     }
-
-    // 1분마다 날짜 체크 (새벽 5시 넘어가면 자동 업데이트)
-    const interval = setInterval(() => {
-      const today = getGameDate(new Date())
-      if (selectedDate !== today) {
-        setSelectedDate(today)
-      }
-    }, 60000)
 
     window.addEventListener('focus', handleFocus)
 
     return () => {
       window.removeEventListener('focus', handleFocus)
-      clearInterval(interval)
     }
-  }, [selectedDate])
+  }, [])
   const [showAddCharacterModal, setShowAddCharacterModal] = useState(false)
   const [showAddItemModal, setShowAddItemModal] = useState(false)
   const [showDateModal, setShowDateModal] = useState(false)
@@ -236,7 +227,7 @@ export default function LedgerPage() {
   // 데이터 로딩 중 플래그
   const [isLoadingCharacterData, setIsLoadingCharacterData] = useState(false)
 
-  // 캐릭터별 데이터 로드
+  // 캐릭터별 데이터 로드 (캐릭터 상태 + 던전 키나 병렬 로드)
   useEffect(() => {
     if (!selectedCharacterId || !isReady) return
 
@@ -244,16 +235,44 @@ export default function LedgerPage() {
       setIsLoadingCharacterData(true)
       try {
         const authHeaders = getAuthHeader()
-        const res = await fetch(
-          `/api/ledger/character-state?characterId=${selectedCharacterId}`,
-          { headers: authHeaders }
-        )
 
-        if (!res.ok) {
+        // 캐릭터 상태와 던전 키나를 병렬로 로드
+        const [stateRes, dungeonRes] = await Promise.all([
+          fetch(
+            `/api/ledger/character-state?characterId=${selectedCharacterId}`,
+            { headers: authHeaders }
+          ),
+          fetch(
+            `/api/ledger/dungeon-records?characterId=${selectedCharacterId}&date=${selectedDate}`,
+            { headers: authHeaders }
+          )
+        ])
+
+        // 캐릭터 상태 처리
+        if (!stateRes.ok) {
           throw new Error('Failed to load character state')
         }
+        const data = await stateRes.json()
 
-        const data = await res.json()
+        // 던전 키나 처리
+        if (dungeonRes.ok) {
+          const dungeonData = await dungeonRes.json()
+          let totalKina = 0
+          if (dungeonData.records) {
+            if (dungeonData.records.transcend && Array.isArray(dungeonData.records.transcend)) {
+              totalKina += dungeonData.records.transcend.reduce((sum: number, r: any) => sum + (r.kina || 0), 0)
+            }
+            if (dungeonData.records.expedition && Array.isArray(dungeonData.records.expedition)) {
+              totalKina += dungeonData.records.expedition.reduce((sum: number, r: any) => sum + (r.kina || 0), 0)
+            }
+            if (dungeonData.records.sanctuary && Array.isArray(dungeonData.records.sanctuary)) {
+              totalKina += dungeonData.records.sanctuary.reduce((sum: number, r: any) => sum + (r.kina || 0), 0)
+            }
+          }
+          setDungeonKina(totalKina)
+        } else {
+          setDungeonKina(0)
+        }
 
         // 티켓 데이터 복원
         if (data.baseTickets) setBaseTickets(data.baseTickets)
@@ -320,7 +339,7 @@ export default function LedgerPage() {
     }
 
     loadCharacterData()
-  }, [selectedCharacterId, isReady, getAuthHeader])
+  }, [selectedCharacterId, selectedDate, isReady, getAuthHeader])
 
   // 캐릭터별 데이터 저장 (디바운스)
   useEffect(() => {
@@ -545,53 +564,6 @@ export default function LedgerPage() {
 
     loadSelectedDateIncome()
   }, [selectedDate, selectedCharacterId, isReady, getAuthHeader, incomeRefreshKey])
-
-  // 던전 컨텐츠 키나 계산 (초월/원정/성역 - DB에서)
-  useEffect(() => {
-    const loadDungeonKina = async () => {
-      if (!selectedCharacterId || !isReady) {
-        setDungeonKina(0)
-        return
-      }
-
-      try {
-        const res = await fetch(
-          `/api/ledger/dungeon-records?characterId=${selectedCharacterId}&date=${selectedDate}`,
-          { headers: getAuthHeader() }
-        )
-
-        if (!res.ok) {
-          setDungeonKina(0)
-          return
-        }
-
-        const data = await res.json()
-        let totalKina = 0
-
-        if (data.records) {
-          // 초월 기록 합산
-          if (data.records.transcend && Array.isArray(data.records.transcend)) {
-            totalKina += data.records.transcend.reduce((sum: number, r: any) => sum + (r.kina || 0), 0)
-          }
-          // 원정 기록 합산
-          if (data.records.expedition && Array.isArray(data.records.expedition)) {
-            totalKina += data.records.expedition.reduce((sum: number, r: any) => sum + (r.kina || 0), 0)
-          }
-          // 성역 기록 합산
-          if (data.records.sanctuary && Array.isArray(data.records.sanctuary)) {
-            totalKina += data.records.sanctuary.reduce((sum: number, r: any) => sum + (r.kina || 0), 0)
-          }
-        }
-
-        setDungeonKina(totalKina)
-      } catch (e) {
-        console.error('Failed to load dungeon kina from DB:', e)
-        setDungeonKina(0)
-      }
-    }
-
-    loadDungeonKina()
-  }, [selectedDate, selectedCharacterId, isReady, getAuthHeader])
 
   // 캐릭터 추가 핸들러
   const handleAddCharacter = async (charData: any) => {
@@ -955,6 +927,7 @@ export default function LedgerPage() {
                 }}
                 initialSyncTickets={dailyInitialSync}
                 onInitialSyncComplete={() => setDailyInitialSync(undefined)}
+                onIncomeChange={() => setIncomeRefreshKey(prev => prev + 1)}
               />
 
             </>

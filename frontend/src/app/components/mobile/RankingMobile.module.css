@@ -67,8 +67,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px;
+  gap: 4px;
+  padding: 8px 6px;
   background: rgba(255, 255, 255, 0.05);
   /* Glass base */
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -76,7 +76,7 @@
   /* Pill shape */
   color: #9CA3AF;
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
   transition: all 0.2s;
 }

@@ -26,6 +26,7 @@ interface DailyContentSectionProps {
   }
   onBaseTicketsChange?: (updates: Record<string, number>) => void
   onBonusTicketsChange?: (updates: Record<string, number>) => void
+  onIncomeChange?: () => void  // 수입 변경 시 호출 (통계 갱신용)
   // 초기설정 동기화용
   initialSyncTickets?: {
     daily_dungeon: number
@@ -57,6 +58,7 @@ function DailyContentSection({
   },
   onBaseTicketsChange,
   onBonusTicketsChange,
+  onIncomeChange,
   initialSyncTickets,
   onInitialSyncComplete
 }: DailyContentSectionProps) {
@@ -156,7 +158,9 @@ function DailyContentSection({
 
     // 원래 증가 로직 실행
     handleIncrement(id)
-  }, [contents, bonusTickets, handleIncrement, onBonusTicketsChange])
+    // 통계 갱신 트리거
+    onIncomeChange?.()
+  }, [contents, bonusTickets, handleIncrement, onBonusTicketsChange, onIncomeChange])
 
   // - 버튼 클릭 래퍼: 충전권 복구 처리
   const handleDecrementWithBonus = useCallback((id: string) => {
@@ -175,7 +179,9 @@ function DailyContentSection({
 
     // 원래 감소 로직 실행
     handleDecrement(id)
-  }, [contents, bonusTickets, handleDecrement, onBonusTicketsChange])
+    // 통계 갱신 트리거
+    onIncomeChange?.()
+  }, [contents, bonusTickets, handleDecrement, onBonusTicketsChange, onIncomeChange])
 
   // 보너스 티켓이 적용된 컨텐츠 목록
   const contentsWithBonus = contents.map(content => {
