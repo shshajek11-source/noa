@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { ContentRecord, ContentType, DungeonTier, UpdateContentRecordRequest } from '@/types/ledger'
 
 interface UseContentRecordsProps {
@@ -16,6 +16,7 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
   const [dungeonTiers, setDungeonTiers] = useState<DungeonTier[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const lastLoadedRef = useRef<string | null>(null) // 중복 호출 방지
 
   // 컨텐츠 타입 및 던전 단계 로드
   const fetchContentTypes = useCallback(async () => {
@@ -59,8 +60,16 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
   }, [fetchContentTypes])
 
   useEffect(() => {
+    // 중복 호출 방지
+    const loadKey = `${characterId}-${date}`
+    if (lastLoadedRef.current === loadKey) {
+      return
+    }
+    if (characterId && date) {
+      lastLoadedRef.current = loadKey
+    }
     fetchRecords()
-  }, [fetchRecords])
+  }, [fetchRecords, characterId, date])
 
   // 특정 컨텐츠의 던전 단계 목록 가져오기
   const getTiersForContent = useCallback((contentType: string) => {

@@ -90,6 +90,7 @@ export function useDailyContent(
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const isLoadingRef = useRef(false)
+  const lastLoadedRef = useRef<string | null>(null) // 중복 호출 방지
 
   // 주간 키 계산 (수요일 5시 기준)
   const weekKey = useMemo(() => getWeekKey(new Date(date)), [date])
@@ -241,8 +242,16 @@ export function useDailyContent(
 
   // Load data when character or date changes
   useEffect(() => {
+    // 중복 호출 방지
+    const loadKey = `${characterId}-${date}`
+    if (lastLoadedRef.current === loadKey) {
+      return
+    }
+    if (characterId && date) {
+      lastLoadedRef.current = loadKey
+    }
     loadData()
-  }, [loadData])
+  }, [loadData, characterId, date])
 
   // 초기설정 동기화용 강제 적용 함수
   const forceSync = useCallback((remainingCounts: Record<string, number>) => {

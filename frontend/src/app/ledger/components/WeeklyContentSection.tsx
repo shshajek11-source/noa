@@ -33,6 +33,7 @@ function WeeklyContentSection({ characterId, selectedDate, shugoInitialSync, onS
   // 로딩 상태 (로딩 중에는 저장 안 함)
   const isLoadingRef = useRef(false)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const lastLoadedRef = useRef<string | null>(null) // 중복 호출 방지
 
   // 주간 키 계산 (수요일 5시 기준)
   const weekKey = useMemo(() => getWeekKey(new Date(selectedDate)), [selectedDate])
@@ -122,6 +123,12 @@ function WeeklyContentSection({ characterId, selectedDate, shugoInitialSync, onS
 
   // 데이터 로드 (캐릭터/주간 변경 시)
   useEffect(() => {
+    // 중복 호출 방지: 같은 캐릭터+주간 조합이면 스킵
+    const loadKey = `${characterId}-${weekKey}`
+    if (lastLoadedRef.current === loadKey) {
+      return
+    }
+
     log(`캐릭터/주간 변경: ${characterId}, ${weekKey}`)
     isLoadingRef.current = true
 
@@ -132,8 +139,11 @@ function WeeklyContentSection({ characterId, selectedDate, shugoInitialSync, onS
       setShugoTickets({ base: 14, bonus: 0, lastChargeTime: '' })
       setAbyssRegions(DEFAULT_ABYSS_REGIONS)
       isLoadingRef.current = false
+      lastLoadedRef.current = null
       return
     }
+
+    lastLoadedRef.current = loadKey
 
     const loadData = async () => {
       const data = await loadFromDatabase()

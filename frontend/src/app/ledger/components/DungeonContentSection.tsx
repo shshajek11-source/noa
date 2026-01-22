@@ -93,6 +93,7 @@ function DungeonContentSection({
   const isLoadingRef = useRef(false)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const selectionsLoadedRef = useRef(false)
+  const lastLoadedRef = useRef<string | null>(null) // 중복 호출 방지
 
   // onTotalKinaChange ref (인라인 함수로 전달되면 무한 루프 방지용)
   // 실제 호출은 debouncedSave에서 DB 저장 완료 후 수행
@@ -240,6 +241,12 @@ function DungeonContentSection({
 
   // 기록 불러오기 (캐릭터/날짜 변경 시)
   useEffect(() => {
+    // 중복 호출 방지: 같은 캐릭터+날짜 조합이면 스킵
+    const loadKey = `${characterId}-${selectedDate}`
+    if (lastLoadedRef.current === loadKey) {
+      return
+    }
+
     isLoadingRef.current = true
 
     if (!characterId) {
@@ -250,8 +257,11 @@ function DungeonContentSection({
       setExpeditionDouble(false)
       setSanctuaryDouble(false)
       isLoadingRef.current = false
+      lastLoadedRef.current = null
       return
     }
+
+    lastLoadedRef.current = loadKey
 
     // 기록 초기화
     setTranscendRecords([])
