@@ -17,6 +17,56 @@
   box-shadow: 0 8px 24px rgba(245, 158, 11, 0.15);
 }
 
+/* 파티 제목 행 (맨 위) */
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #222;
+}
+
+.partyTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 예약 시간 */
+.scheduleTime {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.scheduleIcon {
+  font-size: 0.9rem;
+}
+
+.scheduleLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.scheduleSub {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+  margin-left: 4px;
+}
+
 /* 헤더 */
 .header {
   display: flex;
@@ -37,16 +87,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-/* 파티 제목 */
-.partyTitle {
-  font-size: 0.85rem;
-  color: #9CA3AF;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-left: 2px;
 }
 
 .dungeonBadge {
@@ -439,6 +479,44 @@
   flex-shrink: 0;
 }
 
+/* 돌파 배지 (ProfileSection과 동일한 스타일) */
+@keyframes gemSparkle {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}
+
+.breakthroughBadge {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 40%, #2563EB 60%, #1D4ED8 100%);
+  border: 1.5px solid #93C5FD;
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.8),
+      0 0 12px rgba(96, 165, 250, 0.4),
+      inset 0 -1px 3px rgba(0, 0, 0, 0.4),
+      inset 1px 1px 3px rgba(147, 197, 253, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: gemSparkle 2s ease-in-out infinite;
+}
+
+.breakthroughText {
+  transform: rotate(-45deg);
+  font-weight: 900;
+  font-size: 0.65rem;
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
 .partyStatContent {
   display: flex;
   flex-direction: column;
@@ -458,35 +536,6 @@
   font-family: 'Pretendard', sans-serif;
   letter-spacing: -0.02em;
   line-height: 1.1;
-}
-
-/* 돌파 방패 뱃지 */
-.breakthroughBadge {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 40px;
-  flex-shrink: 0;
-}
-
-.shieldIcon {
-  width: 36px;
-  height: 40px;
-  color: #ef4444;
-  filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3));
-}
-
-.breakthroughValue {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 /* 푸터 */

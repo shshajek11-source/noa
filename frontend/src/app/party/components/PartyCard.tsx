@@ -94,16 +94,10 @@ export default memo(function PartyCard({
     return { totalPower, avgBreakthrough }
   }, [party.members])
 
+  // 예약 시간 표시 (즉시 진행은 표시하지 않음)
   const timeDisplay = useMemo(() => {
-    if (party.is_immediate) {
-      return {
-        icon: '⚡',
-        label: '즉시 진행',
-        sub: getRelativeTime(party.created_at)
-      }
-    }
-
-    if (!party.scheduled_date || !party.scheduled_time_start) {
+    // 즉시 진행이거나 예약 정보가 없으면 null
+    if (party.is_immediate || !party.scheduled_date || !party.scheduled_time_start) {
       return null
     }
 
@@ -207,6 +201,31 @@ export default memo(function PartyCard({
 
   return (
     <div className={styles.card} onClick={handleClick} style={{ cursor: 'pointer' }}>
+      {/* 파티 제목 (맨 위에 강조) */}
+      {party.title && (
+        <div className={styles.titleRow}>
+          <h3 className={styles.partyTitle}>{party.title}</h3>
+          {/* 예약 시간 표시 */}
+          {timeDisplay && (
+            <div className={styles.scheduleTime}>
+              <span className={styles.scheduleIcon}>{timeDisplay.icon}</span>
+              <span className={styles.scheduleLabel}>{timeDisplay.label}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 제목 없을 때 예약 시간만 표시 */}
+      {!party.title && timeDisplay && (
+        <div className={styles.titleRow}>
+          <div className={styles.scheduleTime}>
+            <span className={styles.scheduleIcon}>{timeDisplay.icon}</span>
+            <span className={styles.scheduleLabel}>{timeDisplay.label}</span>
+            {timeDisplay.sub && <span className={styles.scheduleSub}>{timeDisplay.sub}</span>}
+          </div>
+        </div>
+      )}
+
       {/* 헤더: 던전 정보 + 상태 */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
@@ -222,10 +241,6 @@ export default memo(function PartyCard({
               {party.dungeon_tier && <span className={styles.tier}>{party.dungeon_tier}단</span>}
             </span>
           </div>
-          {/* 파티 제목 (던전 정보 아래) */}
-          {party.title && (
-            <div className={styles.partyTitle}>{party.title}</div>
-          )}
         </div>
         <div className={styles.statusBadge}>
           <span className={party.status === 'recruiting' ? styles.recruiting : styles.full}>
@@ -365,13 +380,13 @@ export default memo(function PartyCard({
               {partyStats.avgBreakthrough > 0 && (
                 <div className={styles.partyStatItem}>
                   <div className={styles.breakthroughBadge}>
-                    <svg className={styles.shieldIcon} viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                    </svg>
-                    <span className={styles.breakthroughValue}>+{partyStats.avgBreakthrough}</span>
+                    <span className={styles.breakthroughText}>{partyStats.avgBreakthrough}</span>
                   </div>
                   <div className={styles.partyStatContent}>
                     <span className={styles.partyStatLabel}>평균 돌파</span>
+                    <span className={styles.partyStatValue}>
+                      +{partyStats.avgBreakthrough}
+                    </span>
                   </div>
                 </div>
               )}
