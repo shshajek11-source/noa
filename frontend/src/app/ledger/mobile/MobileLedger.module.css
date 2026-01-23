@@ -1512,13 +1512,13 @@
 }
 
 .raceBtnElyos {
-    background: #3b82f6;
-    color: #fff;
+    background: #2DD4BF;
+    color: #000;
 }
 
 .raceBtnAsmodian {
-    background: #ef4444;
-    color: #fff;
+    background: #A78BFA;
+    color: #000;
 }
 
 /* 서버 선택 그리드 */
@@ -1548,14 +1548,14 @@
 }
 
 .serverBtnElyos {
-    background: #3b82f6;
-    color: #fff;
+    background: #2DD4BF;
+    color: #000;
     font-weight: 600;
 }
 
 .serverBtnAsmodian {
-    background: #ef4444;
-    color: #fff;
+    background: #A78BFA;
+    color: #000;
     font-weight: 600;
 }
 
@@ -1569,11 +1569,13 @@
 }
 
 .raceBadgeElyos {
-    background: #3b82f6;
+    background: #2DD4BF;
+    color: #000;
 }
 
 .raceBadgeAsmodian {
-    background: #ef4444;
+    background: #A78BFA;
+    color: #000;
 }
 
 .searchInputWrapper {
