@@ -1877,7 +1877,12 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.incomeStatDetail}>
                                     <span className={styles.label}>오드에너지</span>
-                                    <span className={styles.value}>{characterState.odEnergy.timeEnergy + characterState.odEnergy.ticketEnergy}</span>
+                                    <span className={styles.value}>
+                                        {characterState.odEnergy.timeEnergy + characterState.odEnergy.ticketEnergy}
+                                        {characterState.odEnergy.ticketEnergy > 0 && (
+                                            <span style={{ color: '#3b82f6', fontSize: '0.8rem', marginLeft: '2px' }}>(+{characterState.odEnergy.ticketEnergy})</span>
+                                        )}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -1912,6 +1917,9 @@ export default function MobileLedgerPage() {
                             <div className={styles.odEnergyBox}>
                                 <span className={styles.odValue}>
                                     {characterState.odEnergy.timeEnergy + characterState.odEnergy.ticketEnergy}
+                                    {characterState.odEnergy.ticketEnergy > 0 && (
+                                        <span className={styles.odValueBonus}>(+{characterState.odEnergy.ticketEnergy})</span>
+                                    )}
                                 </span>
                                 <span className={styles.odLabel}>
                                     시간충전: {characterState.odEnergy.timeEnergy} / 충전권: {characterState.odEnergy.ticketEnergy}
