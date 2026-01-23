@@ -61,28 +61,6 @@ function WeeklyContentSection({ characterId, selectedDate, shugoInitialSync, onS
 
   // 슈고 페스타 자동 충전은 Supabase pg_cron에서 처리됨
 
-  // DB에서 주간 데이터 로드
-  const loadFromDatabase = useCallback(async () => {
-    if (!characterId) return null
-
-    try {
-      const res = await fetch(
-        `/api/ledger/weekly-content?characterId=${characterId}&weekKey=${weekKey}&gameDate=${gameDate}`,
-        { headers: getAuthHeader() }
-      )
-
-      if (!res.ok) {
-        if (res.status === 404) return null
-        throw new Error('Failed to load weekly content')
-      }
-
-      return await res.json()
-    } catch (err) {
-      console.error('Failed to load weekly content from DB:', err)
-      return null
-    }
-  }, [characterId, weekKey, gameDate, getAuthHeader])
-
   // DB에 주간 데이터 저장
   const saveToDatabase = useCallback(async () => {
     if (!characterId || isLoadingRef.current) return
@@ -121,15 +99,15 @@ function WeeklyContentSection({ characterId, selectedDate, shugoInitialSync, onS
     }, 500)
   }, [saveToDatabase])
 
-  // 데이터 로드 (캐릭터/주간 변경 시)
+  // 데이터 로드 (캐릭터/주간/날짜 변경 시)
   useEffect(() => {
-    // 중복 호출 방지: 같은 캐릭터+주간 조합이면 스킵
-    const loadKey = `${characterId}-${weekKey}`
+    // 중복 호출 방지: 같은 캐릭터+주간+날짜 조합이면 스킵
+    const loadKey = `${characterId}-${weekKey}-${gameDate}`
     if (lastLoadedRef.current === loadKey) {
       return
     }
 
-    log(`캐릭터/주간 변경: ${characterId}, ${weekKey}`)
+    log(`캐릭터/주간/날짜 변경: ${characterId}, ${weekKey}, ${gameDate}`)
     isLoadingRef.current = true
 
     if (!characterId) {
@@ -146,40 +124,62 @@ function WeeklyContentSection({ characterId, selectedDate, shugoInitialSync, onS
     lastLoadedRef.current = loadKey
 
     const loadData = async () => {
-      const data = await loadFromDatabase()
+      try {
+        const res = await fetch(
+          `/api/ledger/weekly-content?characterId=${characterId}&weekKey=${weekKey}&gameDate=${gameDate}`,
+          { headers: getAuthHeader() }
+        )
 
-      if (data?.weekly) {
-        log('주간 데이터 로드 성공', data.weekly)
-        setWeeklyOrderCount(data.weekly.weeklyOrderCount ?? 0)
-        setAbyssOrderCount(data.weekly.abyssOrderCount ?? 0)
+        if (!res.ok) {
+          if (res.status !== 404) {
+            console.error('Failed to load weekly content')
+          }
+          // 저장된 데이터 없음, 초기화
+          log('저장된 주간 데이터 없음, 초기화')
+          setWeeklyOrderCount(0)
+          setAbyssOrderCount(0)
+          setShugoTickets({ base: 14, bonus: 0, lastChargeTime: new Date().toISOString() })
+          setAbyssRegions(DEFAULT_ABYSS_REGIONS)
+          setMissionCount(0)
+        } else {
+          const data = await res.json()
 
-        // 슈고페스타 데이터 로드 (자동 충전은 Supabase pg_cron에서 처리)
-        const savedShugo = data.weekly.shugoTickets ?? { base: 14, bonus: 0, lastChargeTime: '' }
-        setShugoTickets(savedShugo)
+          if (data?.weekly) {
+            log('주간 데이터 로드 성공', data.weekly)
+            setWeeklyOrderCount(data.weekly.weeklyOrderCount ?? 0)
+            setAbyssOrderCount(data.weekly.abyssOrderCount ?? 0)
 
-        setAbyssRegions(data.weekly.abyssRegions ?? DEFAULT_ABYSS_REGIONS)
-      } else {
-        log('저장된 주간 데이터 없음, 초기화')
-        setWeeklyOrderCount(0)
-        setAbyssOrderCount(0)
-        setShugoTickets({ base: 14, bonus: 0, lastChargeTime: new Date().toISOString() })
-        setAbyssRegions(DEFAULT_ABYSS_REGIONS)
+            // 슈고페스타 데이터 로드 (자동 충전은 Supabase pg_cron에서 처리)
+            const savedShugo = data.weekly.shugoTickets ?? { base: 14, bonus: 0, lastChargeTime: '' }
+            setShugoTickets(savedShugo)
+
+            setAbyssRegions(data.weekly.abyssRegions ?? DEFAULT_ABYSS_REGIONS)
+          } else {
+            log('저장된 주간 데이터 없음, 초기화')
+            setWeeklyOrderCount(0)
+            setAbyssOrderCount(0)
+            setShugoTickets({ base: 14, bonus: 0, lastChargeTime: new Date().toISOString() })
+            setAbyssRegions(DEFAULT_ABYSS_REGIONS)
+          }
+
+          if (data?.mission) {
+            setMissionCount(data.mission.count ?? 0)
+          } else {
+            setMissionCount(0)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load weekly content from DB:', err)
+      } finally {
+        setTimeout(() => {
+          isLoadingRef.current = false
+          log('로딩 완료')
+        }, 100)
       }
-
-      if (data?.mission) {
-        setMissionCount(data.mission.count ?? 0)
-      } else {
-        setMissionCount(0)
-      }
-
-      setTimeout(() => {
-        isLoadingRef.current = false
-        log('로딩 완료')
-      }, 100)
     }
 
     loadData()
-  }, [characterId, weekKey, loadFromDatabase])
+  }, [characterId, weekKey, gameDate, getAuthHeader])
 
   // 슈고 페스타 초기설정 동기화
   useEffect(() => {
