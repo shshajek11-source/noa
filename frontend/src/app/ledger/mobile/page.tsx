@@ -2040,32 +2040,6 @@ export default function MobileLedgerPage() {
                         </button>
                     </div>
 
-                    {/* 아이템 현황 */}
-                    {unsoldItems.length > 0 && (
-                        <>
-                            <div className={styles.sectionHeader}>
-                                <div className={styles.sectionTitle}>
-                                    아이템 현황 <span className={styles.collapseIcon}>▼</span>
-                                </div>
-                                <div className={styles.filterButtons}>
-                                    <button className={styles.filterActive}>미판매</button>
-                                    <button className={styles.filterInactive}>판매완료</button>
-                                </div>
-                            </div>
-
-                            <div className={styles.summaryScroll}>
-                                {unsoldItems.slice(0, 10).map((item) => (
-                                    <div key={item.id} className={styles.itemCard}>
-                                        <div className={`${styles.itemImgBox} ${item.item_grade === 'legendary' ? styles.itemLegendary : ''}`}>
-                                            <div className={styles.itemBadge}>x{item.quantity || 1}</div>
-                                        </div>
-                                        <div className={styles.itemName}>{item.item_name}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </>
-                    )}
-
                     {/* 캐릭터 목록 없음 */}
                     {characters.length === 0 ? renderNoCharacters() : (
                         <>
