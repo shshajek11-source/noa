@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import {
     useDeviceId,
@@ -2276,6 +2277,7 @@ export default function MobileLedgerPage() {
                             {/* 오드 에너지 */}
                             <div className={styles.odEnergyBox}>
                                 <span className={styles.odValue}>
+                                    <Image src="/메달/오드.png" alt="오드" width={24} height={24} className={styles.odIcon} />
                                     {characterState.odEnergy.timeEnergy}
                                     {characterState.odEnergy.ticketEnergy > 0 && (
                                         <span className={styles.odValueBonus}>(+{characterState.odEnergy.ticketEnergy})</span>
@@ -2527,7 +2529,7 @@ export default function MobileLedgerPage() {
                                                     onChange={(e) => setTranscendTier(Number(e.target.value))}
                                                 >
                                                     {dungeonData?.transcend.bosses[0]?.tiers?.map(t => (
-                                                        <option key={t.tier} value={t.tier}>T{t.tier} ({(t.kina / 10000).toFixed(0)}만)</option>
+                                                        <option key={t.tier} value={t.tier}>T{t.tier}</option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -2638,7 +2640,7 @@ export default function MobileLedgerPage() {
                                                         .find(c => c.id === expeditionCategory)?.bosses
                                                         .map(boss => (
                                                             <option key={boss.id} value={boss.id}>
-                                                                {boss.name} ({((boss.kina || 0) / 10000).toFixed(0)}만)
+                                                                {boss.name}
                                                             </option>
                                                         ))}
                                                 </select>
@@ -2736,7 +2738,7 @@ export default function MobileLedgerPage() {
                                                 >
                                                     {dungeonData?.sanctuary.categories[0]?.bosses.map(boss => (
                                                         <option key={boss.id} value={boss.id}>
-                                                            {boss.name} ({((boss.kina || 0) / 10000).toFixed(0)}만)
+                                                            {boss.name}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -3310,7 +3312,6 @@ export default function MobileLedgerPage() {
                                             onClick={() => setTranscendTier(tier.tier)}
                                         >
                                             <span className={styles.tierNumber}>T{tier.tier}</span>
-                                            <span className={styles.tierKina}>{formatMoney(tier.kina)}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -3376,7 +3377,6 @@ export default function MobileLedgerPage() {
                                             onClick={() => setExpeditionBoss(boss.id)}
                                         >
                                             <span className={styles.bossName}>{boss.name}</span>
-                                            <span className={styles.bossKina}>{formatMoney(boss.kina || 0)}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -3426,7 +3426,6 @@ export default function MobileLedgerPage() {
                                             onClick={() => setSanctuaryBoss(boss.id)}
                                         >
                                             <span>{boss.name}</span>
-                                            <span className={styles.bossKinaSmall}>{formatMoney(boss.kina || 0)}</span>
                                         </button>
                                     ))}
                                 </div>

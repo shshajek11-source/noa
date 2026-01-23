@@ -1173,9 +1173,18 @@
 }
 
 .odValue {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     font-size: 1.5rem;
     font-weight: 800;
     color: #f59e0b;
+}
+
+.odIcon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
 }
 
 .odValueBonus {

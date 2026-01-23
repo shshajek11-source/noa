@@ -10,7 +10,6 @@ import PartyList from './PartyList'
 import MyCharacters from './MyCharacters'
 import PartyGuide from './PartyGuide'
 import NotificationBell from './NotificationBell'
-import PartyDebugPanel from './PartyDebugPanel'
 import MyPartyCompactList from './MyPartyCompactList'
 import styles from '../page.module.css'
 
@@ -239,48 +238,6 @@ export default function PartyDesktop() {
                 />
             )}
 
-            {/* 디버그 패널 */}
-            <PartyDebugPanel
-                sections={[
-                    {
-                        title: '파티 목록 (parties)',
-                        data: {
-                            count: parties.length,
-                            parties: parties.map(p => ({
-                                id: p.id,
-                                title: p.title,
-                                dungeon: p.dungeon_name,
-                                status: p.status,
-                                members: `${p.current_members}/${p.max_members}`
-                            }))
-                        }
-                    },
-                    {
-                        title: '필터 파라미터',
-                        data: {
-                            selectedType,
-                            selectedStatus,
-                            pagination
-                        }
-                    },
-                    {
-                        title: '내 파티 (My Parties)',
-                        data: {
-                            created: myCreatedParties.length,
-                            joined: myJoinedParties.length,
-                            pending: myPendingParties.length,
-                            total: myCounts.total
-                        }
-                    },
-                    {
-                        title: '로딩 상태',
-                        data: {
-                            loading,
-                            loadingMyParties
-                        }
-                    }
-                ]}
-            />
         </div >
     )
 }

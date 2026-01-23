@@ -14,7 +14,6 @@ import BreakthroughBadge from '../components/BreakthroughBadge'
 
 // 모달 지연 로딩 (신청 버튼 클릭 시에만 로드)
 const ApplyModal = dynamic(() => import('../components/ApplyModal'), { ssr: false })
-import PartyDebugPanel from '../components/PartyDebugPanel'
 import styles from './page.module.css'
 
 const DUNGEON_TYPE_ICONS: Record<string, string> = {
@@ -443,61 +442,6 @@ export default function PartyDetailPage() {
         />
       )}
 
-      {/* 디버그 패널 */}
-      <PartyDebugPanel
-        sections={[
-          {
-            title: '파티 기본 정보',
-            data: {
-              id: party.id,
-              title: party.title,
-              dungeon: party.dungeon_name,
-              status: party.status,
-              is_leader: party.is_leader,
-              is_member: party.is_member,
-              join_type: party.join_type,
-              current_members: party.current_members,
-              max_members: party.max_members
-            }
-          },
-          {
-            title: '슬롯 정보 (slots)',
-            data: slotsWithMembers.map(({ slot, member }) => ({
-              slot_id: slot.id,
-              slot_number: slot.slot_number,
-              required_class: slot.required_class || '자유',
-              status: slot.status,
-              member: member ? {
-                id: member.id,
-                name: member.character_name,
-                class: member.character_class
-              } : null
-            }))
-          },
-          {
-            title: '대기 신청자 (pending)',
-            data: pendingMembers.map(m => ({
-              id: m.id,
-              name: m.character_name,
-              class: m.character_class,
-              item_level: m.character_item_level,
-              slot_id: m.slot_id
-            }))
-          },
-          {
-            title: '내 신청 상태',
-            data: myApplication ? {
-              id: myApplication.id,
-              status: myApplication.status,
-              slot_id: myApplication.slot_id
-            } : null
-          },
-          {
-            title: '전체 파티 데이터 (raw)',
-            data: party
-          }
-        ]}
-      />
     </div>
   )
 }

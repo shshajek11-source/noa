@@ -46,10 +46,6 @@ export default function MyCharacters({ isMobile = false }: { isMobile?: boolean 
   const [refreshing, setRefreshing] = useState<string | null>(null)
   const [refreshingAll, setRefreshingAll] = useState(false)
 
-  // 디버그 상태
-  const [showDebug, setShowDebug] = useState(false)
-  const [debugData, setDebugData] = useState<unknown>(null)
-
   // 외부 클릭 감지
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -136,63 +132,6 @@ export default function MyCharacters({ isMobile = false }: { isMobile?: boolean 
       alert(`${successCount}개 캐릭터 갱신 완료`)
     } else {
       alert(`갱신 완료: ${successCount}개 성공, ${failCount}개 실패`)
-    }
-  }
-
-  // 디버그: API 응답 확인
-  const handleDebugFetch = async (char: typeof characters[0]) => {
-    if (!char.character_id) {
-      alert('캐릭터 ID가 없습니다.')
-      return
-    }
-    try {
-      const response = await fetch(
-        `/api/character?id=${encodeURIComponent(char.character_id)}&server=${char.character_server_id}`
-      )
-      const data = await response.json()
-
-      // 전투력 관련 정보만 추출
-      const statList = data.stats?.statList || []
-      const itemLevelStat = statList.find((s: { name?: string; statName?: string; type?: string }) =>
-        s.name === '아이템레벨' || s.statName === '아이템레벨' || s.type === 'ItemLevel'
-      )
-
-      // 돌파 총합 계산
-      const equipmentList = data.equipment?.equipmentList || []
-      const breakthroughSum = equipmentList.reduce((sum: number, item: { exceedLevel?: number }) => {
-        return sum + (item.exceedLevel || 0)
-      }, 0)
-      const breakthroughItems = equipmentList
-        .filter((item: { exceedLevel?: number }) => item.exceedLevel && item.exceedLevel > 0)
-        .map((item: { slotPosName?: string; itemName?: string; exceedLevel?: number }) => ({
-          slot: item.slotPosName,
-          name: item.itemName,
-          exceed: item.exceedLevel
-        }))
-
-      setDebugData({
-        characterId: char.character_id,
-        serverId: char.character_server_id,
-        // 전투력 소스
-        'profile.noa_score': data.profile?.noa_score,
-        // 아이템레벨
-        itemLevel: itemLevelStat?.value,
-        // 돌파 정보
-        breakthrough: {
-          total: breakthroughSum,
-          hasEquipment: !!data.equipment,
-          equipmentCount: equipmentList.length,
-          items: breakthroughItems
-        },
-        // 스탯 정보
-        hasStats: !!data.stats,
-        statListLength: statList.length,
-        allStatNames: statList.map((s: { name?: string; statName?: string }) => s.name || s.statName),
-      })
-      setShowDebug(true)
-    } catch (err) {
-      setDebugData({ error: err instanceof Error ? err.message : 'Unknown error' })
-      setShowDebug(true)
     }
   }
 
@@ -496,13 +435,6 @@ export default function MyCharacters({ isMobile = false }: { isMobile?: boolean 
 
                       <div className={styles.characterCardActions}>
                         <button
-                          className={styles.debugButton}
-                          onClick={() => handleDebugFetch(char)}
-                          title="디버그 정보"
-                        >
-                          🔍
-                        </button>
-                        <button
                           className={styles.refreshButton}
                           onClick={() => handleRefresh(char)}
                           disabled={refreshing === char.id}
@@ -571,30 +503,6 @@ export default function MyCharacters({ isMobile = false }: { isMobile?: boolean 
         )}
       </div>
 
-      {/* 디버그 패널 */}
-      {showDebug && (
-        <div className={styles.debugOverlay} onClick={() => setShowDebug(false)}>
-          <div className={styles.debugPanel} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.debugHeader}>
-              <span>🔍 API 디버그</span>
-              <button onClick={() => setShowDebug(false)}>×</button>
-            </div>
-            <div className={styles.debugContent}>
-              <pre>{JSON.stringify(debugData, null, 2)}</pre>
-            </div>
-            <div className={styles.debugFooter}>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(JSON.stringify(debugData, null, 2))
-                  alert('복사됨!')
-                }}
-              >
-                📋 복사
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

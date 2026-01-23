@@ -13,6 +13,20 @@ const DEFAULT_MAX_COUNTS: Record<string, number> = {
   abyss_corridor: 3       // 어비스 회랑
 }
 
+// 0키나 컨텐츠 (키나 보상이 없는 컨텐츠들)
+const ZERO_KINA_CONTENT_TYPES = [
+  'daily_dungeon',      // 일일던전
+  'awakening_battle',   // 각성전
+  'nightmare',          // 악몽
+  'dimension_invasion', // 차원침공
+  'subjugation',        // 토벌전
+  'abyss_corridor',     // 어비스 회랑
+  'shugo_festa',        // 슈고페스타
+  'mission',            // 일일사명
+  'weekly_order',       // 주간지령서
+  'abyss_order'         // 어비스 주간지령서
+]
+
 interface UseContentRecordsProps {
   getAuthHeader: () => Record<string, string>
   isReady: boolean
@@ -42,6 +56,49 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
     }
   }, [])
 
+  // 잘못된 0키나 컨텐츠 레코드 정리 (base_kina > 0인 경우 수정)
+  const cleanupZeroKinaRecords = useCallback(async (records: ContentRecord[]) => {
+    const badRecords = records.filter(r =>
+      ZERO_KINA_CONTENT_TYPES.includes(r.content_type) && r.base_kina > 0
+    )
+
+    if (badRecords.length === 0) return records
+
+    console.log('[Content Records] Cleaning up bad zero-kina records:', badRecords.map(r => r.content_type))
+
+    // 잘못된 레코드 수정 (병렬 처리)
+    await Promise.all(badRecords.map(async (record) => {
+      try {
+        await fetch('/api/ledger/content-records', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader()
+          },
+          body: JSON.stringify({
+            characterId,
+            date,
+            content_type: record.content_type,
+            dungeon_tier: record.dungeon_tier,
+            max_count: record.max_count,
+            completion_count: record.completion_count,
+            is_double: record.is_double,
+            base_kina: 0  // 0키나로 수정
+          })
+        })
+      } catch (e) {
+        console.error(`[Content Records] Failed to cleanup ${record.content_type}:`, e)
+      }
+    }))
+
+    // 수정된 레코드 반환
+    return records.map(r =>
+      ZERO_KINA_CONTENT_TYPES.includes(r.content_type)
+        ? { ...r, base_kina: 0, total_kina: 0 }
+        : r
+    )
+  }, [characterId, date, getAuthHeader])
+
   // 기록 로드
   const fetchRecords = useCallback(async () => {
     if (!isReady || !characterId || !date) return
@@ -52,7 +109,9 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
         headers: getAuthHeader()
       })
       if (res.ok) {
-        const data = await res.json()
+        let data = await res.json()
+        // 잘못된 0키나 레코드 자동 정리
+        data = await cleanupZeroKinaRecords(data)
         setRecords(data)
       } else {
         console.error('[Content Records] Fetch failed:', res.status, res.statusText)
@@ -63,7 +122,7 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
     } finally {
       setIsLoading(false)
     }
-  }, [isReady, characterId, date, getAuthHeader])
+  }, [isReady, characterId, date, getAuthHeader, cleanupZeroKinaRecords])
 
   useEffect(() => {
     fetchContentTypes()
@@ -99,6 +158,9 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
       const tiers = getTiersForContent(contentType)
       const defaultTier = tiers[0]
 
+      // 0키나 컨텐츠는 항상 base_kina = 0 강제
+      const isZeroKinaContent = ZERO_KINA_CONTENT_TYPES.includes(contentType)
+
       const payload = {
         characterId,
         date,
@@ -107,7 +169,7 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
         max_count: data.max_count ?? existing?.max_count ?? DEFAULT_MAX_COUNTS[contentType] ?? 3,
         completion_count: data.completion_count ?? existing?.completion_count ?? 0,
         is_double: data.is_double ?? existing?.is_double ?? false,
-        base_kina: data.base_kina ?? existing?.base_kina ?? defaultTier?.default_kina ?? 50000
+        base_kina: isZeroKinaContent ? 0 : (data.base_kina ?? existing?.base_kina ?? defaultTier?.default_kina ?? 50000)
       }
 
       const res = await fetch('/api/ledger/content-records', {
