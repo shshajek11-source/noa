@@ -906,10 +906,20 @@ export default function MobileLedgerPage() {
 
     const decrementShugo = useCallback(() => {
         if (!canEdit) return;
-        setWeeklyContent(prev => ({
-            ...prev,
-            shugoTickets: { ...prev.shugoTickets, base: Math.min(14, prev.shugoTickets.base + 1) }
-        }));
+        setWeeklyContent(prev => {
+            // base가 14 미만이면 base에 복원
+            if (prev.shugoTickets.base < 14) {
+                return {
+                    ...prev,
+                    shugoTickets: { ...prev.shugoTickets, base: prev.shugoTickets.base + 1 }
+                };
+            }
+            // base가 이미 14이면 bonus에 복원
+            return {
+                ...prev,
+                shugoTickets: { ...prev.shugoTickets, bonus: prev.shugoTickets.bonus + 1 }
+            };
+        });
     }, [canEdit]);
 
     // 컨텐츠 기록
