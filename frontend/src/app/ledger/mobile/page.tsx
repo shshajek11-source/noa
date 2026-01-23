@@ -171,7 +171,7 @@ export default function MobileLedgerPage() {
     const [currentView, setCurrentView] = useState<'main' | 'detail'>('main');
     const [selectedCharacter, setSelectedCharacter] = useState<LedgerCharacter | null>(null);
     const [selectedSubTab, setSelectedSubTab] = useState<'homework' | 'items' | 'stats'>('homework');
-    const [selectedDate, setSelectedDate] = useState<string>(getGameDate(new Date()));
+    const [selectedDate, setSelectedDate] = useState<string>(getGameDate());
 
     // 캐릭터 추가 모달 상태
     const [showAddModal, setShowAddModal] = useState(false);
@@ -1751,37 +1751,55 @@ export default function MobileLedgerPage() {
     const handleTicketCharge = (charges: Record<string, number>) => {
         if (!selectedCharacterId) return;
 
-        // 보너스 티켓 업데이트
-        setCharacterState(prev => {
-            const newBonusTickets = { ...prev.bonusTickets };
-            Object.keys(charges).forEach(key => {
-                if (charges[key] > 0) {
-                    newBonusTickets[key] = (newBonusTickets[key] || 0) + charges[key];
-                }
-            });
-            return {
+        // 슈고페스타는 별도 처리 (shugoTickets 사용)
+        if (charges['shugo_festa'] > 0) {
+            setWeeklyContent(prev => ({
                 ...prev,
-                bonusTickets: newBonusTickets
-            };
-        });
+                shugoTickets: {
+                    ...prev.shugoTickets,
+                    bonus: prev.shugoTickets.bonus + charges['shugo_festa']
+                }
+            }));
+            // 주간 컨텐츠 저장 트리거
+            debouncedSaveWeeklyContent();
+        }
 
-        // DB에 저장
-        fetch('/api/ledger/character-state', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...getAuthHeader()
-            },
-            body: JSON.stringify({
-                characterId: selectedCharacterId,
-                bonusTickets: Object.keys(charges).reduce((acc, key) => {
-                    if (charges[key] > 0) {
-                        acc[key] = (characterState.bonusTickets[key] || 0) + charges[key];
+        // 슈고페스타 제외한 나머지 보너스 티켓 업데이트
+        const otherCharges = { ...charges };
+        delete otherCharges['shugo_festa'];
+
+        if (Object.keys(otherCharges).some(key => otherCharges[key] > 0)) {
+            setCharacterState(prev => {
+                const newBonusTickets = { ...prev.bonusTickets };
+                Object.keys(otherCharges).forEach(key => {
+                    if (otherCharges[key] > 0) {
+                        newBonusTickets[key] = (newBonusTickets[key] || 0) + otherCharges[key];
                     }
-                    return acc;
-                }, { ...characterState.bonusTickets })
-            })
-        }).catch(err => console.error('[Mobile] 보너스 티켓 저장 실패:', err));
+                });
+                return {
+                    ...prev,
+                    bonusTickets: newBonusTickets
+                };
+            });
+
+            // DB에 저장
+            fetch('/api/ledger/character-state', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                },
+                body: JSON.stringify({
+                    characterId: selectedCharacterId,
+                    bonusTickets: Object.keys(otherCharges).reduce((acc, key) => {
+                        if (otherCharges[key] > 0) {
+                            acc[key] = (characterState.bonusTickets[key] || 0) + otherCharges[key];
+                        }
+                        return acc;
+                    }, { ...characterState.bonusTickets })
+                })
+            }).catch(err => console.error('[Mobile] 보너스 티켓 저장 실패:', err));
+        }
     };
 
     // 초기설정 동기화 핸들러
@@ -2318,18 +2336,18 @@ export default function MobileLedgerPage() {
                                     <div className={styles.miniCardLabel}>어비스 회랑</div>
                                     <div className={styles.miniCardTimer}>{formatTimeRemaining(chargeTimers['weekly'])}</div>
                                     <div className={styles.miniCardValue}>
-                                        {records.find(r => r.content_type === 'abyss_corridor')?.completion_count || 0}
+                                        {Math.max(0, 3 - (records.find(r => r.content_type === 'abyss_corridor')?.completion_count || 0))}
                                         <span className={styles.miniCardMax}>/ 3</span>
                                     </div>
                                     <div className={styles.miniCardControls}>
                                         <button
                                             className={styles.btnStepMini}
                                             onClick={() => decrementCompletion('abyss_corridor')}
-                                        >-</button>
+                                        >+</button>
                                         <button
                                             className={styles.btnStepMini}
                                             onClick={() => incrementCompletion('abyss_corridor')}
-                                        >+</button>
+                                        >-</button>
                                     </div>
                                 </div>
                             </div>
