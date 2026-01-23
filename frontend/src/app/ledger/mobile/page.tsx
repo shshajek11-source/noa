@@ -860,6 +860,34 @@ export default function MobileLedgerPage() {
         debouncedSaveWeeklyContent();
     }, [canEdit, debouncedSaveWeeklyContent]);
 
+    // 전체완료 함수들
+    const completeAllMission = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            missionCount: 5
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
+    const completeAllWeeklyOrder = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            weeklyOrderCount: 12
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
+    const completeAllAbyssOrder = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            abyssOrderCount: 20
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
     const incrementShugo = useCallback(() => {
         if (!canEdit) return;
         setWeeklyContent(prev => {
@@ -2201,13 +2229,22 @@ export default function MobileLedgerPage() {
                             </div>
 
                             {/* 사명 */}
-                            <div className={styles.wmCard}>
+                            <div className={`${styles.wmCard} ${weeklyContent.missionCount >= 5 ? styles.wmCardCompleted : ''}`}>
                                 <div className={styles.wmHeader}>
                                     <div className={styles.wmTitleGroup}>
                                         <span className={styles.wmTitle}>사명</span>
                                         <span className={styles.wmTimer}>{formatTimeRemaining(chargeTimers['daily'])}</span>
                                     </div>
                                     <div className={styles.wmControls}>
+                                        {weeklyContent.missionCount < 5 && (
+                                            <button
+                                                className={styles.btnCompleteAll}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    completeAllMission();
+                                                }}
+                                            >전체완료</button>
+                                        )}
                                         <span className={styles.wmCount}>
                                             {weeklyContent.missionCount}/5
                                         </span>
@@ -2238,13 +2275,22 @@ export default function MobileLedgerPage() {
                             </div>
 
                             {/* 주간 지령서 */}
-                            <div className={styles.wmCard}>
+                            <div className={`${styles.wmCard} ${weeklyContent.weeklyOrderCount >= 12 ? styles.wmCardCompleted : ''}`}>
                                 <div className={styles.wmHeader}>
                                     <div className={styles.wmTitleGroup}>
                                         <span className={styles.wmTitle}>주간 지령서</span>
                                         <span className={styles.wmTimer}>{formatTimeRemaining(chargeTimers['weekly'])}</span>
                                     </div>
                                     <div className={styles.wmControls}>
+                                        {weeklyContent.weeklyOrderCount < 12 && (
+                                            <button
+                                                className={styles.btnCompleteAll}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    completeAllWeeklyOrder();
+                                                }}
+                                            >전체완료</button>
+                                        )}
                                         <span className={styles.wmCount}>
                                             {weeklyContent.weeklyOrderCount}/12
                                         </span>
@@ -2275,13 +2321,22 @@ export default function MobileLedgerPage() {
                             </div>
 
                             {/* 어비스 주간 지령서 */}
-                            <div className={styles.wmCard}>
+                            <div className={`${styles.wmCard} ${weeklyContent.abyssOrderCount >= 20 ? styles.wmCardCompleted : ''}`}>
                                 <div className={styles.wmHeader}>
                                     <div className={styles.wmTitleGroup}>
                                         <span className={styles.wmTitle}>어비스 주간 지령서</span>
                                         <span className={styles.wmTimer}>{formatTimeRemaining(chargeTimers['weekly'])}</span>
                                     </div>
                                     <div className={styles.wmControls}>
+                                        {weeklyContent.abyssOrderCount < 20 && (
+                                            <button
+                                                className={styles.btnCompleteAll}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    completeAllAbyssOrder();
+                                                }}
+                                            >전체완료</button>
+                                        )}
                                         <span className={styles.wmCount}>
                                             {weeklyContent.abyssOrderCount}/20
                                         </span>

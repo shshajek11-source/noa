@@ -680,6 +680,11 @@
     border-radius: 8px;
     padding: 8px 10px;
     margin: 0 16px 8px 16px;
+    transition: opacity 0.2s ease;
+}
+
+.wmCardCompleted {
+    opacity: 0.4;
 }
 
 .wmHeader {
