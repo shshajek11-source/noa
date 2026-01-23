@@ -1491,6 +1491,91 @@
     color: #f59e0b;
 }
 
+/* 종족 선택 */
+.raceSelect {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.raceBtn {
+    flex: 1;
+    padding: 10px 16px;
+    background: #27282e;
+    border: none;
+    border-radius: 6px;
+    color: #a5a8b4;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.raceBtnElyos {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.raceBtnAsmodian {
+    background: #ef4444;
+    color: #fff;
+}
+
+/* 서버 선택 그리드 */
+.serverSelectGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 8px;
+    background: #1a1d24;
+    border-radius: 8px;
+    border: 1px solid #27282e;
+    margin-bottom: 12px;
+}
+
+.serverBtnSmall {
+    padding: 8px 4px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 400;
+    transition: all 0.15s;
+    background: #27282e;
+    color: #a5a8b4;
+}
+
+.serverBtnElyos {
+    background: #3b82f6;
+    color: #fff;
+    font-weight: 600;
+}
+
+.serverBtnAsmodian {
+    background: #ef4444;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* 종족 뱃지 */
+.raceBadge {
+    margin-left: 8px;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #fff;
+}
+
+.raceBadgeElyos {
+    background: #3b82f6;
+}
+
+.raceBadgeAsmodian {
+    background: #ef4444;
+}
+
 .searchInputWrapper {
     display: flex;
     gap: 8px;

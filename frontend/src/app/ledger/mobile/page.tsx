@@ -12,6 +12,8 @@ import {
 } from '../hooks';
 import { getGameDate, isEditable } from '../utils/dateUtils';
 import { LedgerCharacter } from '@/types/ledger';
+import { SERVERS, SERVER_MAP } from '@/app/constants/servers';
+import { supabaseApi } from '@/lib/supabaseApi';
 import styles from './MobileLedger.module.css';
 
 // 던전 데이터 타입 정의
@@ -145,7 +147,8 @@ export default function MobileLedgerPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
-    const [selectedServer, setSelectedServer] = useState<string>('전체');
+    const [selectedRace, setSelectedRace] = useState<'ELYOS' | 'ASMODIANS' | ''>('');
+    const [selectedServer, setSelectedServer] = useState<string>('');
     const [isAddingCharacter, setIsAddingCharacter] = useState(false);
 
     // 캐릭터 삭제 확인 모달 상태
@@ -193,8 +196,12 @@ export default function MobileLedgerPage() {
     const isLoadingRef = useRef(false);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // 서버 목록
-    const servers = ['전체', '지펠', '이스라펠', '아트레이아'];
+    // 종족별 서버 목록 필터링
+    const filteredServers = SERVERS.filter(s =>
+        selectedRace === 'ELYOS' ? s.id.startsWith('1') :
+        selectedRace === 'ASMODIANS' ? s.id.startsWith('2') :
+        true
+    );
 
     // 수정 가능 여부
     const canEdit = isEditable(selectedDate);
@@ -1150,18 +1157,70 @@ export default function MobileLedgerPage() {
         return amount.toLocaleString();
     };
 
-    // 캐릭터 검색
+    // 캐릭터 검색 (PC 버전과 동일한 supabaseApi 사용)
     const handleSearch = async () => {
-        if (!searchQuery.trim()) return;
+        const searchName = searchQuery.trim();
+        if (searchName.length < 2) return;
 
         setIsSearching(true);
         try {
-            const serverParam = selectedServer !== '전체' ? `&server=${encodeURIComponent(selectedServer)}` : '';
-            const res = await fetch(`/api/search/live?keyword=${encodeURIComponent(searchQuery)}${serverParam}`);
-            if (res.ok) {
-                const data = await res.json();
-                setSearchResults(data.results || []);
+            // 서버 ID와 종족 필터 설정
+            const serverId = selectedServer ? parseInt(selectedServer) : undefined;
+            const raceFilter = selectedRace === 'ELYOS' ? 'elyos' : selectedRace === 'ASMODIANS' ? 'asmodian' : undefined;
+
+            // 하이브리드 검색: 로컬 DB + 외부 API 동시 호출
+            const [localRes, liveRes] = await Promise.allSettled([
+                supabaseApi.searchLocalCharacter(searchName, serverId, raceFilter),
+                supabaseApi.searchCharacter(searchName, serverId, raceFilter, 1)
+            ]);
+
+            // 결과 병합 및 중복 제거
+            const combined: any[] = [];
+            const seen = new Set<string>();
+
+            const addResult = (c: any) => {
+                const charId = c.characterId || c.character_id || c.id;
+                if (!charId || seen.has(charId)) return;
+                seen.add(charId);
+
+                // HTML 태그 제거
+                const cleanName = (c.name || '').replace(/<[^>]*>/g, '');
+                // 프로필 이미지 URL 처리
+                const rawImg = c.profileImageUrl || c.profile_image || c.profileImage || c.imageUrl || '';
+                let profileImg = rawImg;
+                if (rawImg.startsWith('/')) {
+                    profileImg = `https://profileimg.plaync.com${rawImg}`;
+                }
+                // 종족 처리
+                const raceValue = c.race === 1 ? '천족' : c.race === 2 ? '마족' :
+                    c.race === 'Elyos' || c.race === '천족' ? '천족' :
+                    c.race === 'Asmodian' || c.race === '마족' ? '마족' :
+                    c.race_name || c.raceName || '';
+
+                combined.push({
+                    characterId: charId,
+                    name: cleanName,
+                    level: c.level || 0,
+                    className: c.class_name || c.className || c.job || '',
+                    serverName: c.serverName || c.server_name || c.server || SERVER_MAP[c.serverId || c.server_id] || '알 수 없음',
+                    serverId: String(c.serverId || c.server_id || ''),
+                    race: raceValue,
+                    profileImageUrl: profileImg,
+                    itemLevel: c.itemLevel || c.item_level || 0
+                });
+            };
+
+            // 로컬 DB 결과 먼저 추가 (더 빠름)
+            if (localRes.status === 'fulfilled') {
+                localRes.value.forEach(addResult);
             }
+
+            // 외부 API 결과 추가
+            if (liveRes.status === 'fulfilled') {
+                liveRes.value.list.forEach(addResult);
+            }
+
+            setSearchResults(combined.slice(0, 10));
         } catch (error) {
             console.error('캐릭터 검색 실패:', error);
         } finally {
@@ -2273,30 +2332,62 @@ export default function MobileLedgerPage() {
 
             {/* 캐릭터 추가 모달 */}
             {showAddModal && (
-                <div className={styles.modalOverlay} onClick={() => setShowAddModal(false)}>
+                <div className={styles.modalOverlay} onClick={() => {
+                    setShowAddModal(false);
+                    setSelectedRace('');
+                    setSelectedServer('');
+                    setSearchQuery('');
+                    setSearchResults([]);
+                }}>
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.modalHeader}>
                             <h3 className={styles.modalTitle}>캐릭터 추가</h3>
-                            <button className={styles.modalClose} onClick={() => setShowAddModal(false)}>×</button>
+                            <button className={styles.modalClose} onClick={() => {
+                                setShowAddModal(false);
+                                setSelectedRace('');
+                                setSelectedServer('');
+                                setSearchQuery('');
+                                setSearchResults([]);
+                            }}>×</button>
                         </div>
 
                         <div className={styles.searchSection}>
-                            <div className={styles.serverSelect}>
-                                {servers.map((server) => (
-                                    <button
-                                        key={server}
-                                        className={`${styles.serverBtn} ${selectedServer === server ? styles.serverBtnActive : ''}`}
-                                        onClick={() => setSelectedServer(server)}
-                                    >
-                                        {server}
-                                    </button>
-                                ))}
+                            {/* 종족 선택 */}
+                            <div className={styles.raceSelect}>
+                                <button
+                                    className={`${styles.raceBtn} ${selectedRace === 'ELYOS' ? styles.raceBtnElyos : ''}`}
+                                    onClick={() => { setSelectedRace('ELYOS'); setSelectedServer(''); setSearchResults([]); }}
+                                >
+                                    천족
+                                </button>
+                                <button
+                                    className={`${styles.raceBtn} ${selectedRace === 'ASMODIANS' ? styles.raceBtnAsmodian : ''}`}
+                                    onClick={() => { setSelectedRace('ASMODIANS'); setSelectedServer(''); setSearchResults([]); }}
+                                >
+                                    마족
+                                </button>
                             </div>
+
+                            {/* 서버 선택 (종족 선택 후 표시) */}
+                            {selectedRace && (
+                                <div className={styles.serverSelectGrid}>
+                                    {filteredServers.map((server) => (
+                                        <button
+                                            key={server.id}
+                                            className={`${styles.serverBtnSmall} ${selectedServer === server.id ? (selectedRace === 'ELYOS' ? styles.serverBtnElyos : styles.serverBtnAsmodian) : ''}`}
+                                            onClick={() => setSelectedServer(server.id)}
+                                        >
+                                            {server.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
                             <div className={styles.searchInputWrapper}>
                                 <input
                                     type="text"
                                     className={styles.searchInput}
-                                    placeholder="캐릭터명 검색"
+                                    placeholder="캐릭터명 (2글자 이상)"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -2304,7 +2395,7 @@ export default function MobileLedgerPage() {
                                 <button
                                     className={styles.searchBtn}
                                     onClick={handleSearch}
-                                    disabled={isSearching}
+                                    disabled={isSearching || searchQuery.trim().length < 2}
                                 >
                                     {isSearching ? '...' : '검색'}
                                 </button>
@@ -2314,7 +2405,7 @@ export default function MobileLedgerPage() {
                         <div className={styles.searchResults}>
                             {searchResults.length === 0 ? (
                                 <div className={styles.noResults}>
-                                    {searchQuery ? '검색 결과가 없습니다' : '캐릭터명을 검색하세요'}
+                                    {searchQuery.length >= 2 ? '검색 결과가 없습니다' : '종족과 서버를 선택 후 캐릭터명을 검색하세요'}
                                 </div>
                             ) : (
                                 searchResults.map((result) => (
@@ -2335,6 +2426,11 @@ export default function MobileLedgerPage() {
                                         <div className={styles.resultInfo}>
                                             <div className={styles.resultName}>
                                                 [{result.serverName || result.server_name}] {result.name}
+                                                {result.race && (
+                                                    <span className={`${styles.raceBadge} ${result.race === '천족' ? styles.raceBadgeElyos : styles.raceBadgeAsmodian}`}>
+                                                        {result.race}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className={styles.resultClass}>
                                                 {result.className || result.class_name || '알수없음'}
