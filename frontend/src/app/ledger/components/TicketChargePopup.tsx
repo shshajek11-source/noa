@@ -53,19 +53,19 @@ export default function TicketChargePopup({
   const [charges, setCharges] = useState<Record<string, number>>({})
   const [odEnergyCharge, setOdEnergyCharge] = useState(0)
 
-  // 초기설정 입력 상태
-  const [initialSettings, setInitialSettings] = useState({
-    odTimeEnergy: 840,
-    odTicketEnergy: 0,
-    transcend: 14,
-    expedition: 21,
-    sanctuary: 4,
-    daily_dungeon: 7,
-    awakening: 3,
-    nightmare: 14,
-    dimension: 14,
-    subjugation: 3,
-    shugo_festa: 14
+  // 초기설정 입력 상태 (기본값 비움)
+  const [initialSettings, setInitialSettings] = useState<Record<string, number | string>>({
+    odTimeEnergy: '',
+    odTicketEnergy: '',
+    transcend: '',
+    expedition: '',
+    sanctuary: '',
+    daily_dungeon: '',
+    awakening: '',
+    nightmare: '',
+    dimension: '',
+    subjugation: '',
+    shugo_festa: ''
   })
 
   if (!isOpen) return null
