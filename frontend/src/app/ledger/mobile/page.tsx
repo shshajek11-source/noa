@@ -286,19 +286,18 @@ export default function MobileLedgerPage() {
         }
 
         if (chargeType === 'weekly') {
-            // 수요일 05시 리셋
-            const currentDay = now.getDay(); // 0=일, 3=수
-            let daysUntilWed = (3 - currentDay + 7) % 7;
-            if (daysUntilWed === 0 && (currentHour > 5 || (currentHour === 5 && currentMinute > 0))) {
+            // 수요일 05시 리셋 - Date 객체 기반 정확한 계산
+            const reset = new Date(now);
+            reset.setHours(5, 0, 0, 0);
+            const dayOfWeek = reset.getDay();
+            let daysUntilWed = (3 - dayOfWeek + 7) % 7;
+
+            if (daysUntilWed === 0 && now >= reset) {
                 daysUntilWed = 7;
             }
 
-            let hoursUntil = 5 - currentHour;
-            if (daysUntilWed === 0) {
-                return Math.max(0, (hoursUntil - 1) * 3600 + (60 - currentMinute - 1) * 60 + (60 - currentSecond));
-            }
-
-            return Math.max(0, daysUntilWed * 24 * 3600 + (24 + hoursUntil - 1) * 3600 + (60 - currentMinute - 1) * 60 + (60 - currentSecond));
+            reset.setDate(reset.getDate() + daysUntilWed);
+            return Math.max(0, Math.floor((reset.getTime() - now.getTime()) / 1000));
         }
 
         if (chargeType === '24h') {
