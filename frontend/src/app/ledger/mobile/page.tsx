@@ -1542,7 +1542,7 @@ export default function MobileLedgerPage() {
 
     // 일일 컨텐츠 완료 횟수 증가 (보너스 티켓 차감 처리)
     const handleIncrementContent = async (contentType: string, ticketKey: string) => {
-        const maxTicket = MAX_TICKETS[ticketKey as keyof typeof MAX_TICKETS] || 0;
+        const maxTicket = characterState.baseTickets[ticketKey as keyof typeof characterState.baseTickets] || 0;
         const currentCompletion = records.find(r => r.content_type === contentType)?.completion_count || 0;
         const bonusAvailable = characterState.bonusTickets[ticketKey as keyof typeof characterState.bonusTickets] || 0;
 
@@ -1568,7 +1568,7 @@ export default function MobileLedgerPage() {
 
     // 일일 컨텐츠 완료 횟수 감소 (보너스 티켓 복구 처리)
     const handleDecrementContent = async (contentType: string, ticketKey: string) => {
-        const maxTicket = MAX_TICKETS[ticketKey as keyof typeof MAX_TICKETS] || 0;
+        const maxTicket = characterState.baseTickets[ticketKey as keyof typeof characterState.baseTickets] || 0;
         const currentCompletion = records.find(r => r.content_type === contentType)?.completion_count || 0;
 
         if (currentCompletion <= 0) return;
@@ -2682,8 +2682,8 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {Math.max(0, MAX_TICKETS.daily_dungeon - (records.find(r => r.content_type === 'daily_dungeon')?.completion_count || 0))}/
-                                        {MAX_TICKETS.daily_dungeon}
+                                        {Math.max(0, characterState.baseTickets.daily_dungeon - (records.find(r => r.content_type === 'daily_dungeon')?.completion_count || 0))}/
+                                        {characterState.baseTickets.daily_dungeon}
                                         {(characterState.bonusTickets.daily_dungeon || 0) > 0 && (
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.daily_dungeon})</span>
                                         )}
@@ -2702,8 +2702,8 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {Math.max(0, MAX_TICKETS.awakening - (records.find(r => r.content_type === 'awakening_battle')?.completion_count || 0))}/
-                                        {MAX_TICKETS.awakening}
+                                        {Math.max(0, characterState.baseTickets.awakening - (records.find(r => r.content_type === 'awakening_battle')?.completion_count || 0))}/
+                                        {characterState.baseTickets.awakening}
                                         {(characterState.bonusTickets.awakening || 0) > 0 && (
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.awakening})</span>
                                         )}
@@ -2722,8 +2722,8 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {Math.max(0, MAX_TICKETS.nightmare - (records.find(r => r.content_type === 'nightmare')?.completion_count || 0))}/
-                                        {MAX_TICKETS.nightmare}
+                                        {Math.max(0, characterState.baseTickets.nightmare - (records.find(r => r.content_type === 'nightmare')?.completion_count || 0))}/
+                                        {characterState.baseTickets.nightmare}
                                         {(characterState.bonusTickets.nightmare || 0) > 0 && (
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.nightmare})</span>
                                         )}
@@ -2742,8 +2742,8 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {Math.max(0, MAX_TICKETS.dimension - (records.find(r => r.content_type === 'dimension_invasion')?.completion_count || 0))}/
-                                        {MAX_TICKETS.dimension}
+                                        {Math.max(0, characterState.baseTickets.dimension - (records.find(r => r.content_type === 'dimension_invasion')?.completion_count || 0))}/
+                                        {characterState.baseTickets.dimension}
                                         {(characterState.bonusTickets.dimension || 0) > 0 && (
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.dimension})</span>
                                         )}
@@ -2762,8 +2762,8 @@ export default function MobileLedgerPage() {
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
-                                        {Math.max(0, MAX_TICKETS.subjugation - (records.find(r => r.content_type === 'subjugation')?.completion_count || 0))}/
-                                        {MAX_TICKETS.subjugation}
+                                        {Math.max(0, characterState.baseTickets.subjugation - (records.find(r => r.content_type === 'subjugation')?.completion_count || 0))}/
+                                        {characterState.baseTickets.subjugation}
                                         {(characterState.bonusTickets.subjugation || 0) > 0 && (
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.subjugation})</span>
                                         )}
