@@ -61,19 +61,25 @@ export default function LedgerTabs({
               src={profileImg}
               alt={char.name}
               className={styles.tabAvatar}
+              onError={(e) => {
+                // 이미지 로드 실패 시 fallback
+                const target = e.currentTarget
+                target.style.display = 'none'
+                const fallback = target.nextElementSibling as HTMLElement
+                if (fallback) fallback.style.display = 'flex'
+              }}
             />
-          ) : (
-            <div className={styles.tabAvatar} style={{
-              background: '#27282e',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '12px',
-              color: '#a5a8b4'
-            }}>
-              {char.name[0]}
-            </div>
-          )}
+          ) : null}
+          <div className={styles.tabAvatar} style={{
+            background: '#27282e',
+            display: profileImg ? 'none' : 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '12px',
+            color: '#a5a8b4'
+          }}>
+            {char.name[0]}
+          </div>
           <div className={styles.tabInfo}>
             <span className={styles.tabName}>{char.name}</span>
             <span className={styles.tabMeta}>

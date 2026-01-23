@@ -1997,6 +1997,7 @@ export default function MobileLedgerPage() {
                                                         src={character.profile_image}
                                                         alt={character.name}
                                                         className={styles.storyAvatarImg}
+                                                        onError={(e) => e.currentTarget.style.display = 'none'}
                                                     />
                                                 )}
                                             </div>
@@ -2035,6 +2036,7 @@ export default function MobileLedgerPage() {
                                                     src={character.profile_image}
                                                     alt={character.name}
                                                     className={styles.profileImgActual}
+                                                    onError={(e) => e.currentTarget.style.display = 'none'}
                                                 />
                                             )}
                                         </div>
@@ -2149,6 +2151,7 @@ export default function MobileLedgerPage() {
                                             src={selectedCharacter.profile_image}
                                             alt={selectedCharacter.name}
                                             className={styles.profileImgLargeActual}
+                                            onError={(e) => e.currentTarget.style.display = 'none'}
                                         />
                                     )}
                                     {/* 설정 버튼 */}
@@ -3117,6 +3120,7 @@ export default function MobileLedgerPage() {
                                                     src={result.profileImageUrl || result.profile_image}
                                                     alt={result.name}
                                                     className={styles.resultAvatarImg}
+                                                    onError={(e) => e.currentTarget.style.display = 'none'}
                                                 />
                                             )}
                                         </div>

@@ -114,12 +114,17 @@ function CharacterRow({ status, onCharacterClick }: { status: CharacterStatus; o
               src={status.character.profile_image}
               alt={status.character.name}
               className={styles.avatar}
+              onError={(e) => {
+                const target = e.currentTarget
+                target.style.display = 'none'
+                const fallback = target.nextElementSibling as HTMLElement
+                if (fallback) fallback.style.display = 'flex'
+              }}
             />
-          ) : (
-            <div className={styles.avatarPlaceholder}>
-              {status.character.name[0]}
-            </div>
-          )}
+          ) : null}
+          <div className={styles.avatarPlaceholder} style={{ display: status.character.profile_image ? 'none' : 'flex' }}>
+            {status.character.name[0]}
+          </div>
           <div className={styles.characterDetails}>
             <div className={styles.characterNameRow}>
               <span className={styles.characterName}>{status.character.name}</span>
