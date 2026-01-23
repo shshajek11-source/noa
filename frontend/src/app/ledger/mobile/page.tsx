@@ -974,7 +974,7 @@ export default function MobileLedgerPage() {
     const [isProcessing, setIsProcessing] = useState(false);
 
     // 아이템 필터 상태
-    const [itemStatusFilter, setItemStatusFilter] = useState<'unsold' | 'sold'>('unsold');
+    const [itemStatusFilter, setItemStatusFilter] = useState<'unsold' | 'sold'>('sold');
 
     // 아이템 카탈로그 로드
     useEffect(() => {
@@ -3057,22 +3057,29 @@ export default function MobileLedgerPage() {
                             ) : (
                                 soldItems.length === 0 ? (
                                     <div className={styles.noItemsBox}>
-                                        <div className={styles.noItemsText}>판매 완료된 아이템이 없습니다</div>
+                                        <div className={styles.noItemsText}>등록된 아이템이 없습니다</div>
                                     </div>
                                 ) : (
-                                    <div className={styles.itemListContainer}>
+                                    <div className={styles.soldItemsGrid}>
                                         {soldItems.map((item) => (
                                             <div
                                                 key={item.id}
-                                                className={`${styles.itemListCard} ${styles.itemListCardSold}`}
-                                                onClick={() => {
-                                                    setSelectedItemForAction(item);
-                                                    setShowItemActionSheet(true);
-                                                }}
+                                                className={styles.soldItemCard}
                                             >
+                                                <button
+                                                    className={styles.soldItemDeleteBtn}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm(`"${item.item_name}"을(를) 삭제하시겠습니까?`)) {
+                                                            deleteItem(item.id);
+                                                        }
+                                                    }}
+                                                >
+                                                    ×
+                                                </button>
                                                 <div
-                                                    className={styles.itemListIcon}
-                                                    style={{ borderColor: GRADE_COLORS[item.item_grade] || '#9CA3AF', opacity: 0.7 }}
+                                                    className={styles.soldItemIcon}
+                                                    style={{ borderColor: GRADE_COLORS[item.item_grade] || '#9CA3AF' }}
                                                 >
                                                     {item.icon_url ? (
                                                         <img src={item.icon_url} alt={item.item_name} />
@@ -3080,15 +3087,15 @@ export default function MobileLedgerPage() {
                                                         <span>📦</span>
                                                     )}
                                                 </div>
-                                                <div className={styles.itemListInfo}>
-                                                    <div className={styles.itemListName} style={{ color: '#9CA3AF' }}>
-                                                        {item.item_name}
-                                                    </div>
-                                                    <div className={styles.itemListMetaSold}>
-                                                        판매: {item.sold_price?.toLocaleString() || 0} 키나
-                                                    </div>
+                                                <div
+                                                    className={styles.soldItemName}
+                                                    style={{ color: GRADE_COLORS[item.item_grade] || '#E5E7EB' }}
+                                                >
+                                                    {item.item_name}
                                                 </div>
-                                                <div className={styles.itemListSoldBadge}>완료</div>
+                                                <div className={styles.soldItemPrice}>
+                                                    +{item.sold_price?.toLocaleString() || 0} 키나
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
