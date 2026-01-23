@@ -172,17 +172,26 @@ export default function TicketChargePopup({
     )
 
     if (confirmed && onInitialSync) {
-      // 티켓 데이터 구성
+      // 티켓 데이터 구성 (빈 문자열은 0으로 변환)
       const tickets: Record<string, number> = {}
       TICKET_TYPES.forEach(ticket => {
-        tickets[ticket.id] = initialSettings[ticket.id as keyof typeof initialSettings] as number
+        const value = initialSettings[ticket.id as keyof typeof initialSettings]
+        tickets[ticket.id] = typeof value === 'string' ? (parseInt(value) || 0) : (value || 0)
       })
+
+      // odEnergy 값 변환 (빈 문자열은 0으로)
+      const odTimeEnergy = typeof initialSettings.odTimeEnergy === 'string'
+        ? (parseInt(initialSettings.odTimeEnergy) || 0)
+        : (initialSettings.odTimeEnergy || 0)
+      const odTicketEnergy = typeof initialSettings.odTicketEnergy === 'string'
+        ? (parseInt(initialSettings.odTicketEnergy) || 0)
+        : (initialSettings.odTicketEnergy || 0)
 
       try {
         // 초기설정 동기화 (await로 완료 대기)
         await onInitialSync({
-          odTimeEnergy: initialSettings.odTimeEnergy,
-          odTicketEnergy: initialSettings.odTicketEnergy,
+          odTimeEnergy,
+          odTicketEnergy,
           tickets
         })
 

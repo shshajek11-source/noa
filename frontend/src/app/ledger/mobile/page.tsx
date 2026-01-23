@@ -1875,11 +1875,16 @@ export default function MobileLedgerPage() {
                 throw new Error('초기설정 저장 실패');
             }
 
-            // 상태 업데이트
+            // 상태 업데이트 (odEnergy 포함)
             setCharacterState(prev => ({
                 ...prev,
                 baseTickets: newBaseTickets,
-                bonusTickets: newBonusTickets
+                bonusTickets: newBonusTickets,
+                odEnergy: {
+                    timeEnergy: settings.odTimeEnergy,
+                    ticketEnergy: settings.odTicketEnergy,
+                    lastChargeTime: new Date().toISOString()
+                }
             }));
 
             console.log('[Mobile] 초기설정 동기화 완료');
