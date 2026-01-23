@@ -915,7 +915,8 @@ export default function MobileLedgerPage() {
     const {
         records,
         incrementCompletion,
-        decrementCompletion
+        decrementCompletion,
+        refetch: refetchRecords
     } = useContentRecords({
         characterId: selectedCharacterId,
         date: selectedDate,
@@ -1835,9 +1836,20 @@ export default function MobileLedgerPage() {
             return;
         }
 
+        // 던전 컨텐츠는 baseTickets = 잔여횟수
+        // 일일 컨텐츠는 baseTickets = MAX 유지, completionCount = MAX - 잔여횟수
         const newBaseTickets = {
             ...characterState.baseTickets,
-            ...settings.tickets
+            // 던전 컨텐츠만 baseTickets 업데이트
+            transcend: settings.tickets.transcend ?? characterState.baseTickets.transcend,
+            expedition: settings.tickets.expedition ?? characterState.baseTickets.expedition,
+            sanctuary: settings.tickets.sanctuary ?? characterState.baseTickets.sanctuary,
+            // 일일 컨텐츠는 MAX 값 유지
+            daily_dungeon: MAX_TICKETS.daily_dungeon,
+            awakening: MAX_TICKETS.awakening,
+            nightmare: MAX_TICKETS.nightmare,
+            dimension: MAX_TICKETS.dimension,
+            subjugation: MAX_TICKETS.subjugation
         };
 
         const newBonusTickets = {
@@ -1875,6 +1887,40 @@ export default function MobileLedgerPage() {
                 throw new Error('초기설정 저장 실패');
             }
 
+            // 일일 컨텐츠 content-records 업데이트 (잔여횟수 → completionCount 변환)
+            const dailyContentMapping = [
+                { key: 'daily_dungeon', contentType: 'daily_dungeon', max: MAX_TICKETS.daily_dungeon },
+                { key: 'awakening', contentType: 'awakening_battle', max: MAX_TICKETS.awakening },
+                { key: 'nightmare', contentType: 'nightmare', max: MAX_TICKETS.nightmare },
+                { key: 'dimension', contentType: 'dimension_invasion', max: MAX_TICKETS.dimension },
+                { key: 'subjugation', contentType: 'subjugation', max: MAX_TICKETS.subjugation }
+            ];
+
+            const today = getGameDate();
+            for (const { key, contentType, max } of dailyContentMapping) {
+                const remaining = settings.tickets[key];
+                if (remaining !== undefined) {
+                    const completionCount = Math.max(0, max - remaining);
+                    await fetch('/api/ledger/content-records', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...getAuthHeader()
+                        },
+                        body: JSON.stringify({
+                            characterId: selectedCharacterId,
+                            date: today,
+                            content_type: contentType,
+                            dungeon_tier: contentType,
+                            max_count: max,
+                            completion_count: completionCount,
+                            is_double: false,
+                            base_kina: 0
+                        })
+                    });
+                }
+            }
+
             // 상태 업데이트 (odEnergy 포함)
             setCharacterState(prev => ({
                 ...prev,
@@ -1886,6 +1932,20 @@ export default function MobileLedgerPage() {
                     lastChargeTime: new Date().toISOString()
                 }
             }));
+
+            // records 새로고침
+            await refetchRecords();
+
+            // 슈고페스타 초기설정 (별도 처리 - weeklyContent 사용)
+            if (settings.tickets.shugo_festa !== undefined) {
+                setWeeklyContent(prev => ({
+                    ...prev,
+                    shugoTickets: {
+                        base: settings.tickets.shugo_festa,
+                        bonus: 0
+                    }
+                }));
+            }
 
             console.log('[Mobile] 초기설정 동기화 완료');
         } catch (error) {
