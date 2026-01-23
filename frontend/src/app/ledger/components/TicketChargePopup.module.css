@@ -208,6 +208,53 @@
   min-width: 40px;
 }
 
+/* 3열 그리드 */
+.ticketGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.ticketCell {
+  background: #161618;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ticketCellHeader {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+}
+
+.ticketCellName {
+  color: #E5E7EB;
+  font-weight: 500;
+}
+
+.ticketCellInput {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ticketCellStatus {
+  font-size: 10px;
+  color: #9CA3AF;
+}
+
+.ticketCellControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .settingsFooter {
   padding: 6px 0 0 0;
 }
@@ -265,62 +312,62 @@
 
 /* 오드 에너지 섹션 */
 .odEnergySection {
-  padding: 16px;
+  padding: 8px 10px;
   background: #212227;
-  margin: 16px;
-  border-radius: 12px;
+  margin: 8px;
+  border-radius: 8px;
   border: 1px solid #333333;
 }
 
 .odEnergyHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
 .odEnergyTitle {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: #FACC15;
 }
 
 .odEnergyStatus {
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .odEnergyInfo {
   display: flex;
   justify-content: space-around;
-  font-size: 13px;
+  font-size: 11px;
   color: #9CA3AF;
-  padding: 8px;
+  padding: 4px;
   background: #161618;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .odEnergyInputRow {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .odInputLabel {
-  font-size: 14px;
+  font-size: 12px;
   color: #9CA3AF;
   font-weight: 600;
-  min-width: 80px;
+  min-width: 60px;
 }
 
 .odInput {
   flex: 1;
-  padding: 10px 12px;
+  padding: 6px 8px;
   background: #161618;
   border: 1px solid #333333;
-  border-radius: 8px;
+  border-radius: 4px;
   color: #E5E7EB;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   font-family: 'Rajdhani', sans-serif;
   transition: all 0.2s ease;
@@ -337,12 +384,12 @@
 }
 
 .odResetBtn {
-  padding: 10px 16px;
+  padding: 6px 10px;
   background: transparent;
   border: 1px solid #444444;
-  border-radius: 8px;
+  border-radius: 4px;
   color: #9CA3AF;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -361,12 +408,12 @@
 }
 
 .odEnergyPreview {
-  padding: 8px 12px;
+  padding: 4px 8px;
   background: rgba(250, 204, 21, 0.1);
   border: 1px solid rgba(250, 204, 21, 0.3);
-  border-radius: 8px;
+  border-radius: 4px;
   color: #FACC15;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   text-align: center;
 }
@@ -379,7 +426,7 @@
 
 /* 티켓 리스트 */
 .ticketList {
-  padding: 16px;
+  padding: 8px;
   overflow-y: auto;
   flex: 1;
 }
@@ -387,13 +434,13 @@
 .ticketRow {
   display: grid;
   grid-template-columns: 1fr auto auto;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
-  padding: 12px;
+  padding: 8px;
   background: #212227;
   border: 1px solid #333333;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
   transition: all 0.2s ease;
 }
 
@@ -405,21 +452,21 @@
 .ticketName {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 600;
   color: #E5E7EB;
 }
 
 .ticketIcon {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .ticketStatus {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
+  gap: 3px;
+  font-size: 11px;
 }
 
 .current {
@@ -429,24 +476,25 @@
 .bonus {
   color: #FACC15;
   font-weight: 600;
+  font-size: 10px;
 }
 
 /* 충전 컨트롤 */
 .controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .decrementBtn,
 .incrementBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
   background: #161618;
   border: 1px solid #333333;
   color: #E5E7EB;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -460,7 +508,6 @@
   background: #1a1a1a;
   border-color: #FACC15;
   color: #FACC15;
-  transform: scale(1.05);
 }
 
 .decrementBtn:disabled {
@@ -469,9 +516,9 @@
 }
 
 .chargeCount {
-  min-width: 30px;
+  min-width: 20px;
   text-align: center;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: #FACC15;
 }
@@ -479,17 +526,17 @@
 /* 푸터 */
 .footer {
   display: flex;
-  gap: 12px;
-  padding: 16px;
+  gap: 8px;
+  padding: 8px;
   border-top: 1px solid #333333;
 }
 
 .confirmBtn,
 .cancelBtn {
   flex: 1;
-  padding: 14px;
-  border-radius: 8px;
-  font-size: 15px;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;

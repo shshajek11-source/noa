@@ -267,26 +267,30 @@ export default function TicketChargePopup({
                 </div>
               </div>
 
-              {/* 티켓 이용권 */}
+              {/* 티켓 이용권 - 3열 그리드 */}
               <div className={styles.settingSection}>
                 <h4 className={styles.sectionTitle}>⚡ 컨텐츠 이용권</h4>
-                {TICKET_TYPES.map(ticket => (
-                  <div key={ticket.id} className={styles.settingRow}>
-                    <label className={styles.settingLabel}>
-                      <span className={styles.ticketIcon}>{ticket.icon}</span>
-                      {ticket.name}
-                    </label>
-                    <input
-                      type="number"
-                      className={styles.settingInput}
-                      value={initialSettings[ticket.id as keyof typeof initialSettings] as number}
-                      onChange={(e) => handleInitialSettingChange(ticket.id, e.target.value)}
-                      min={0}
-                      max={ticket.maxBase}
-                    />
-                    <span className={styles.maxLabel}>/ {ticket.maxBase}</span>
-                  </div>
-                ))}
+                <div className={styles.ticketGrid}>
+                  {TICKET_TYPES.map(ticket => (
+                    <div key={ticket.id} className={styles.ticketCell}>
+                      <div className={styles.ticketCellHeader}>
+                        <span className={styles.ticketIcon}>{ticket.icon}</span>
+                        <span className={styles.ticketCellName}>{ticket.name}</span>
+                      </div>
+                      <div className={styles.ticketCellInput}>
+                        <input
+                          type="number"
+                          className={styles.settingInput}
+                          value={initialSettings[ticket.id as keyof typeof initialSettings] as number}
+                          onChange={(e) => handleInitialSettingChange(ticket.id, e.target.value)}
+                          min={0}
+                          max={ticket.maxBase}
+                        />
+                        <span className={styles.maxLabel}>/{ticket.maxBase}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* 적용 버튼 */}
@@ -355,52 +359,45 @@ export default function TicketChargePopup({
           )}
         </div>
 
-        <div className={styles.divider} />
-
-        {/* 티켓 리스트 */}
+        {/* 티켓 리스트 - 3열 그리드 */}
         <div className={styles.ticketList}>
-          {TICKET_TYPES.map(ticket => {
-            const current = currentTickets[ticket.id]
-            const chargeCount = charges[ticket.id] || 0
+          <div className={styles.ticketGrid}>
+            {TICKET_TYPES.map(ticket => {
+              const current = currentTickets[ticket.id]
+              const chargeCount = charges[ticket.id] || 0
 
-            return (
-              <div key={ticket.id} className={styles.ticketRow}>
-                {/* 티켓 이름 */}
-                <div className={styles.ticketName}>
-                  <span className={styles.ticketIcon}>{ticket.icon}</span>
-                  <span>{ticket.name}</span>
-                </div>
-
-                {/* 현재 상태 */}
-                <div className={styles.ticketStatus}>
-                  <span className={styles.current}>
+              return (
+                <div key={ticket.id} className={styles.ticketCell}>
+                  <div className={styles.ticketCellHeader}>
+                    <span className={styles.ticketIcon}>{ticket.icon}</span>
+                    <span className={styles.ticketCellName}>{ticket.name}</span>
+                  </div>
+                  <div className={styles.ticketCellStatus}>
                     {current?.base || 0}/{ticket.maxBase}
-                  </span>
-                  {(current?.bonus || 0) > 0 && (
-                    <span className={styles.bonus}>(+{current.bonus})</span>
-                  )}
+                    {(current?.bonus || 0) > 0 && (
+                      <span className={styles.bonus}>(+{current.bonus})</span>
+                    )}
+                  </div>
+                  <div className={styles.ticketCellControls}>
+                    <button
+                      className={styles.decrementBtn}
+                      onClick={() => handleDecrement(ticket.id)}
+                      disabled={chargeCount === 0}
+                    >
+                      −
+                    </button>
+                    <span className={styles.chargeCount}>{chargeCount}</span>
+                    <button
+                      className={styles.incrementBtn}
+                      onClick={() => handleIncrement(ticket.id)}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-
-                {/* 충전 컨트롤 */}
-                <div className={styles.controls}>
-                  <button
-                    className={styles.decrementBtn}
-                    onClick={() => handleDecrement(ticket.id)}
-                    disabled={chargeCount === 0}
-                  >
-                    −
-                  </button>
-                  <span className={styles.chargeCount}>{chargeCount}</span>
-                  <button
-                    className={styles.incrementBtn}
-                    onClick={() => handleIncrement(ticket.id)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
 
             {/* 푸터 */}
