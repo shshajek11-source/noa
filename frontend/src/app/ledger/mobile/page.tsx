@@ -10,7 +10,7 @@ import {
     useLedgerItems,
     useWeeklyStats
 } from '../hooks';
-import { getGameDate, isEditable } from '../utils/dateUtils';
+import { getGameDate, getWeekKey, isEditable } from '../utils/dateUtils';
 import { LedgerCharacter } from '@/types/ledger';
 import { SERVERS, SERVER_MAP } from '@/app/constants/servers';
 import { supabaseApi } from '@/lib/supabaseApi';
@@ -357,12 +357,34 @@ export default function MobileLedgerPage() {
         odEnergy: { timeEnergy: 840, ticketEnergy: 0 }
     });
 
+    // 주간 컨텐츠 상태 (사명/주간지령서/어비스지령서 - PC와 동기화용)
+    const [weeklyContent, setWeeklyContent] = useState<{
+        missionCount: number;
+        weeklyOrderCount: number;
+        abyssOrderCount: number;
+        shugoTickets: { base: number; bonus: number };
+    }>({
+        missionCount: 0,
+        weeklyOrderCount: 0,
+        abyssOrderCount: 0,
+        shugoTickets: { base: 14, bonus: 0 }
+    });
+    const weeklyContentLoadingRef = useRef(false);
+    const weeklyContentSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     // 대시보드 데이터 (모든 캐릭터의 진행현황)
     const [dashboardData, setDashboardData] = useState<Record<string, any>>({});
     const [isDashboardLoading, setIsDashboardLoading] = useState(false);
 
     // 진행현황 펼치기/접기 상태 (캐릭터 ID Set)
     const [expandedProgressIds, setExpandedProgressIds] = useState<Set<string>>(new Set());
+
+    // 첫 번째 캐릭터는 기본으로 펼치기 (사용자에게 기능 학습 유도)
+    useEffect(() => {
+        if (characters.length > 0 && expandedProgressIds.size === 0) {
+            setExpandedProgressIds(new Set([characters[0].id]));
+        }
+    }, [characters]);
 
     // 전체 캐릭터 합산 수입 (API 호출)
     const [totalIncome, setTotalIncome] = useState({ dailyIncome: 0, weeklyIncome: 0 });
@@ -644,6 +666,163 @@ export default function MobileLedgerPage() {
 
         loadCharacterState();
     }, [selectedCharacterId, isReady, getAuthHeader]);
+
+    // 주간 컨텐츠 로드 (사명/주간지령서/어비스지령서 - PC와 동기화)
+    const loadWeeklyContent = useCallback(async () => {
+        if (!selectedCharacterId || !isReady) return;
+
+        const weekKey = getWeekKey(new Date(selectedDate));
+        const gameDate = getGameDate(new Date(selectedDate));
+
+        weeklyContentLoadingRef.current = true;
+        try {
+            const res = await fetch(
+                `/api/ledger/weekly-content?characterId=${selectedCharacterId}&weekKey=${weekKey}&gameDate=${gameDate}`,
+                { headers: getAuthHeader() }
+            );
+
+            if (res.ok) {
+                const data = await res.json();
+                setWeeklyContent({
+                    missionCount: data.mission?.count ?? 0,
+                    weeklyOrderCount: data.weekly?.weeklyOrderCount ?? 0,
+                    abyssOrderCount: data.weekly?.abyssOrderCount ?? 0,
+                    shugoTickets: data.weekly?.shugoTickets ?? { base: 14, bonus: 0 }
+                });
+            }
+        } catch (error) {
+            console.error('[Mobile Ledger] Failed to load weekly content:', error);
+        } finally {
+            setTimeout(() => {
+                weeklyContentLoadingRef.current = false;
+            }, 100);
+        }
+    }, [selectedCharacterId, selectedDate, isReady, getAuthHeader]);
+
+    useEffect(() => {
+        loadWeeklyContent();
+    }, [loadWeeklyContent]);
+
+    // 주간 컨텐츠 저장 (디바운스)
+    const saveWeeklyContent = useCallback(async () => {
+        if (!selectedCharacterId || weeklyContentLoadingRef.current || !canEdit) return;
+
+        const weekKey = getWeekKey(new Date(selectedDate));
+        const gameDate = getGameDate(new Date(selectedDate));
+
+        try {
+            await fetch('/api/ledger/weekly-content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                },
+                body: JSON.stringify({
+                    characterId: selectedCharacterId,
+                    weekKey,
+                    gameDate,
+                    weeklyOrderCount: weeklyContent.weeklyOrderCount,
+                    abyssOrderCount: weeklyContent.abyssOrderCount,
+                    shugoTickets: weeklyContent.shugoTickets,
+                    abyssRegions: [],
+                    missionCount: weeklyContent.missionCount
+                })
+            });
+        } catch (error) {
+            console.error('[Mobile Ledger] Failed to save weekly content:', error);
+        }
+    }, [selectedCharacterId, selectedDate, canEdit, weeklyContent, getAuthHeader]);
+
+    const debouncedSaveWeeklyContent = useCallback(() => {
+        if (weeklyContentSaveTimeoutRef.current) {
+            clearTimeout(weeklyContentSaveTimeoutRef.current);
+        }
+        weeklyContentSaveTimeoutRef.current = setTimeout(() => {
+            saveWeeklyContent();
+        }, 500);
+    }, [saveWeeklyContent]);
+
+    // 주간 컨텐츠 증가/감소 함수
+    const incrementMission = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            missionCount: Math.min(5, prev.missionCount + 1)
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
+    const decrementMission = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            missionCount: Math.max(0, prev.missionCount - 1)
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
+    const incrementWeeklyOrder = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            weeklyOrderCount: Math.min(12, prev.weeklyOrderCount + 1)
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
+    const decrementWeeklyOrder = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            weeklyOrderCount: Math.max(0, prev.weeklyOrderCount - 1)
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
+    const incrementAbyssOrder = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            abyssOrderCount: Math.min(20, prev.abyssOrderCount + 1)
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
+    const decrementAbyssOrder = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            abyssOrderCount: Math.max(0, prev.abyssOrderCount - 1)
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
+    const incrementShugo = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => {
+            // 보너스가 있으면 보너스 먼저 사용
+            if (prev.shugoTickets.bonus > 0) {
+                return {
+                    ...prev,
+                    shugoTickets: { ...prev.shugoTickets, bonus: prev.shugoTickets.bonus - 1 }
+                };
+            }
+            return {
+                ...prev,
+                shugoTickets: { ...prev.shugoTickets, base: Math.max(0, prev.shugoTickets.base - 1) }
+            };
+        });
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
+
+    const decrementShugo = useCallback(() => {
+        if (!canEdit) return;
+        setWeeklyContent(prev => ({
+            ...prev,
+            shugoTickets: { ...prev.shugoTickets, base: Math.min(14, prev.shugoTickets.base + 1) }
+        }));
+        debouncedSaveWeeklyContent();
+    }, [canEdit, debouncedSaveWeeklyContent]);
 
     // 컨텐츠 기록
     const {
@@ -1587,20 +1766,20 @@ export default function MobileLedgerPage() {
                                     </div>
                                     <div className={styles.wmControls}>
                                         <span className={styles.wmCount}>
-                                            {records.find(r => r.content_type === 'mission')?.completion_count || 0}/5
+                                            {weeklyContent.missionCount}/5
                                         </span>
                                         <button
                                             className={styles.btnStep}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                incrementCompletion('mission');
+                                                incrementMission();
                                             }}
                                         >+</button>
                                         <button
                                             className={styles.btnStep}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                decrementCompletion('mission');
+                                                decrementMission();
                                             }}
                                         >-</button>
                                     </div>
@@ -1609,7 +1788,7 @@ export default function MobileLedgerPage() {
                                     {[...Array(5)].map((_, i) => (
                                         <div
                                             key={i}
-                                            className={`${styles.wmBlock} ${i < (records.find(r => r.content_type === 'mission')?.completion_count || 0) ? styles.filled : ''}`}
+                                            className={`${styles.wmBlock} ${i < weeklyContent.missionCount ? styles.filled : ''}`}
                                         ></div>
                                     ))}
                                 </div>
@@ -1624,20 +1803,20 @@ export default function MobileLedgerPage() {
                                     </div>
                                     <div className={styles.wmControls}>
                                         <span className={styles.wmCount}>
-                                            {records.find(r => r.content_type === 'weekly_order')?.completion_count || 0}/12
+                                            {weeklyContent.weeklyOrderCount}/12
                                         </span>
                                         <button
                                             className={styles.btnStep}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                incrementCompletion('weekly_order');
+                                                incrementWeeklyOrder();
                                             }}
                                         >+</button>
                                         <button
                                             className={styles.btnStep}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                decrementCompletion('weekly_order');
+                                                decrementWeeklyOrder();
                                             }}
                                         >-</button>
                                     </div>
@@ -1646,7 +1825,7 @@ export default function MobileLedgerPage() {
                                     {[...Array(12)].map((_, i) => (
                                         <div
                                             key={i}
-                                            className={`${styles.wmBlock} ${i < (records.find(r => r.content_type === 'weekly_order')?.completion_count || 0) ? styles.filled : ''}`}
+                                            className={`${styles.wmBlock} ${i < weeklyContent.weeklyOrderCount ? styles.filled : ''}`}
                                         ></div>
                                     ))}
                                 </div>
@@ -1661,20 +1840,20 @@ export default function MobileLedgerPage() {
                                     </div>
                                     <div className={styles.wmControls}>
                                         <span className={styles.wmCount}>
-                                            {records.find(r => r.content_type === 'abyss_order')?.completion_count || 0}/20
+                                            {weeklyContent.abyssOrderCount}/20
                                         </span>
                                         <button
                                             className={styles.btnStep}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                incrementCompletion('abyss_order');
+                                                incrementAbyssOrder();
                                             }}
                                         >+</button>
                                         <button
                                             className={styles.btnStep}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                decrementCompletion('abyss_order');
+                                                decrementAbyssOrder();
                                             }}
                                         >-</button>
                                     </div>
@@ -1683,7 +1862,7 @@ export default function MobileLedgerPage() {
                                     {[...Array(10)].map((_, i) => (
                                         <div
                                             key={i}
-                                            className={`${styles.wmBlock} ${i < Math.min(10, records.find(r => r.content_type === 'abyss_order')?.completion_count || 0) ? styles.filled : ''}`}
+                                            className={`${styles.wmBlock} ${i < Math.min(10, weeklyContent.abyssOrderCount) ? styles.filled : ''}`}
                                         ></div>
                                     ))}
                                 </div>
@@ -1693,19 +1872,19 @@ export default function MobileLedgerPage() {
                             <div className={styles.dualCardGrid}>
                                 <div className={styles.miniCard}>
                                     <div className={styles.miniCardLabel}>슈고 페스타</div>
-                                    <div className={styles.miniCardTimer}>{formatTimeRemaining(chargeTimers['8h'])}</div>
+                                    <div className={styles.miniCardTimer}>{formatTimeRemaining(chargeTimers['charge3h'])}</div>
                                     <div className={styles.miniCardValue}>
-                                        {records.find(r => r.content_type === 'shugo')?.completion_count || 0}
+                                        {weeklyContent.shugoTickets.base + weeklyContent.shugoTickets.bonus}
                                         <span className={styles.miniCardMax}>/ 14</span>
                                     </div>
                                     <div className={styles.miniCardControls}>
                                         <button
                                             className={styles.btnStepMini}
-                                            onClick={() => decrementCompletion('shugo')}
+                                            onClick={() => decrementShugo()}
                                         >-</button>
                                         <button
                                             className={styles.btnStepMini}
-                                            onClick={() => incrementCompletion('shugo')}
+                                            onClick={() => incrementShugo()}
                                         >+</button>
                                     </div>
                                 </div>
