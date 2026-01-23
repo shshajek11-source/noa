@@ -9,6 +9,7 @@ import Footer from '@/components/Footer'
 import { SyncProvider } from '../../context/SyncContext'
 import { AuthProvider } from '../../context/AuthContext'
 import GatePage from '../../components/GatePage'
+import { Agentation } from 'agentation'
 
 // 게이트 페이지 활성화 여부 (true: 비밀코드 입력 필요, false: 바로 접근 가능)
 const GATE_ENABLED = false
@@ -78,6 +79,9 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
 
                     {/* Footer */}
                     <Footer />
+
+                    {/* Agentation - 개발 환경에서만 활성화 */}
+                    {process.env.NODE_ENV === 'development' && <Agentation />}
                 </SyncProvider>
             )}
         </AuthProvider>
