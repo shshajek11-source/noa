@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, memo, useRef } from 'react'
 import { TrendingUp, Calendar, CalendarDays } from 'lucide-react'
 import { LedgerCharacter, ItemGrade } from '@/types/ledger'
+import { getKSTDate } from '../utils/dateUtils'
 import CharacterStatusTable from './CharacterStatusTable'
 import TotalItemsSummary from './TotalItemsSummary'
 import styles from '../ledger.module.css'
@@ -83,9 +84,10 @@ const DAILY_CONTENT_DEFS: { id: string; name: string; maxPerChar: number; charge
   { id: 'abyss_hallway', name: '어비스회랑', maxPerChar: 3, chargeType: 'weekly' },
 ]
 
-// 충전 시간 계산 함수들
+// 충전 시간 계산 함수들 (한국 시간 KST 기준)
 function getNextChargeSeconds(chargeType: ChargeType, lastChargeTime?: string): number {
-  const now = new Date()
+  // 한국 시간(KST) 기준으로 계산
+  const now = getKSTDate()
 
   switch (chargeType) {
     case '8h': {
@@ -125,7 +127,8 @@ function getNextChargeSeconds(chargeType: ChargeType, lastChargeTime?: string): 
 
       const lastCharge = new Date(lastChargeTime)
       const nextCharge = new Date(lastCharge.getTime() + 24 * 60 * 60 * 1000)
-      const diff = Math.max(0, Math.floor((nextCharge.getTime() - now.getTime()) / 1000))
+      const realNow = new Date() // 24h는 실제 경과 시간 기준
+      const diff = Math.max(0, Math.floor((nextCharge.getTime() - realNow.getTime()) / 1000))
       return diff
     }
 

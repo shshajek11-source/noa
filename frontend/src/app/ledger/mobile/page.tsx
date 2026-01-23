@@ -10,7 +10,7 @@ import {
     useLedgerItems,
     useWeeklyStats
 } from '../hooks';
-import { getGameDate, getWeekKey, isEditable } from '../utils/dateUtils';
+import { getGameDate, getWeekKey, isEditable, getKSTDate } from '../utils/dateUtils';
 import { LedgerCharacter } from '@/types/ledger';
 import { SERVERS, SERVER_MAP } from '@/app/constants/servers';
 import { supabaseApi } from '@/lib/supabaseApi';
@@ -240,9 +240,10 @@ export default function MobileLedgerPage() {
     // 수정 가능 여부
     const canEdit = isEditable(selectedDate);
 
-    // 충전 타입별 다음 충전까지 남은 시간 계산 (초 단위)
+    // 충전 타입별 다음 충전까지 남은 시간 계산 (초 단위) - 한국 시간(KST) 기준
     const getNextChargeSeconds = useCallback((chargeType: '8h' | 'daily' | 'weekly' | 'charge3h' | '24h') => {
-        const now = new Date();
+        // 한국 시간(KST) 기준으로 계산
+        const now = getKSTDate();
         const currentHour = now.getHours();
         const currentMinute = now.getMinutes();
         const currentSecond = now.getSeconds();
