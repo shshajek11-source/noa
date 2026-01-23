@@ -312,25 +312,27 @@ export default function MobileLedgerPage() {
     const [totalIncome, setTotalIncome] = useState({ dailyIncome: 0, weeklyIncome: 0 });
     const [isIncomeLoading, setIsIncomeLoading] = useState(false);
 
-    // 주간 컨텐츠 정의
-    const WEEKLY_CONTENT_DEFS = [
-        { id: 'transcend', name: '초월', maxPerChar: 14, color: 'purple', ticketKey: 'transcend' },
-        { id: 'expedition', name: '원정', maxPerChar: 21, color: 'blue', ticketKey: 'expedition' },
-        { id: 'sanctuary', name: '성역', maxPerChar: 4, color: 'red', ticketKey: 'sanctuary' },
-        { id: 'shugo', name: '슈고', maxPerChar: 14, color: 'orange', ticketKey: null },
+    // 섹션1: 미션/지령서 컨텐츠
+    const MISSION_CONTENT_DEFS = [
         { id: 'mission', name: '사명', maxPerChar: 5, color: 'green', ticketKey: null },
         { id: 'weekly_order', name: '주간지령서', maxPerChar: 12, color: 'cyan', ticketKey: null },
         { id: 'abyss_order', name: '어비스지령서', maxPerChar: 20, color: 'pink', ticketKey: null },
     ];
 
-    // 일일 컨텐츠 정의
+    // 섹션2: 던전 컨텐츠 (이용권)
+    const DUNGEON_CONTENT_DEFS = [
+        { id: 'transcend', name: '초월', maxPerChar: 14, color: 'purple', ticketKey: 'transcend' },
+        { id: 'expedition', name: '원정', maxPerChar: 21, color: 'blue', ticketKey: 'expedition' },
+        { id: 'sanctuary', name: '성역', maxPerChar: 4, color: 'red', ticketKey: 'sanctuary' },
+    ];
+
+    // 섹션3: 일일 컨텐츠
     const DAILY_CONTENT_DEFS = [
         { id: 'daily_dungeon', name: '일던', maxPerChar: 7, color: 'blue', ticketKey: 'daily_dungeon', contentType: 'daily_dungeon' },
         { id: 'awakening', name: '각성전', maxPerChar: 3, color: 'purple', ticketKey: 'awakening', contentType: 'awakening_battle' },
         { id: 'subjugation', name: '토벌전', maxPerChar: 3, color: 'red', ticketKey: 'subjugation', contentType: 'subjugation' },
         { id: 'nightmare', name: '악몽', maxPerChar: 14, color: 'gray', ticketKey: 'nightmare', contentType: 'nightmare' },
         { id: 'dimension', name: '차원침공', maxPerChar: 14, color: 'cyan', ticketKey: 'dimension', contentType: 'dimension_invasion' },
-        { id: 'abyss_hallway', name: '어비스회랑', maxPerChar: 3, color: 'pink', ticketKey: null, contentType: 'abyss_hallway' },
     ];
 
     // 대시보드 데이터 로드 (선택 날짜 기준)
@@ -413,17 +415,32 @@ export default function MobileLedgerPage() {
     // 캐릭터별 진행현황 계산 함수
     const getCharacterProgress = (characterId: string) => {
         const charData = dashboardData[characterId];
-        if (!charData) return { weekly: [], daily: [] };
+        if (!charData) return { mission: [], dungeon: [], daily: [] };
 
         const baseTickets = charData.baseTickets || {};
         const bonusTickets = charData.bonusTickets || {};
-        const contentRecords = charData.contentRecords || {};
         const weeklyData = charData.weeklyData || {};
         const missionCount = charData.missionCount || 0;
 
-        // 주간 컨텐츠 진행률 (PC와 동일하게 잔여횟수 표시)
-        const weeklyProgress = WEEKLY_CONTENT_DEFS.map(def => {
-            let remaining = 0;  // 잔여 횟수
+        // 섹션1: 미션/지령서 진행률
+        const missionProgress = MISSION_CONTENT_DEFS.map(def => {
+            let remaining = 0;
+            let max = def.maxPerChar;
+
+            if (def.id === 'mission') {
+                remaining = Math.max(0, def.maxPerChar - missionCount);
+            } else if (def.id === 'weekly_order') {
+                remaining = Math.max(0, def.maxPerChar - (weeklyData.weeklyOrderCount || 0));
+            } else if (def.id === 'abyss_order') {
+                remaining = Math.max(0, def.maxPerChar - (weeklyData.abyssOrderCount || 0));
+            }
+
+            return { ...def, current: remaining, max, bonus: 0 };
+        });
+
+        // 섹션2: 던전 컨텐츠 진행률 (이용권)
+        const dungeonProgress = DUNGEON_CONTENT_DEFS.map(def => {
+            let remaining = 0;
             let max = def.maxPerChar;
             let bonus = 0;
 
@@ -436,32 +453,18 @@ export default function MobileLedgerPage() {
             } else if (def.id === 'sanctuary') {
                 remaining = baseTickets.sanctuary ?? def.maxPerChar;
                 bonus = bonusTickets.sanctuary || 0;
-            } else if (def.id === 'shugo') {
-                remaining = weeklyData.shugoBase ?? 14;
-                bonus = weeklyData.shugoBonus || 0;
-            } else if (def.id === 'mission') {
-                // 사명은 완료한 횟수가 current (최대 5회)
-                remaining = Math.max(0, def.maxPerChar - missionCount);
-            } else if (def.id === 'weekly_order') {
-                // 주간지령서는 완료한 횟수가 기록됨 -> 잔여 = max - 완료
-                remaining = Math.max(0, def.maxPerChar - (weeklyData.weeklyOrderCount || 0));
-            } else if (def.id === 'abyss_order') {
-                // 어비스지령서는 완료한 횟수가 기록됨 -> 잔여 = max - 완료
-                remaining = Math.max(0, def.maxPerChar - (weeklyData.abyssOrderCount || 0));
             }
 
             return { ...def, current: remaining, max, bonus };
         });
 
-        // 일일 컨텐츠 진행률 (PC와 동일하게 baseTickets에서 잔여횟수 가져오기)
+        // 섹션3: 일일 컨텐츠 진행률
         const dailyProgress = DAILY_CONTENT_DEFS.map(def => {
             let bonus = 0;
             if (def.ticketKey) {
                 bonus = bonusTickets[def.ticketKey] || 0;
             }
 
-            // PC와 동일하게 baseTickets에서 직접 잔여횟수 가져오기
-            // API에서 반환하는 baseTickets 키: daily_dungeon, awakening, nightmare, dimension, subjugation
             let remaining = def.maxPerChar;
             if (def.ticketKey && baseTickets[def.ticketKey] !== undefined) {
                 remaining = baseTickets[def.ticketKey];
@@ -470,7 +473,7 @@ export default function MobileLedgerPage() {
             return { ...def, current: remaining, max: def.maxPerChar, bonus };
         });
 
-        return { weekly: weeklyProgress, daily: dailyProgress };
+        return { mission: missionProgress, dungeon: dungeonProgress, daily: dailyProgress };
     };
 
     // 컨텐츠 칩 색상 클래스
@@ -1261,13 +1264,13 @@ export default function MobileLedgerPage() {
                                     {/* 모든 캐릭터에 진행 현황 표시 */}
                                     {(() => {
                                         const progress = getCharacterProgress(character.id);
-                                        if (progress.weekly.length === 0 && progress.daily.length === 0) return null;
+                                        if (progress.mission.length === 0 && progress.dungeon.length === 0 && progress.daily.length === 0) return null;
                                         return (
                                             <>
-                                                {/* 주간 컨텐츠 */}
-                                                <div className={styles.progressLabel}>주간 컨텐츠</div>
+                                                {/* 섹션1: 미션/지령서 */}
+                                                <div className={styles.progressLabel}>미션/지령서</div>
                                                 <div className={styles.chipContainerGrid}>
-                                                    {progress.weekly.map(content => (
+                                                    {progress.mission.map(content => (
                                                         <div
                                                             key={content.id}
                                                             className={`${styles.statusChipCompact} ${getChipColorClass(content.color)}`}
@@ -1278,7 +1281,21 @@ export default function MobileLedgerPage() {
                                                     ))}
                                                 </div>
 
-                                                {/* 일일 컨텐츠 */}
+                                                {/* 섹션2: 던전 컨텐츠 */}
+                                                <div className={styles.progressLabel}>던전 컨텐츠</div>
+                                                <div className={styles.chipContainerGrid}>
+                                                    {progress.dungeon.map(content => (
+                                                        <div
+                                                            key={content.id}
+                                                            className={`${styles.statusChipCompact} ${getChipColorClass(content.color)}`}
+                                                        >
+                                                            <span className={styles.chipTxt}>{content.name}</span>
+                                                            <span className={styles.chipVal}>{content.current}/{content.max}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* 섹션3: 일일 컨텐츠 */}
                                                 <div className={styles.progressLabel}>일일 컨텐츠</div>
                                                 <div className={styles.chipContainerGrid}>
                                                     {progress.daily.map(content => (
