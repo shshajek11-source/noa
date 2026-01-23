@@ -2232,13 +2232,17 @@ export default function MobileLedgerPage() {
                                 </div>
                             </div>
                             <div className={styles.incomeStatsArea}>
-                                <div className={styles.incomeStatDetail}>
-                                    <span className={styles.label}>일일수입</span>
-                                    <span className={styles.value}>{formatMoney(dashboardData[selectedCharacter.id]?.todayIncome || 0)}</span>
+                                <div className={styles.incomeStatSmall}>
+                                    <span className={styles.labelSmall}>일일수입</span>
+                                    <span className={styles.valueSmall}>{formatMoney(dashboardData[selectedCharacter.id]?.todayIncome || 0)}</span>
                                 </div>
-                                <div className={styles.incomeStatDetail}>
-                                    <span className={styles.label}>주간수입</span>
-                                    <span className={styles.value}>{formatMoney(dashboardData[selectedCharacter.id]?.weeklyIncome || 0)}</span>
+                                <div className={styles.incomeStatSmall}>
+                                    <span className={styles.labelSmall}>템수입</span>
+                                    <span className={styles.valueSmall}>{formatMoney(soldItems.reduce((sum, item) => sum + (item.sold_price || 0), 0))}</span>
+                                </div>
+                                <div className={styles.incomeStatBig}>
+                                    <span className={styles.labelBig}>일일총합</span>
+                                    <span className={styles.valueBig}>{formatMoney((dashboardData[selectedCharacter.id]?.todayIncome || 0) + soldItems.reduce((sum, item) => sum + (item.sold_price || 0), 0))}</span>
                                 </div>
                             </div>
                         </div>

@@ -648,6 +648,45 @@
     color: #f59e0b;
 }
 
+/* 작은 수입 표시 (일일수입, 템수입) */
+.incomeStatSmall {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+}
+
+.labelSmall {
+    font-size: 0.6rem;
+    color: #6B7280;
+}
+
+.valueSmall {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #f59e0b;
+}
+
+/* 큰 수입 표시 (일일총합) */
+.incomeStatBig {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: right;
+    margin-left: auto;
+}
+
+.labelBig {
+    font-size: 0.65rem;
+    color: #9CA3AF;
+}
+
+.valueBig {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #f59e0b;
+}
+
 /* --- Sub Tabs --- */
 .charSubTabs {
     display: flex;
