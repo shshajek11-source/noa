@@ -2442,7 +2442,10 @@ export default function MobileLedgerPage() {
                                     <div className={styles.miniCardLabel}>슈고 페스타</div>
                                     <div className={styles.miniCardTimer}>{formatTimeRemaining(chargeTimers['charge3h'])}</div>
                                     <div className={styles.miniCardValue}>
-                                        {weeklyContent.shugoTickets.base + weeklyContent.shugoTickets.bonus}
+                                        {weeklyContent.shugoTickets.base}
+                                        {weeklyContent.shugoTickets.bonus > 0 && (
+                                            <span className={styles.bonusTicket}>(+{weeklyContent.shugoTickets.bonus})</span>
+                                        )}
                                         <span className={styles.miniCardMax}>/ 14</span>
                                     </div>
                                     <div className={styles.miniCardControls}>
@@ -2529,7 +2532,7 @@ export default function MobileLedgerPage() {
                                                     onChange={(e) => setTranscendTier(Number(e.target.value))}
                                                 >
                                                     {dungeonData?.transcend.bosses[0]?.tiers?.map(t => (
-                                                        <option key={t.tier} value={t.tier}>T{t.tier}</option>
+                                                        <option key={t.tier} value={t.tier}>{t.tier}단계</option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -3311,7 +3314,7 @@ export default function MobileLedgerPage() {
                                             className={`${styles.dungeonTierBtn} ${transcendTier === tier.tier ? styles.dungeonTierBtnActive : ''}`}
                                             onClick={() => setTranscendTier(tier.tier)}
                                         >
-                                            <span className={styles.tierNumber}>T{tier.tier}</span>
+                                            <span className={styles.tierNumber}>{tier.tier}단계</span>
                                         </button>
                                     ))}
                                 </div>
