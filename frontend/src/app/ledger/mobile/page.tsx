@@ -1941,7 +1941,10 @@ export default function MobileLedgerPage() {
                                                                     className={`${styles.statusChipCompact} ${getChipColorClass(content.color)}`}
                                                                 >
                                                                     <span className={styles.chipTxt}>{content.name}</span>
-                                                                    <span className={styles.chipVal}>{content.current}/{content.max}</span>
+                                                                    <span className={styles.chipVal}>
+                                                                        {content.current}/{content.max}
+                                                                        {content.bonus > 0 && <span className={styles.chipBonus}>(+{content.bonus})</span>}
+                                                                    </span>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -1955,7 +1958,10 @@ export default function MobileLedgerPage() {
                                                                     className={`${styles.statusChipCompact} ${getChipColorClass(content.color)}`}
                                                                 >
                                                                     <span className={styles.chipTxt}>{content.name}</span>
-                                                                    <span className={styles.chipVal}>{content.current}/{content.max}</span>
+                                                                    <span className={styles.chipVal}>
+                                                                        {content.current}/{content.max}
+                                                                        {content.bonus > 0 && <span className={styles.chipBonus}>(+{content.bonus})</span>}
+                                                                    </span>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -1969,7 +1975,10 @@ export default function MobileLedgerPage() {
                                                                     className={`${styles.statusChipCompact} ${getChipColorClass(content.color)}`}
                                                                 >
                                                                     <span className={styles.chipTxt}>{content.name}</span>
-                                                                    <span className={styles.chipVal}>{content.current}/{content.max}</span>
+                                                                    <span className={styles.chipVal}>
+                                                                        {content.current}/{content.max}
+                                                                        {content.bonus > 0 && <span className={styles.chipBonus}>(+{content.bonus})</span>}
+                                                                    </span>
                                                                 </div>
                                                             ))}
                                                         </div>

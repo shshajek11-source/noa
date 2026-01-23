@@ -484,6 +484,13 @@
     margin-left: 0;
 }
 
+.statusChipCompact .chipBonus {
+    color: #3b82f6;
+    font-weight: 600;
+    font-size: 0.75rem;
+    margin-left: 2px;
+}
+
 /* 추가 색상 칩 */
 .chipGreen {
     border-left: 3px solid #10B981;
