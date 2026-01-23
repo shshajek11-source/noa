@@ -241,7 +241,7 @@ export default function MobileLedgerPage() {
     const canEdit = isEditable(selectedDate);
 
     // 충전 타입별 다음 충전까지 남은 시간 계산 (초 단위)
-    const getNextChargeSeconds = useCallback((chargeType: '8h' | 'daily' | 'weekly' | 'charge3h') => {
+    const getNextChargeSeconds = useCallback((chargeType: '8h' | 'daily' | 'weekly' | 'charge3h' | '24h') => {
         const now = new Date();
         const currentHour = now.getHours();
         const currentMinute = now.getMinutes();
@@ -300,6 +300,11 @@ export default function MobileLedgerPage() {
             return Math.max(0, daysUntilWed * 24 * 3600 + (24 + hoursUntil - 1) * 3600 + (60 - currentMinute - 1) * 60 + (60 - currentSecond));
         }
 
+        if (chargeType === '24h') {
+            // 24시간마다 충전 (고정 24시간 표시)
+            return 24 * 60 * 60; // 24시간 = 86400초
+        }
+
         return 0;
     }, []);
 
@@ -308,7 +313,8 @@ export default function MobileLedgerPage() {
         '8h': 0,
         'daily': 0,
         'weekly': 0,
-        'charge3h': 0
+        'charge3h': 0,
+        '24h': 0
     });
 
     // 충전 타이머 업데이트 (1초마다)
@@ -318,7 +324,8 @@ export default function MobileLedgerPage() {
                 '8h': getNextChargeSeconds('8h'),
                 'daily': getNextChargeSeconds('daily'),
                 'weekly': getNextChargeSeconds('weekly'),
-                'charge3h': getNextChargeSeconds('charge3h')
+                'charge3h': getNextChargeSeconds('charge3h'),
+                '24h': getNextChargeSeconds('24h')
             });
         };
 
@@ -2625,7 +2632,7 @@ export default function MobileLedgerPage() {
                                 <div className={styles.simpleCardLeft}>
                                     <div className={styles.simpleCardBar}></div>
                                     <span className={styles.simpleCardTitle}>차원침공</span>
-                                    <span className={styles.simpleCardTimer}>{formatTimeRemaining(chargeTimers['daily'])}</span>
+                                    <span className={styles.simpleCardTimer}>{formatTimeRemaining(chargeTimers['24h'])}</span>
                                 </div>
                                 <div className={styles.simpleCardRight}>
                                     <span className={styles.simpleCardCount}>
