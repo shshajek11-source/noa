@@ -1265,12 +1265,16 @@ export default function MobileLedgerPage() {
         const kina = tierData?.kina || 0;
         const multiplier = transcendDouble ? 2 : 1;
 
+        // 충전권에서 사용했는지 추적
+        const usedFromBonus = baseRemaining > 0 ? 0 : 1;
+
         const newRecord: DungeonRecord = {
             id: Date.now().toString(),
             bossName: boss.name,
             tier: transcendTier,
             count: 1,
-            kina: kina * multiplier
+            kina: kina * multiplier,
+            usedFromBonus
         };
 
         setTranscendRecords(prev => {
@@ -1278,7 +1282,7 @@ export default function MobileLedgerPage() {
             if (existing) {
                 return prev.map(r =>
                     r.id === existing.id
-                        ? { ...r, count: r.count + 1, kina: r.kina + newRecord.kina }
+                        ? { ...r, count: r.count + 1, kina: r.kina + newRecord.kina, usedFromBonus: (r.usedFromBonus || 0) + usedFromBonus }
                         : r
                 );
             }
@@ -1316,18 +1320,25 @@ export default function MobileLedgerPage() {
         // 삭제되는 기록의 count 찾기
         const record = transcendRecords.find(r => r.id === recordId);
         const countToRestore = record?.count || 1;
+        const usedFromBonus = record?.usedFromBonus || 0;
+        const usedFromBase = countToRestore - usedFromBonus;
 
         setTranscendRecords(prev => prev.filter(r => r.id !== recordId));
 
-        // 티켓 복구 (기본 티켓 최대치까지)
+        // 티켓 복구 (기본은 기본으로, 보너스는 보너스로)
         setCharacterState(prev => {
             const maxBase = MAX_TICKETS.transcend;
-            const newBase = Math.min(maxBase, prev.baseTickets.transcend + countToRestore);
+            const newBase = Math.min(maxBase, prev.baseTickets.transcend + usedFromBase);
+            const newBonus = (prev.bonusTickets.transcend || 0) + usedFromBonus;
             return {
                 ...prev,
                 baseTickets: {
                     ...prev.baseTickets,
                     transcend: newBase
+                },
+                bonusTickets: {
+                    ...prev.bonusTickets,
+                    transcend: newBonus
                 }
             };
         });
@@ -1353,12 +1364,16 @@ export default function MobileLedgerPage() {
 
         const multiplier = expeditionDouble ? 2 : 1;
 
+        // 충전권에서 사용했는지 추적 (기본 먼저 사용, 기본이 0이면 보너스)
+        const usedFromBonus = baseRemaining > 0 ? 0 : 1;
+
         const newRecord: DungeonRecord = {
             id: Date.now().toString(),
             bossName: boss.name,
             category: category?.name,
             count: 1,
-            kina: (boss.kina || 0) * multiplier
+            kina: (boss.kina || 0) * multiplier,
+            usedFromBonus
         };
 
         setExpeditionRecords(prev => {
@@ -1366,7 +1381,7 @@ export default function MobileLedgerPage() {
             if (existing) {
                 return prev.map(r =>
                     r.id === existing.id
-                        ? { ...r, count: r.count + 1, kina: r.kina + newRecord.kina }
+                        ? { ...r, count: r.count + 1, kina: r.kina + newRecord.kina, usedFromBonus: (r.usedFromBonus || 0) + usedFromBonus }
                         : r
                 );
             }
@@ -1404,18 +1419,25 @@ export default function MobileLedgerPage() {
         // 삭제되는 기록의 count 찾기
         const record = expeditionRecords.find(r => r.id === recordId);
         const countToRestore = record?.count || 1;
+        const usedFromBonus = record?.usedFromBonus || 0;
+        const usedFromBase = countToRestore - usedFromBonus;
 
         setExpeditionRecords(prev => prev.filter(r => r.id !== recordId));
 
-        // 티켓 복구 (기본 티켓 최대치까지)
+        // 티켓 복구 (기본은 기본으로, 보너스는 보너스로)
         setCharacterState(prev => {
             const maxBase = MAX_TICKETS.expedition;
-            const newBase = Math.min(maxBase, prev.baseTickets.expedition + countToRestore);
+            const newBase = Math.min(maxBase, prev.baseTickets.expedition + usedFromBase);
+            const newBonus = (prev.bonusTickets.expedition || 0) + usedFromBonus;
             return {
                 ...prev,
                 baseTickets: {
                     ...prev.baseTickets,
                     expedition: newBase
+                },
+                bonusTickets: {
+                    ...prev.bonusTickets,
+                    expedition: newBonus
                 }
             };
         });
@@ -1441,11 +1463,15 @@ export default function MobileLedgerPage() {
 
         const multiplier = sanctuaryDouble ? 2 : 1;
 
+        // 충전권에서 사용했는지 추적 (기본 먼저 사용, 기본이 0이면 보너스)
+        const usedFromBonus = baseRemaining > 0 ? 0 : 1;
+
         const newRecord: DungeonRecord = {
             id: Date.now().toString(),
             bossName: boss.name,
             count: 1,
-            kina: (boss.kina || 0) * multiplier
+            kina: (boss.kina || 0) * multiplier,
+            usedFromBonus
         };
 
         setSanctuaryRecords(prev => {
@@ -1453,7 +1479,7 @@ export default function MobileLedgerPage() {
             if (existing) {
                 return prev.map(r =>
                     r.id === existing.id
-                        ? { ...r, count: r.count + 1, kina: r.kina + newRecord.kina }
+                        ? { ...r, count: r.count + 1, kina: r.kina + newRecord.kina, usedFromBonus: (r.usedFromBonus || 0) + usedFromBonus }
                         : r
                 );
             }
@@ -1491,21 +1517,78 @@ export default function MobileLedgerPage() {
         // 삭제되는 기록의 count 찾기
         const record = sanctuaryRecords.find(r => r.id === recordId);
         const countToRestore = record?.count || 1;
+        const usedFromBonus = record?.usedFromBonus || 0;
+        const usedFromBase = countToRestore - usedFromBonus;
 
         setSanctuaryRecords(prev => prev.filter(r => r.id !== recordId));
 
-        // 티켓 복구 (기본 티켓 최대치까지)
+        // 티켓 복구 (기본은 기본으로, 보너스는 보너스로)
         setCharacterState(prev => {
             const maxBase = MAX_TICKETS.sanctuary;
-            const newBase = Math.min(maxBase, prev.baseTickets.sanctuary + countToRestore);
+            const newBase = Math.min(maxBase, prev.baseTickets.sanctuary + usedFromBase);
+            const newBonus = (prev.bonusTickets.sanctuary || 0) + usedFromBonus;
             return {
                 ...prev,
                 baseTickets: {
                     ...prev.baseTickets,
                     sanctuary: newBase
+                },
+                bonusTickets: {
+                    ...prev.bonusTickets,
+                    sanctuary: newBonus
                 }
             };
         });
+    };
+
+    // 일일 컨텐츠 완료 횟수 증가 (보너스 티켓 차감 처리)
+    const handleIncrementContent = async (contentType: string, ticketKey: string) => {
+        const maxTicket = MAX_TICKETS[ticketKey as keyof typeof MAX_TICKETS] || 0;
+        const currentCompletion = records.find(r => r.content_type === contentType)?.completion_count || 0;
+        const bonusAvailable = characterState.bonusTickets[ticketKey as keyof typeof characterState.bonusTickets] || 0;
+
+        // 기본 티켓이 남아있으면 그냥 증가
+        if (currentCompletion < maxTicket) {
+            await incrementCompletion(contentType);
+            return;
+        }
+
+        // 기본 티켓 소진 후 보너스 티켓 사용
+        if (bonusAvailable > 0) {
+            await incrementCompletion(contentType);
+            // 보너스 티켓 차감
+            setCharacterState(prev => ({
+                ...prev,
+                bonusTickets: {
+                    ...prev.bonusTickets,
+                    [ticketKey]: Math.max(0, (prev.bonusTickets[ticketKey as keyof typeof prev.bonusTickets] || 0) - 1)
+                }
+            }));
+        }
+    };
+
+    // 일일 컨텐츠 완료 횟수 감소 (보너스 티켓 복구 처리)
+    const handleDecrementContent = async (contentType: string, ticketKey: string) => {
+        const maxTicket = MAX_TICKETS[ticketKey as keyof typeof MAX_TICKETS] || 0;
+        const currentCompletion = records.find(r => r.content_type === contentType)?.completion_count || 0;
+
+        if (currentCompletion <= 0) return;
+
+        // 기본 티켓 범위 내면 그냥 감소
+        if (currentCompletion <= maxTicket) {
+            await decrementCompletion(contentType);
+            return;
+        }
+
+        // 보너스 티켓 사용 중이었으면 복구
+        await decrementCompletion(contentType);
+        setCharacterState(prev => ({
+            ...prev,
+            bonusTickets: {
+                ...prev.bonusTickets,
+                [ticketKey]: (prev.bonusTickets[ticketKey as keyof typeof prev.bonusTickets] || 0) + 1
+            }
+        }));
     };
 
     // 원정 카테고리 변경 시 보스 초기화
@@ -2588,8 +2671,8 @@ export default function MobileLedgerPage() {
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.daily_dungeon})</span>
                                         )}
                                     </span>
-                                    <button className={styles.btnStepSmall} onClick={() => incrementCompletion('daily_dungeon')}>+</button>
-                                    <button className={styles.btnStepSmall} onClick={() => decrementCompletion('daily_dungeon')}>-</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleIncrementContent('daily_dungeon', 'daily_dungeon')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleDecrementContent('daily_dungeon', 'daily_dungeon')}>-</button>
                                 </div>
                             </div>
 
@@ -2608,8 +2691,8 @@ export default function MobileLedgerPage() {
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.awakening})</span>
                                         )}
                                     </span>
-                                    <button className={styles.btnStepSmall} onClick={() => incrementCompletion('awakening_battle')}>+</button>
-                                    <button className={styles.btnStepSmall} onClick={() => decrementCompletion('awakening_battle')}>-</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleIncrementContent('awakening_battle', 'awakening')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleDecrementContent('awakening_battle', 'awakening')}>-</button>
                                 </div>
                             </div>
 
@@ -2628,8 +2711,8 @@ export default function MobileLedgerPage() {
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.nightmare})</span>
                                         )}
                                     </span>
-                                    <button className={styles.btnStepSmall} onClick={() => incrementCompletion('nightmare')}>+</button>
-                                    <button className={styles.btnStepSmall} onClick={() => decrementCompletion('nightmare')}>-</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleIncrementContent('nightmare', 'nightmare')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleDecrementContent('nightmare', 'nightmare')}>-</button>
                                 </div>
                             </div>
 
@@ -2648,8 +2731,8 @@ export default function MobileLedgerPage() {
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.dimension})</span>
                                         )}
                                     </span>
-                                    <button className={styles.btnStepSmall} onClick={() => incrementCompletion('dimension_invasion')}>+</button>
-                                    <button className={styles.btnStepSmall} onClick={() => decrementCompletion('dimension_invasion')}>-</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleIncrementContent('dimension_invasion', 'dimension')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleDecrementContent('dimension_invasion', 'dimension')}>-</button>
                                 </div>
                             </div>
 
@@ -2668,8 +2751,8 @@ export default function MobileLedgerPage() {
                                             <span className={styles.dungeonCardBonus}>(+{characterState.bonusTickets.subjugation})</span>
                                         )}
                                     </span>
-                                    <button className={styles.btnStepSmall} onClick={() => incrementCompletion('subjugation')}>+</button>
-                                    <button className={styles.btnStepSmall} onClick={() => decrementCompletion('subjugation')}>-</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleIncrementContent('subjugation', 'subjugation')}>+</button>
+                                    <button className={styles.btnStepSmall} onClick={() => handleDecrementContent('subjugation', 'subjugation')}>-</button>
                                 </div>
                             </div>
                         </div>
