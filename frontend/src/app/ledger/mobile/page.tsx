@@ -805,15 +805,21 @@ export default function MobileLedgerPage() {
         }, 500);
     }, [saveWeeklyContent]);
 
-    // 주간 컨텐츠 증가/감소 함수
+    // 주간 컨텐츠 상태 변경 감지 후 자동 저장 (PC와 동일한 방식)
+    // 로딩 중이 아니고, 캐릭터가 선택되어 있을 때만 저장
+    useEffect(() => {
+        if (!selectedCharacterId || weeklyContentLoadingRef.current || !canEdit) return;
+        debouncedSaveWeeklyContent();
+    }, [selectedCharacterId, weeklyContent, canEdit, debouncedSaveWeeklyContent]);
+
+    // 주간 컨텐츠 증가/감소 함수 (저장은 useEffect에서 자동으로 처리)
     const incrementMission = useCallback(() => {
         if (!canEdit) return;
         setWeeklyContent(prev => ({
             ...prev,
             missionCount: Math.min(5, prev.missionCount + 1)
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     const decrementMission = useCallback(() => {
         if (!canEdit) return;
@@ -821,8 +827,7 @@ export default function MobileLedgerPage() {
             ...prev,
             missionCount: Math.max(0, prev.missionCount - 1)
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     const incrementWeeklyOrder = useCallback(() => {
         if (!canEdit) return;
@@ -830,8 +835,7 @@ export default function MobileLedgerPage() {
             ...prev,
             weeklyOrderCount: Math.min(12, prev.weeklyOrderCount + 1)
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     const decrementWeeklyOrder = useCallback(() => {
         if (!canEdit) return;
@@ -839,8 +843,7 @@ export default function MobileLedgerPage() {
             ...prev,
             weeklyOrderCount: Math.max(0, prev.weeklyOrderCount - 1)
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     const incrementAbyssOrder = useCallback(() => {
         if (!canEdit) return;
@@ -848,8 +851,7 @@ export default function MobileLedgerPage() {
             ...prev,
             abyssOrderCount: Math.min(20, prev.abyssOrderCount + 1)
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     const decrementAbyssOrder = useCallback(() => {
         if (!canEdit) return;
@@ -857,18 +859,16 @@ export default function MobileLedgerPage() {
             ...prev,
             abyssOrderCount: Math.max(0, prev.abyssOrderCount - 1)
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
-    // 전체완료 함수들
+    // 전체완료 함수들 (저장은 useEffect에서 자동으로 처리)
     const completeAllMission = useCallback(() => {
         if (!canEdit) return;
         setWeeklyContent(prev => ({
             ...prev,
             missionCount: 5
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     const completeAllWeeklyOrder = useCallback(() => {
         if (!canEdit) return;
@@ -876,8 +876,7 @@ export default function MobileLedgerPage() {
             ...prev,
             weeklyOrderCount: 12
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     const completeAllAbyssOrder = useCallback(() => {
         if (!canEdit) return;
@@ -885,8 +884,7 @@ export default function MobileLedgerPage() {
             ...prev,
             abyssOrderCount: 20
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     const incrementShugo = useCallback(() => {
         if (!canEdit) return;
@@ -903,8 +901,7 @@ export default function MobileLedgerPage() {
                 shugoTickets: { ...prev.shugoTickets, base: Math.max(0, prev.shugoTickets.base - 1) }
             };
         });
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     const decrementShugo = useCallback(() => {
         if (!canEdit) return;
@@ -912,8 +909,7 @@ export default function MobileLedgerPage() {
             ...prev,
             shugoTickets: { ...prev.shugoTickets, base: Math.min(14, prev.shugoTickets.base + 1) }
         }));
-        debouncedSaveWeeklyContent();
-    }, [canEdit, debouncedSaveWeeklyContent]);
+    }, [canEdit]);
 
     // 컨텐츠 기록
     const {
@@ -1787,8 +1783,7 @@ export default function MobileLedgerPage() {
                     bonus: prev.shugoTickets.bonus + charges['shugo_festa']
                 }
             }));
-            // 주간 컨텐츠 저장 트리거
-            debouncedSaveWeeklyContent();
+            // 주간 컨텐츠 저장은 useEffect에서 자동으로 처리됨
         }
 
         // 슈고페스타 제외한 나머지 보너스 티켓 업데이트
