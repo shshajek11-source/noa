@@ -387,14 +387,8 @@ export function parseStatString(statStr: string): { name: string, value: number,
     }
   }
 
-  // 디버그: 파싱 실패한 경우 기록
-  if (process.env.NODE_ENV === 'development') {
-    console.warn('parseStatString: 파싱 실패', {
-      original: statStr,
-      cleaned: cleanStatStr
-    })
-  }
-
+  // 값이 없는 스탯 이름만 있는 경우는 조용히 무시 (정상 케이스)
+  // 예: "위력", "민첩", "정의[네자칸]" 등 카테고리 헤더
   return null
 }
 
