@@ -5,13 +5,13 @@ export async function GET(request: NextRequest) {
     // 인증은 admin 페이지 접근 제어로 대체 (API 자체는 허용)
     // Initialize Supabase client inside handler to avoid build-time errors
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseKey) {
         return NextResponse.json({ error: 'Supabase credentials missing' }, { status: 500 })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
     const { searchParams } = new URL(request.url)
     const serverId = searchParams.get('serverId') || '2002' // Default to Zikel
