@@ -66,11 +66,14 @@ export default function RankingTable({ type }: RankingTableProps) {
     const [hasMore, setHasMore] = useState(false)
     const [isLoadingMore, setIsLoadingMore] = useState(false)
 
+    // searchParams를 문자열로 변환하여 실제 값이 변경될 때만 트리거
+    const searchParamsString = searchParams.toString()
+
     // Reset and fetch when filters change
     useEffect(() => {
         setPage(1)
         fetchRanking(1, true)
-    }, [searchParams, type])
+    }, [searchParamsString, type])
 
     const fetchRanking = async (pageNum: number, isReset: boolean = false) => {
         if (isReset) {
