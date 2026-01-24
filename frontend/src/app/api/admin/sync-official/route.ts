@@ -80,6 +80,8 @@ export async function GET(request: NextRequest) {
             profile_image: item.profileImage,
             level: 0, // API doesn't provide level in this list, default to 0
             updated_at: new Date().toISOString(),
+            // 상세 조회용 랭킹 순위 (DB에는 저장 안 됨, 응답에만 포함)
+            rank: item.rank,
             // Ensure other required fields have defaults or are nullable
             rankings: {
                 // Store the raw rank and point for this specific type

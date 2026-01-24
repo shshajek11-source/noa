@@ -575,8 +575,8 @@ export default function CrawlPage() {
         setIsPaused(false)
         setCurrentTask('')
 
-        // 수집된 캐릭터 저장 (랭킹 기준 정렬)
-        const sortedCharacters = [...allCharacters].sort((a, b) => (b.ranking_ap || 0) - (a.ranking_ap || 0))
+        // 수집된 캐릭터 저장 (원본 랭킹 순위 기준 정렬)
+        const sortedCharacters = [...allCharacters].sort((a, b) => (a.rank || 999) - (b.rank || 999))
         setCollectedCharacters(sortedCharacters)
 
         addLog(`크롤링 ${abortRef.current ? '중단' : '완료'}! 총 ${allCharacters.length}건 수집`, abortRef.current ? 'warning' : 'success')
