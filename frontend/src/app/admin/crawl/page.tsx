@@ -26,6 +26,14 @@ const STORAGE_KEYS = {
     dailyRequests: 'crawl_daily_requests'
 }
 
+// 상세 조회 옵션
+const DETAIL_FETCH_OPTIONS = [
+    { value: 10, label: 'TOP 10' },
+    { value: 30, label: 'TOP 30' },
+    { value: 50, label: 'TOP 50' },
+    { value: 100, label: 'TOP 100' },
+]
+
 // Content Toggle Button
 function ContentToggle({ content, selected, disabled, onToggle }: {
     content: typeof CONTENT_TYPES[0]
@@ -180,6 +188,13 @@ export default function CrawlPage() {
     // Checkpoint & History
     const [checkpoint, setCheckpoint] = useState<CrawlCheckpoint | null>(null)
     const [history, setHistory] = useState<CrawlHistory[]>([])
+
+    // 랭커 상세 조회 관련 상태
+    const [collectedCharacters, setCollectedCharacters] = useState<any[]>([])
+    const [detailFetchCount, setDetailFetchCount] = useState(30)
+    const [isDetailRunning, setIsDetailRunning] = useState(false)
+    const [detailProgress, setDetailProgress] = useState({ current: 0, total: 0 })
+    const detailAbortRef = useRef(false)
 
     // Refs for async control
     const abortRef = useRef(false)
@@ -560,7 +575,15 @@ export default function CrawlPage() {
         setIsPaused(false)
         setCurrentTask('')
 
+        // 수집된 캐릭터 저장 (랭킹 기준 정렬)
+        const sortedCharacters = [...allCharacters].sort((a, b) => (b.ranking_ap || 0) - (a.ranking_ap || 0))
+        setCollectedCharacters(sortedCharacters)
+
         addLog(`크롤링 ${abortRef.current ? '중단' : '완료'}! 총 ${allCharacters.length}건 수집`, abortRef.current ? 'warning' : 'success')
+
+        if (allCharacters.length > 0) {
+            addLog(`상세 조회 가능: 상위 ${Math.min(100, allCharacters.length)}명`, 'info')
+        }
     }
 
     const handlePauseCrawl = () => {
@@ -596,6 +619,79 @@ export default function CrawlPage() {
             setHistory([])
             localStorage.removeItem(STORAGE_KEYS.history)
         }
+    }
+
+    // 랭커 상세 조회 함수
+    const handleDetailCrawl = async () => {
+        if (collectedCharacters.length === 0) {
+            alert('먼저 랭킹 크롤링을 실행해주세요.')
+            return
+        }
+
+        const targetCount = Math.min(detailFetchCount, collectedCharacters.length)
+        const targetCharacters = collectedCharacters.slice(0, targetCount)
+
+        // 예상 시간 계산 (3초 딜레이)
+        const estimatedMinutes = Math.ceil((targetCount * 3) / 60)
+
+        if (!confirm(`${targetCount}명의 상세 정보를 조회합니다.\n예상 소요: ${estimatedMinutes}분\n(3초 간격으로 안전하게 요청)\n\n시작하시겠습니까?`)) {
+            return
+        }
+
+        detailAbortRef.current = false
+        setIsDetailRunning(true)
+        setDetailProgress({ current: 0, total: targetCount })
+
+        addLog(`🔍 랭커 상세 조회 시작 (${targetCount}명)`, 'info')
+
+        let successCount = 0
+        let errorCount = 0
+
+        for (let i = 0; i < targetCharacters.length; i++) {
+            if (detailAbortRef.current) {
+                addLog('상세 조회 중단됨', 'warning')
+                break
+            }
+
+            const char = targetCharacters[i]
+            const charName = char.name || '알 수 없음'
+
+            setDetailProgress({ current: i + 1, total: targetCount })
+
+            try {
+                // /api/character 호출 (기존 API 활용)
+                const res = await fetch(`/api/character?id=${char.character_id}&server=${char.server_id}`)
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`)
+                }
+
+                const data = await res.json()
+
+                if (data.error) {
+                    throw new Error(data.error)
+                }
+
+                successCount++
+                addLog(`[${i + 1}/${targetCount}] ${charName} - 조회 완료`, 'success')
+            } catch (error: any) {
+                errorCount++
+                addLog(`[${i + 1}/${targetCount}] ${charName} - ${error.message}`, 'error')
+            }
+
+            // 3초 딜레이 (마지막은 제외)
+            if (i < targetCharacters.length - 1) {
+                await new Promise(r => setTimeout(r, 3000))
+            }
+        }
+
+        setIsDetailRunning(false)
+        addLog(`🔍 상세 조회 완료 - 성공: ${successCount}, 실패: ${errorCount}`, successCount > errorCount ? 'success' : 'warning')
+    }
+
+    const handleStopDetailCrawl = () => {
+        detailAbortRef.current = true
+        addLog('상세 조회 중단 요청...', 'warning')
     }
 
     const { totalCalls, minutes } = estimateTime()
@@ -768,6 +864,119 @@ export default function CrawlPage() {
                     isPaused={isPaused}
                     currentDelay={currentDelay}
                 />
+            )}
+
+            {/* 랭커 상세 조회 섹션 */}
+            {collectedCharacters.length > 0 && !isRunning && (
+                <DSCard
+                    title={`🔍 랭커 상세 조회 (${collectedCharacters.length}명 수집됨)`}
+                    hoverEffect={false}
+                    style={{ padding: '0.75rem' }}
+                >
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '1rem'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                                    조회 대상
+                                </div>
+                                <select
+                                    value={detailFetchCount}
+                                    onChange={(e) => setDetailFetchCount(parseInt(e.target.value))}
+                                    disabled={isDetailRunning}
+                                    style={{
+                                        padding: '0.5rem 0.75rem',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '6px',
+                                        color: 'var(--brand-white)',
+                                        fontSize: '0.85rem',
+                                        cursor: isDetailRunning ? 'not-allowed' : 'pointer'
+                                    }}
+                                >
+                                    {DETAIL_FETCH_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value} disabled={opt.value > collectedCharacters.length}>
+                                            {opt.label} {opt.value > collectedCharacters.length ? '(부족)' : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                                    예상 소요
+                                </div>
+                                <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--brand-white)', fontFamily: 'monospace' }}>
+                                    ~{Math.ceil((Math.min(detailFetchCount, collectedCharacters.length) * 3) / 60)}분
+                                </div>
+                            </div>
+
+                            {isDetailRunning && (
+                                <div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                                        진행률
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <div style={{
+                                            width: '120px',
+                                            height: '6px',
+                                            background: 'rgba(255,255,255,0.1)',
+                                            borderRadius: '3px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: `${(detailProgress.current / detailProgress.total) * 100}%`,
+                                                height: '100%',
+                                                background: 'linear-gradient(90deg, #3B82F6, #60A5FA)',
+                                                transition: 'width 0.3s'
+                                            }} />
+                                        </div>
+                                        <span style={{ fontSize: '0.8rem', color: '#3B82F6', fontWeight: 600 }}>
+                                            {detailProgress.current}/{detailProgress.total}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            {isDetailRunning ? (
+                                <DSButton variant="danger" size="sm" onClick={handleStopDetailCrawl}>
+                                    ⏹️ 중단
+                                </DSButton>
+                            ) : (
+                                <DSButton variant="secondary" onClick={handleDetailCrawl}>
+                                    🔍 상세 조회 시작
+                                </DSButton>
+                            )}
+                            <DSButton
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setCollectedCharacters([])}
+                                disabled={isDetailRunning}
+                            >
+                                🗑️ 초기화
+                            </DSButton>
+                        </div>
+                    </div>
+
+                    <div style={{
+                        marginTop: '0.75rem',
+                        padding: '0.5rem 0.75rem',
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        color: '#93C5FD'
+                    }}>
+                        💡 상세 조회는 캐릭터별 장비/스탯 정보를 수집합니다. 3초 간격으로 안전하게 요청합니다.
+                    </div>
+                </DSCard>
             )}
 
             {/* Log Panel */}
