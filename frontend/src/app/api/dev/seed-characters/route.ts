@@ -8,9 +8,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Not available in production' }, { status: 403 })
   }
 
-  const user = await getUserFromRequestWithDevice(request)
+  // 개발 환경에서는 device_id 자동 생성/사용
+  let user = await getUserFromRequestWithDevice(request)
+
+  // 인증 실패 시 임시 device_id로 시도
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const supabase = getSupabase()
+    const tempDeviceId = 'dev-test-device-001'
+
+    // 기존 사용자 찾기 또는 생성
+    const { data: existingUser } = await supabase
+      .from('ledger_users')
+      .select('id')
+      .eq('device_id', tempDeviceId)
+      .single()
+
+    if (existingUser) {
+      user = { id: existingUser.id }
+    } else {
+      const { data: newUser, error } = await supabase
+        .from('ledger_users')
+        .insert({ device_id: tempDeviceId })
+        .select('id')
+        .single()
+
+      if (error || !newUser) {
+        return NextResponse.json({ error: 'Failed to create test user' }, { status: 500 })
+      }
+      user = { id: newUser.id }
+    }
   }
 
   const supabase = getSupabase()
