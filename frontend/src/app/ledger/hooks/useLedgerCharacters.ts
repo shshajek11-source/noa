@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import useSWR from 'swr'
+import { useCallback } from 'react'
 import { LedgerCharacter, CreateCharacterRequest } from '@/types/ledger'
 
 interface UseLedgerCharactersProps {
@@ -9,39 +10,28 @@ interface UseLedgerCharactersProps {
 }
 
 export function useLedgerCharacters({ getAuthHeader, isReady }: UseLedgerCharactersProps) {
-  const [characters, setCharacters] = useState<LedgerCharacter[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchCharacters = useCallback(async () => {
-    if (!isReady) return
-
-    setIsLoading(true)
-    try {
-      const res = await fetch('/api/ledger/characters', {
-        headers: getAuthHeader()
-      })
-
-      if (!res.ok) {
-        throw new Error('Failed to fetch characters')
-      }
-
-      const data = await res.json()
-      setCharacters(data)
-      setError(null)
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setIsLoading(false)
+  // SWR fetcher with auth headers
+  const fetcher = useCallback(async (url: string) => {
+    const res = await fetch(url, {
+      headers: getAuthHeader()
+    })
+    if (!res.ok) {
+      throw new Error('Failed to fetch characters')
     }
-  }, [isReady, getAuthHeader])
+    return res.json()
+  }, [getAuthHeader])
 
-  useEffect(() => {
-    fetchCharacters()
-  }, [fetchCharacters])
+  // SWR hook - isReady가 false면 null key로 요청 안함
+  const { data: characters = [], error, isLoading, mutate } = useSWR<LedgerCharacter[]>(
+    isReady ? '/api/ledger/characters' : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 2000
+    }
+  )
 
   const addCharacter = async (character: CreateCharacterRequest) => {
-    // isReady가 false여도 시도 (로딩 중일 수 있음)
     const headers = getAuthHeader()
 
     console.log('[useLedgerCharacters] addCharacter 시작:', {
@@ -53,7 +43,6 @@ export function useLedgerCharacters({ getAuthHeader, isReady }: UseLedgerCharact
     // 인증 헤더가 없으면 에러
     if (Object.keys(headers).length === 0) {
       console.error('[useLedgerCharacters] No auth headers available')
-      setError('인증 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
       return null
     }
 
@@ -82,12 +71,16 @@ export function useLedgerCharacters({ getAuthHeader, isReady }: UseLedgerCharact
 
       const newCharacter = await res.json()
       console.log('[useLedgerCharacters] 캐릭터 추가 성공:', newCharacter)
-      setCharacters(prev => [...prev, newCharacter])
+
+      // 낙관적 업데이트: 즉시 UI 반영 후 서버 재검증
+      await mutate([...characters, newCharacter], {
+        revalidate: true  // 서버에서 최신 데이터 다시 가져옴
+      })
+
       return newCharacter
     } catch (e: any) {
       const errorMsg = e?.message || String(e) || '캐릭터 추가에 실패했습니다'
       console.error('[useLedgerCharacters] addCharacter error:', errorMsg, e)
-      setError(errorMsg)
       return null
     }
   }
@@ -96,29 +89,37 @@ export function useLedgerCharacters({ getAuthHeader, isReady }: UseLedgerCharact
     if (!isReady) return false
 
     try {
+      // 낙관적 업데이트: 먼저 UI에서 제거
+      const filteredCharacters = characters.filter(c => c.id !== id)
+      await mutate(filteredCharacters, false)  // 서버 재검증 없이 즉시 반영
+
       const res = await fetch(`/api/ledger/characters/${id}`, {
         method: 'DELETE',
         headers: getAuthHeader()
       })
 
       if (!res.ok) {
+        // 실패 시 원복
+        await mutate()
         throw new Error('Failed to delete character')
       }
 
-      setCharacters(prev => prev.filter(c => c.id !== id))
+      // 성공 시 서버 재검증
+      await mutate()
       return true
     } catch (e: any) {
-      setError(e.message)
+      console.error('[useLedgerCharacters] removeCharacter error:', e.message)
       return false
     }
   }
 
+  // 기존 인터페이스 100% 유지
   return {
     characters,
     isLoading,
-    error,
+    error: error?.message || null,
     addCharacter,
     removeCharacter,
-    refetch: fetchCharacters
+    refetch: mutate  // mutate를 refetch로 alias
   }
 }

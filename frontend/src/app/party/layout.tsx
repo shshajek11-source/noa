@@ -1,13 +1,12 @@
-import '../../globals.css'
 import { Metadata } from 'next'
 import SWRProvider from './SWRProvider'
 
 export const metadata: Metadata = {
-    title: '가계부 - AION 2 | HitOn',
-    description: 'AION 2 게임 내 수입과 컨텐츠 진행을 관리하세요.',
+    title: '파티 찾기 - AION 2 | HitOn',
+    description: 'AION 2 파티를 찾고 모집하세요.',
 }
 
-export default function MobileLedgerLayout({
+export default function PartyLayout({
     children,
 }: {
     children: React.ReactNode

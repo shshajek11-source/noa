@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import useSWR from 'swr'
+import { useCallback } from 'react'
 import { ContentRecord, ContentType, DungeonTier, UpdateContentRecordRequest } from '@/types/ledger'
 
 // 각 컨텐츠별 기본 maxCount (PC와 동일하게 유지)
@@ -35,117 +36,99 @@ interface UseContentRecordsProps {
 }
 
 export function useContentRecords({ getAuthHeader, isReady, characterId, date }: UseContentRecordsProps) {
-  const [records, setRecords] = useState<ContentRecord[]>([])
-  const [contentTypes, setContentTypes] = useState<ContentType[]>([])
-  const [dungeonTiers, setDungeonTiers] = useState<DungeonTier[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const lastLoadedRef = useRef<string | null>(null) // 중복 호출 방지
-
-  // 컨텐츠 타입 및 던전 단계 로드
-  const fetchContentTypes = useCallback(async () => {
-    try {
-      const res = await fetch('/api/ledger/content-types')
-      if (res.ok) {
-        const data = await res.json()
-        setContentTypes(data.contentTypes)
-        setDungeonTiers(data.dungeonTiers)
-      }
-    } catch (e: any) {
-      console.error('Failed to fetch content types:', e)
+  // 컨텐츠 타입 및 던전 단계 로드 (전역 데이터, 한 번만 로드)
+  const { data: typeData } = useSWR<{ contentTypes: ContentType[], dungeonTiers: DungeonTier[] }>(
+    '/api/ledger/content-types',
+    async (url) => {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('Failed to fetch content types')
+      return res.json()
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60000 * 60  // 1시간 캐시
     }
-  }, [])
+  )
 
-  // 잘못된 0키나 컨텐츠 레코드 정리 (base_kina > 0인 경우 수정)
-  const cleanupZeroKinaRecords = useCallback(async (records: ContentRecord[]) => {
-    const badRecords = records.filter(r =>
+  const contentTypes = typeData?.contentTypes || []
+  const dungeonTiers = typeData?.dungeonTiers || []
+
+  // 레코드 fetcher
+  const recordsFetcher = useCallback(async (url: string) => {
+    const res = await fetch(url, {
+      headers: getAuthHeader()
+    })
+    if (!res.ok) {
+      console.error('[Content Records] Fetch failed:', res.status, res.statusText)
+      throw new Error('Failed to fetch records')
+    }
+    let data = await res.json()
+
+    // 잘못된 0키나 레코드 자동 정리
+    const badRecords = data.filter((r: ContentRecord) =>
       ZERO_KINA_CONTENT_TYPES.includes(r.content_type) && r.base_kina > 0
     )
 
-    if (badRecords.length === 0) return records
+    if (badRecords.length > 0) {
+      console.log('[Content Records] Cleaning up bad zero-kina records:', badRecords.map((r: ContentRecord) => r.content_type))
 
-    console.log('[Content Records] Cleaning up bad zero-kina records:', badRecords.map(r => r.content_type))
-
-    // 잘못된 레코드 수정 (병렬 처리)
-    await Promise.all(badRecords.map(async (record) => {
-      try {
-        await fetch('/api/ledger/content-records', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeader()
-          },
-          body: JSON.stringify({
-            characterId,
-            date,
-            content_type: record.content_type,
-            dungeon_tier: record.dungeon_tier,
-            max_count: record.max_count,
-            completion_count: record.completion_count,
-            is_double: record.is_double,
-            base_kina: 0  // 0키나로 수정
+      // 잘못된 레코드 수정 (병렬 처리)
+      await Promise.all(badRecords.map(async (record: ContentRecord) => {
+        try {
+          await fetch('/api/ledger/content-records', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...getAuthHeader()
+            },
+            body: JSON.stringify({
+              characterId,
+              date,
+              content_type: record.content_type,
+              dungeon_tier: record.dungeon_tier,
+              max_count: record.max_count,
+              completion_count: record.completion_count,
+              is_double: record.is_double,
+              base_kina: 0  // 0키나로 수정
+            })
           })
-        })
-      } catch (e) {
-        console.error(`[Content Records] Failed to cleanup ${record.content_type}:`, e)
-      }
-    }))
+        } catch (e) {
+          console.error(`[Content Records] Failed to cleanup ${record.content_type}:`, e)
+        }
+      }))
 
-    // 수정된 레코드 반환
-    return records.map(r =>
-      ZERO_KINA_CONTENT_TYPES.includes(r.content_type)
-        ? { ...r, base_kina: 0, total_kina: 0 }
-        : r
-    )
-  }, [characterId, date, getAuthHeader])
-
-  // 기록 로드
-  const fetchRecords = useCallback(async () => {
-    if (!isReady || !characterId || !date) return
-
-    setIsLoading(true)
-    try {
-      const res = await fetch(`/api/ledger/content-records?characterId=${characterId}&date=${date}`, {
-        headers: getAuthHeader()
-      })
-      if (res.ok) {
-        let data = await res.json()
-        // 잘못된 0키나 레코드 자동 정리
-        data = await cleanupZeroKinaRecords(data)
-        setRecords(data)
-      } else {
-        console.error('[Content Records] Fetch failed:', res.status, res.statusText)
-      }
-    } catch (e: any) {
-      console.error('[Content Records] Fetch error:', e)
-      setError(e.message)
-    } finally {
-      setIsLoading(false)
+      // 수정된 레코드 반환
+      data = data.map((r: ContentRecord) =>
+        ZERO_KINA_CONTENT_TYPES.includes(r.content_type)
+          ? { ...r, base_kina: 0, total_kina: 0 }
+          : r
+      )
     }
-  }, [isReady, characterId, date, getAuthHeader, cleanupZeroKinaRecords])
 
-  useEffect(() => {
-    fetchContentTypes()
-  }, [fetchContentTypes])
+    return data as ContentRecord[]
+  }, [getAuthHeader, characterId, date])
 
-  useEffect(() => {
-    // 중복 호출 방지
-    const loadKey = `${characterId}-${date}`
-    if (lastLoadedRef.current === loadKey) {
-      return
+  // 레코드 로드 (SWR)
+  const swrKey = isReady && characterId && date
+    ? `/api/ledger/content-records?characterId=${characterId}&date=${date}`
+    : null
+
+  const { data: records = [], error, isLoading, mutate } = useSWR<ContentRecord[]>(
+    swrKey,
+    recordsFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 2000
     }
-    if (characterId && date) {
-      lastLoadedRef.current = loadKey
-    }
-    fetchRecords()
-  }, [fetchRecords, characterId, date])
+  )
 
   // 특정 컨텐츠의 던전 단계 목록 가져오기
   const getTiersForContent = useCallback((contentType: string) => {
     return dungeonTiers.filter(t => t.content_type === contentType)
   }, [dungeonTiers])
 
-  // 기록 업데이트
+  // 기록 업데이트 (낙관적 업데이트 적용)
   const updateRecord = async (
     contentType: string,
     data: Partial<UpdateContentRecordRequest>
@@ -172,6 +155,30 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
         base_kina: isZeroKinaContent ? 0 : (data.base_kina ?? existing?.base_kina ?? defaultTier?.default_kina ?? 50000)
       }
 
+      // 낙관적 업데이트: 먼저 UI 반영
+      const optimisticRecord: ContentRecord = {
+        id: existing?.id || 'temp-' + Date.now(),
+        character_id: characterId,
+        record_date: date,
+        content_type: contentType,
+        dungeon_tier: payload.dungeon_tier,
+        max_count: payload.max_count,
+        completion_count: payload.completion_count,
+        is_double: payload.is_double,
+        base_kina: payload.base_kina,
+        total_kina: isZeroKinaContent ? 0 : payload.base_kina * payload.completion_count * (payload.is_double ? 2 : 1),
+        created_at: existing?.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      const optimisticRecords = existing
+        ? records.map(r => r.content_type === contentType ? optimisticRecord : r)
+        : [...records, optimisticRecord]
+
+      // UI 즉시 반영
+      await mutate(optimisticRecords, false)
+
+      // 서버에 저장
       const res = await fetch('/api/ledger/content-records', {
         method: 'POST',
         headers: {
@@ -182,34 +189,29 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
       })
 
       if (!res.ok) {
+        // 실패 시 원복
+        await mutate()
         throw new Error('Failed to update record')
       }
 
       const updated = await res.json()
 
-      // 로컬 상태 업데이트
-      setRecords(prev => {
-        const idx = prev.findIndex(r => r.content_type === contentType)
-        if (idx >= 0) {
-          const newRecords = [...prev]
-          newRecords[idx] = updated
-          return newRecords
-        } else {
-          return [...prev, updated]
-        }
-      })
+      // 서버 응답으로 최종 동기화
+      const finalRecords = existing
+        ? records.map(r => r.content_type === contentType ? updated : r)
+        : [...records, updated]
+      await mutate(finalRecords, false)
 
       return updated
     } catch (e: any) {
-      setError(e.message)
+      console.error('[Content Records] Update error:', e)
       return null
     }
   }
 
-  // 완료 횟수 증가
+  // 완료 횟수 증가 (낙관적 업데이트)
   const incrementCompletion = async (contentType: string) => {
     const existing = records.find(r => r.content_type === contentType)
-    // 기본값을 컨텐츠별로 설정 (PC와 동일)
     const maxCount = existing?.max_count ?? DEFAULT_MAX_COUNTS[contentType] ?? 3
     const currentCount = existing?.completion_count ?? 0
 
@@ -217,11 +219,11 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
 
     return updateRecord(contentType, {
       completion_count: currentCount + 1,
-      max_count: maxCount  // maxCount도 함께 저장
+      max_count: maxCount
     })
   }
 
-  // 완료 횟수 감소
+  // 완료 횟수 감소 (낙관적 업데이트)
   const decrementCompletion = async (contentType: string) => {
     const existing = records.find(r => r.content_type === contentType)
     const currentCount = existing?.completion_count ?? 0
@@ -259,7 +261,6 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
 
     return updateRecord(contentType, {
       max_count: maxCount,
-      // 완료 횟수가 새 최대값보다 크면 조정
       completion_count: Math.min(completionCount, maxCount)
     })
   }
@@ -269,12 +270,13 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
     return records.reduce((sum, r) => sum + (r.total_kina || 0), 0)
   }, [records])
 
+  // 기존 인터페이스 100% 유지
   return {
     records,
     contentTypes,
     dungeonTiers,
     isLoading,
-    error,
+    error: error?.message || null,
     getTiersForContent,
     updateRecord,
     incrementCompletion,
@@ -283,6 +285,6 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
     changeDungeonTier,
     changeMaxCount,
     getTotalIncome,
-    refetch: fetchRecords
+    refetch: mutate
   }
 }

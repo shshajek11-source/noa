@@ -976,8 +976,14 @@ export default function MobileLedgerPage() {
     // 아이템 필터 상태
     const [itemStatusFilter, setItemStatusFilter] = useState<'unsold' | 'sold'>('sold');
 
-    // 아이템 카탈로그 로드
+    // 아이템 카탈로그 로드 (아이템 탭 선택 시에만 로드 - 지연 로딩)
+    const catalogLoadedRef = useRef(false);
     useEffect(() => {
+        // 아이템 탭이 아니거나 이미 로드됐으면 스킵
+        if (selectedSubTab !== 'items' || catalogLoadedRef.current || itemCatalog.length > 0) {
+            return;
+        }
+
         const loadItemCatalog = async () => {
             setIsLoadingCatalog(true);
             try {
@@ -1007,6 +1013,7 @@ export default function MobileLedgerPage() {
 
                 const uniqueItems = Array.from(new Map(items.map((i: any) => [i.id, i])).values());
                 setItemCatalog(uniqueItems as any[]);
+                catalogLoadedRef.current = true;
             } catch (e) {
                 console.error('[Mobile] Failed to load item catalog:', e);
             } finally {
@@ -1015,7 +1022,7 @@ export default function MobileLedgerPage() {
         };
 
         loadItemCatalog();
-    }, []);
+    }, [selectedSubTab, itemCatalog.length]);
 
     // 아이템 검색 핸들러
     const handleItemSearch = useCallback((query: string) => {

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import useSWR from 'swr'
+import { useState, useCallback, useMemo } from 'react'
 import { LedgerItem, CreateItemRequest, ItemCategory } from '@/types/ledger'
 import { getKoreanGameDateTime } from '@/lib/koreanDate'
 
@@ -12,38 +13,38 @@ interface UseLedgerItemsProps {
 }
 
 export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDate }: UseLedgerItemsProps) {
-  const [items, setItems] = useState<LedgerItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<ItemCategory | 'all'>('all')
 
-  const fetchItems = useCallback(async () => {
-    if (!characterId) return
-
-    setIsLoading(true)
-    try {
-      const params = new URLSearchParams({ characterId })
-      if (filter !== 'all') {
-        params.append('category', filter)
-      }
-
-      const res = await fetch(`/api/ledger/items?${params}`, {
-        headers: getAuthHeader()
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setItems(data)
-      }
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setIsLoading(false)
+  // SWR fetcher
+  const fetcher = useCallback(async (url: string) => {
+    const res = await fetch(url, {
+      headers: getAuthHeader()
+    })
+    if (!res.ok) {
+      throw new Error('Failed to fetch items')
     }
-  }, [characterId, filter, getAuthHeader])
+    return res.json()
+  }, [getAuthHeader])
 
-  useEffect(() => {
-    fetchItems()
-  }, [fetchItems])
+  // SWR key 생성
+  const swrKey = useMemo(() => {
+    if (!characterId) return null
+    const params = new URLSearchParams({ characterId })
+    if (filter !== 'all') {
+      params.append('category', filter)
+    }
+    return `/api/ledger/items?${params}`
+  }, [characterId, filter])
+
+  // SWR hook
+  const { data: items = [], error, isLoading, mutate } = useSWR<LedgerItem[]>(
+    swrKey,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 2000
+    }
+  )
 
   const addItem = async (item: CreateItemRequest) => {
     console.log('[useLedgerItems] addItem called', { isReady, characterId, item })
@@ -80,11 +81,15 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
 
       const newItem = await res.json()
       console.log('[useLedgerItems] Item added successfully:', newItem)
-      setItems(prev => [newItem, ...prev])
+
+      // 낙관적 업데이트: 즉시 UI 반영
+      await mutate([newItem, ...items], {
+        revalidate: true
+      })
+
       return newItem
     } catch (e: any) {
       console.error('[useLedgerItems] addItem error:', e)
-      setError(e.message)
       return null
     }
   }
@@ -93,6 +98,10 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
     if (!isReady) return null
 
     try {
+      // 낙관적 업데이트
+      const optimisticItems = items.map(i => i.id === id ? { ...i, ...data } : i)
+      await mutate(optimisticItems, false)
+
       const res = await fetch('/api/ledger/items', {
         method: 'PATCH',
         headers: {
@@ -103,14 +112,15 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
       })
 
       if (!res.ok) {
+        await mutate()  // 실패 시 원복
         throw new Error('Failed to update item')
       }
 
       const updated = await res.json()
-      setItems(prev => prev.map(i => i.id === id ? updated : i))
+      await mutate(items.map(i => i.id === id ? updated : i), false)
       return updated
     } catch (e: any) {
-      setError(e.message)
+      console.error('[useLedgerItems] updateItem error:', e)
       return null
     }
   }
@@ -119,6 +129,14 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
     if (!isReady) return null
 
     try {
+      const soldDate = getKoreanGameDateTime()
+
+      // 낙관적 업데이트
+      const optimisticItems = items.map(i =>
+        i.id === id ? { ...i, sold_price: soldPrice, sold_date: soldDate } : i
+      )
+      await mutate(optimisticItems, false)
+
       const res = await fetch('/api/ledger/items', {
         method: 'PATCH',
         headers: {
@@ -128,19 +146,20 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
         body: JSON.stringify({
           id,
           sold_price: soldPrice,
-          sold_date: getKoreanGameDateTime()
+          sold_date: soldDate
         })
       })
 
       if (!res.ok) {
+        await mutate()  // 실패 시 원복
         throw new Error('Failed to update item')
       }
 
       const updated = await res.json()
-      setItems(prev => prev.map(i => i.id === id ? updated : i))
+      await mutate(items.map(i => i.id === id ? updated : i), false)
       return updated
     } catch (e: any) {
-      setError(e.message)
+      console.error('[useLedgerItems] sellItem error:', e)
       return null
     }
   }
@@ -149,6 +168,12 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
     if (!isReady) return null
 
     try {
+      // 낙관적 업데이트
+      const optimisticItems = items.map(i =>
+        i.id === id ? { ...i, sold_price: null, sold_date: null } : i
+      )
+      await mutate(optimisticItems, false)
+
       const res = await fetch('/api/ledger/items', {
         method: 'PATCH',
         headers: {
@@ -163,14 +188,15 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
       })
 
       if (!res.ok) {
+        await mutate()  // 실패 시 원복
         throw new Error('Failed to unsell item')
       }
 
       const updated = await res.json()
-      setItems(prev => prev.map(i => i.id === id ? updated : i))
+      await mutate(items.map(i => i.id === id ? updated : i), false)
       return updated
     } catch (e: any) {
-      setError(e.message)
+      console.error('[useLedgerItems] unsellItem error:', e)
       return null
     }
   }
@@ -179,45 +205,56 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
     if (!isReady) return false
 
     try {
+      // 낙관적 업데이트: 먼저 UI에서 제거
+      const filteredItems = items.filter(i => i.id !== id)
+      await mutate(filteredItems, false)
+
       const res = await fetch(`/api/ledger/items?id=${id}`, {
         method: 'DELETE',
         headers: getAuthHeader()
       })
 
       if (!res.ok) {
+        await mutate()  // 실패 시 원복
         throw new Error('Failed to delete item')
       }
 
-      setItems(prev => prev.filter(i => i.id !== id))
       return true
     } catch (e: any) {
-      setError(e.message)
+      console.error('[useLedgerItems] deleteItem error:', e)
       return false
     }
   }
 
   // 미판매 아이템만 필터
-  const unsoldItems = items.filter(i => i.sold_price === null)
+  const unsoldItems = useMemo(() => items.filter(i => i.sold_price === null), [items])
 
   // 판매완료 아이템만 필터
-  const soldItems = items.filter(i => i.sold_price !== null)
+  const soldItems = useMemo(() => items.filter(i => i.sold_price !== null), [items])
 
   // 전체 판매 수입 합계
-  const totalSoldIncome = soldItems.reduce((sum, i) => sum + (i.sold_price || 0), 0)
+  const totalSoldIncome = useMemo(() =>
+    soldItems.reduce((sum, i) => sum + (i.sold_price || 0), 0),
+    [soldItems]
+  )
 
   // 선택한 날짜의 판매 수입 (sold_date 기준)
-  const selectedDateSoldIncome = selectedDate
-    ? soldItems
-        .filter(i => i.sold_date?.split('T')[0] === selectedDate)
-        .reduce((sum, i) => sum + (i.sold_price || 0), 0)
-    : 0
+  const selectedDateSoldIncome = useMemo(() =>
+    selectedDate
+      ? soldItems
+          .filter(i => i.sold_date?.split('T')[0] === selectedDate)
+          .reduce((sum, i) => sum + (i.sold_price || 0), 0)
+      : 0,
+    [soldItems, selectedDate]
+  )
 
+  // 기존 인터페이스 100% 유지
   return {
     items,
     unsoldItems,
     soldItems,
     isLoading,
-    error,
+    error: error?.message || null,
     filter,
     setFilter,
     addItem,
@@ -227,6 +264,6 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
     deleteItem,
     totalSoldIncome,
     selectedDateSoldIncome,
-    refetch: fetchItems
+    refetch: mutate
   }
 }
