@@ -83,15 +83,24 @@ export async function GET(request: NextRequest) {
             case 'noa':
             case 'pve':
                 // 전투력 탭: sort 파라미터에 따라 PVE 또는 PVP 정렬
+                // 레벨 45 이상만 표시 (저레벨 비정상 데이터 제외)
+                query = query.gte('level', 45)
                 if (sort === 'pvp') {
-                    query = query.order('pvp_score', { ascending: false, nullsFirst: false })
+                    query = query
+                        .gte('pvp_score', 1)
+                        .order('pvp_score', { ascending: false })
                 } else {
-                    query = query.order('pve_score', { ascending: false, nullsFirst: false })
+                    query = query
+                        .gte('pve_score', 1)
+                        .order('pve_score', { ascending: false })
                 }
                 break
             case 'pvp':
                 // PVP 전투력 기준 정렬 (하위 호환)
-                query = query.order('pvp_score', { ascending: false, nullsFirst: false })
+                query = query
+                    .gte('level', 45)
+                    .gte('pvp_score', 1)
+                    .order('pvp_score', { ascending: false })
                 break
             case 'content':
             case 'ap':
@@ -103,7 +112,10 @@ export async function GET(request: NextRequest) {
                 query = query.order('item_level', { ascending: false, nullsFirst: false })
                 break
             default:
-                query = query.order('pve_score', { ascending: false, nullsFirst: false })
+                query = query
+                    .gte('level', 45)
+                    .gte('pve_score', 1)
+                    .order('pve_score', { ascending: false })
                 break
         }
 
