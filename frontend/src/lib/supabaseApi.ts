@@ -31,7 +31,7 @@ export interface CharacterSearchResult {
     item_level?: number // 아이템 레벨
     pve_score?: number // PVE 전투력
     pvp_score?: number // PVP 전투력
-    noa_score?: number // HITON 전투력 (종합)
+    pve_score?: number // HITON 전투력 (종합)
     raw?: ExternalCharacterResult
 }
 

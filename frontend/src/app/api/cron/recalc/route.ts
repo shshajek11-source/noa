@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
         while (hasMore) {
             const { data: characters, error } = await supabase
                 .from('characters')
-                .select('character_id, name, noa_score, equipment, titles, daevanion, stats, profile')
+                .select('character_id, name, pve_score, equipment, titles, daevanion, stats, profile')
                 .not('equipment', 'is', null)
                 .range(offset, offset + batchSize - 1)
 
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
                 if (result.success && result.newScore > 0) {
                     const { error: updateError } = await supabase
                         .from('characters')
-                        .update({ noa_score: result.newScore })
+                        .update({ pve_score: result.newScore })
                         .eq('character_id', char.character_id)
 
                     if (!updateError) {

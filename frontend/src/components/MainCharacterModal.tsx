@@ -95,7 +95,7 @@ export default function MainCharacterModal({ isOpen, onClose, onSelect }: MainCh
 
   // 캐릭터 선택
   const handleSelect = async (char: CharacterSearchResult) => {
-    let hitScore = char.noa_score
+    let hitScore = char.pve_score
     let pveScore = char.pve_score
     let pvpScore = char.pvp_score
     let itemLevel = char.item_level
@@ -136,9 +136,9 @@ export default function MainCharacterModal({ isOpen, onClose, onSelect }: MainCh
             }
           }
 
-          // noa_score (히톤 전투력)
-          if (detailData.noa_score) {
-            hitScore = detailData.noa_score
+          // pve_score (히톤 전투력)
+          if (detailData.pve_score) {
+            hitScore = detailData.pve_score
           }
         }
       } catch (e) {

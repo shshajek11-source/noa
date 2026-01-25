@@ -25,7 +25,7 @@ interface RankingCharacter {
     server_id: string
     race_name: string
     class_name: string
-    noa_score?: number
+    pve_score?: number
     hiton_score?: number
     profile_image?: string
 }
@@ -295,7 +295,7 @@ export default function HomeMobile() {
                                     </div>
                                     <div className={styles.rankingScore}>
                                         <span className={styles.scoreLabel}>HITON</span>
-                                        <span className={styles.scoreNum}>{(char.noa_score || char.hiton_score || 0).toLocaleString()}</span>
+                                        <span className={styles.scoreNum}>{(char.pve_score || char.hiton_score || 0).toLocaleString()}</span>
                                     </div>
                                 </div>
                             )

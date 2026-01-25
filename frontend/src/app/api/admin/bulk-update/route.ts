@@ -21,7 +21,7 @@ async function updateCharacter(characterId: string, serverId: number, baseUrl: s
         const data = await res.json()
         if (data.profile) {
             const itemLevel = data.stats?.statList?.find((s: any) => s.name === '아이템레벨')?.value || 0
-            return { success: true, itemLevel, noaScore: data.profile.noa_score }
+            return { success: true, itemLevel, noaScore: data.profile.pve_score }
         }
         return { success: false, error: 'No profile data' }
     } catch (err: any) {

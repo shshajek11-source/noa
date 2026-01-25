@@ -180,7 +180,7 @@ export interface LocalCharacterRecord {
     race_name: string
     profile_image?: string
     item_level?: number
-    noa_score?: number
+    pve_score?: number
     pve_score?: number
     pvp_score?: number
 }

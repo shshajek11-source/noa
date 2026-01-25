@@ -790,7 +790,7 @@ export const usePartyScanner = () => {
         return matches.slice(0, 4); // 파티 총원 4명 제한
     };
 
-    // Next.js API를 통해 캐릭터 상세 정보 조회 (noa_score 계산 포함)
+    // Next.js API를 통해 캐릭터 상세 정보 조회 (pve_score 계산 포함)
     const fetchCharacterWithNoaScore = async (characterId: string, serverId: number): Promise<any> => {
         try {
             const res = await fetch(`/api/character?characterId=${encodeURIComponent(characterId)}&serverId=${serverId}`);
@@ -809,7 +809,7 @@ export const usePartyScanner = () => {
             }
 
             console.log(`[fetchCharacterWithNoaScore] Got data for ${characterId}:`,
-                'noa_score:', data.profile?.noa_score, 'item_level:', itemLevel);
+                'pve_score:', data.profile?.pve_score, 'item_level:', itemLevel);
 
             // item_level을 데이터에 추가하여 반환
             return { ...data, item_level: itemLevel };
@@ -1029,17 +1029,17 @@ export const usePartyScanner = () => {
             if (localMatch) {
                 addSearchLog(`✅ 로컬DB에서 찾음: "${localMatch.match.name}"`);
                 console.log(`[lookupCharacter] Found in local DB:`, localMatch.match.name,
-                    'noa_score:', localMatch.match.noa_score, 'item_level:', localMatch.match.item_level);
+                    'pve_score:', localMatch.match.pve_score, 'item_level:', localMatch.match.item_level);
 
-                // 로컬 검색 결과에 noa_score가 있으면 바로 사용
-                if (localMatch.match.noa_score && localMatch.match.noa_score > 0) {
-                    console.log(`[lookupCharacter] Using local search result data (has noa_score)`);
+                // 로컬 검색 결과에 pve_score가 있으면 바로 사용
+                if (localMatch.match.pve_score && localMatch.match.pve_score > 0) {
+                    console.log(`[lookupCharacter] Using local search result data (has pve_score)`);
                     return {
                         id: localMatch.match.characterId,
                         characterId: localMatch.match.characterId,
                         name: localMatch.match.name,
                         class: localMatch.match.job || 'Unknown',
-                        cp: localMatch.match.noa_score,
+                        cp: localMatch.match.pve_score,
                         gearScore: localMatch.match.item_level || 0,
                         server: localMatch.match.server,
                         level: localMatch.match.level,
@@ -1051,13 +1051,13 @@ export const usePartyScanner = () => {
                     };
                 }
 
-                // noa_score가 없으면 Next.js API를 통해 상세 조회 (noa_score 계산)
-                console.log(`[lookupCharacter] No noa_score in local result, fetching from /api/character...`);
+                // pve_score가 없으면 Next.js API를 통해 상세 조회 (pve_score 계산)
+                console.log(`[lookupCharacter] No pve_score in local result, fetching from /api/character...`);
                 try {
-                    // Next.js API 호출 (noa_score 계산 포함)
+                    // Next.js API 호출 (pve_score 계산 포함)
                     const detail = await fetchCharacterWithNoaScore(localMatch.match.characterId, serverId);
                     if (detail && detail.profile) {
-                        const noaScore = detail.profile.noa_score || 0;
+                        const noaScore = detail.profile.pve_score || 0;
                         const itemLevel = detail.item_level || 0;
                         const className = detail.profile.className || localMatch.match.job || 'Unknown';
 
@@ -1087,7 +1087,7 @@ export const usePartyScanner = () => {
                         characterId: localMatch.match.characterId,
                         name: localMatch.match.name,
                         class: localMatch.match.job || 'Unknown',
-                        cp: localMatch.match.noa_score || 0,
+                        cp: localMatch.match.pve_score || 0,
                         gearScore: localMatch.match.item_level || 0,
                         server: localMatch.match.server,
                         level: localMatch.match.level,
@@ -1104,7 +1104,7 @@ export const usePartyScanner = () => {
                         characterId: localMatch.match.characterId,
                         name: localMatch.match.name,
                         class: localMatch.match.job || 'Unknown',
-                        cp: localMatch.match.noa_score || 0,
+                        cp: localMatch.match.pve_score || 0,
                         gearScore: localMatch.match.item_level || 0,
                         server: localMatch.match.server,
                         level: localMatch.match.level,
@@ -1130,17 +1130,17 @@ export const usePartyScanner = () => {
             if (liveMatch) {
                 addSearchLog(`✅ 라이브API에서 찾음: "${liveMatch.match.name}"`);
                 console.log(`[lookupCharacter] Found in live API:`, liveMatch.match.name,
-                    'noa_score:', liveMatch.match.noa_score, 'item_level:', liveMatch.match.item_level);
+                    'pve_score:', liveMatch.match.pve_score, 'item_level:', liveMatch.match.item_level);
 
-                // 검색 결과에 noa_score가 있으면 상세 조회 생략 (이미 DB에서 merge됨)
-                if (liveMatch.match.noa_score && liveMatch.match.noa_score > 0) {
-                    console.log(`[lookupCharacter] Using search result data (has noa_score)`);
+                // 검색 결과에 pve_score가 있으면 상세 조회 생략 (이미 DB에서 merge됨)
+                if (liveMatch.match.pve_score && liveMatch.match.pve_score > 0) {
+                    console.log(`[lookupCharacter] Using search result data (has pve_score)`);
                     return {
                         id: liveMatch.match.characterId,
                         characterId: liveMatch.match.characterId,
                         name: liveMatch.match.name,
                         class: liveMatch.match.job || 'Unknown',
-                        cp: liveMatch.match.noa_score,
+                        cp: liveMatch.match.pve_score,
                         gearScore: liveMatch.match.item_level || 0,
                         server: liveMatch.match.server,
                         level: liveMatch.match.level,
@@ -1152,13 +1152,13 @@ export const usePartyScanner = () => {
                     };
                 }
 
-                // noa_score가 없으면 Next.js API를 통해 상세 조회 (noa_score 계산)
-                console.log(`[lookupCharacter] No noa_score in search result, fetching from /api/character...`);
+                // pve_score가 없으면 Next.js API를 통해 상세 조회 (pve_score 계산)
+                console.log(`[lookupCharacter] No pve_score in search result, fetching from /api/character...`);
                 try {
-                    // Next.js API 호출 (noa_score 계산 포함)
+                    // Next.js API 호출 (pve_score 계산 포함)
                     const detail = await fetchCharacterWithNoaScore(liveMatch.match.characterId, serverId);
                     if (detail && detail.profile) {
-                        const noaScore = detail.profile.noa_score || 0;
+                        const noaScore = detail.profile.pve_score || 0;
                         const itemLevel = detail.item_level || 0;
                         const className = detail.profile.className || liveMatch.match.job || 'Unknown';
 
@@ -1188,7 +1188,7 @@ export const usePartyScanner = () => {
                         characterId: liveMatch.match.characterId,
                         name: liveMatch.match.name,
                         class: liveMatch.match.job || 'Unknown',
-                        cp: liveMatch.match.noa_score || 0,
+                        cp: liveMatch.match.pve_score || 0,
                         gearScore: liveMatch.match.item_level || 0,
                         server: liveMatch.match.server,
                         level: liveMatch.match.level,
@@ -1205,7 +1205,7 @@ export const usePartyScanner = () => {
                         characterId: liveMatch.match.characterId,
                         name: liveMatch.match.name,
                         class: liveMatch.match.job || 'Unknown',
-                        cp: liveMatch.match.noa_score || 0,
+                        cp: liveMatch.match.pve_score || 0,
                         gearScore: liveMatch.match.item_level || 0,
                         server: liveMatch.match.server,
                         level: liveMatch.match.level,
@@ -1238,13 +1238,13 @@ export const usePartyScanner = () => {
 
                 if (altLocalMatch) {
                     addSearchLog(`   ✅ 대체이름 로컬DB: "${altName}" (원본: "${name}")`);
-                    // noa_score 유무와 관계없이 찾은 결과 반환
+                    // pve_score 유무와 관계없이 찾은 결과 반환
                     return {
                         id: altLocalMatch.match.characterId,
                         characterId: altLocalMatch.match.characterId,
                         name: altLocalMatch.match.name,
                         class: altLocalMatch.match.job || 'Unknown',
-                        cp: altLocalMatch.match.noa_score || 0,
+                        cp: altLocalMatch.match.pve_score || 0,
                         gearScore: altLocalMatch.match.item_level || 0,
                         server: altLocalMatch.match.server,
                         level: altLocalMatch.match.level,
@@ -1263,13 +1263,13 @@ export const usePartyScanner = () => {
 
                 if (altLiveMatch) {
                     addSearchLog(`   ✅ 대체이름 라이브API: "${altName}" (원본: "${name}")`);
-                    if (altLiveMatch.match.noa_score && altLiveMatch.match.noa_score > 0) {
+                    if (altLiveMatch.match.pve_score && altLiveMatch.match.pve_score > 0) {
                         return {
                             id: altLiveMatch.match.characterId,
                             characterId: altLiveMatch.match.characterId,
                             name: altLiveMatch.match.name,
                             class: altLiveMatch.match.job || 'Unknown',
-                            cp: altLiveMatch.match.noa_score,
+                            cp: altLiveMatch.match.pve_score,
                             gearScore: altLiveMatch.match.item_level || 0,
                             server: altLiveMatch.match.server,
                             level: altLiveMatch.match.level,
@@ -1281,7 +1281,7 @@ export const usePartyScanner = () => {
                         };
                     }
 
-                    // noa_score 없으면 상세 조회
+                    // pve_score 없으면 상세 조회
                     try {
                         const detail = await fetchCharacterWithNoaScore(altLiveMatch.match.characterId, serverId);
                         if (detail && detail.profile) {
@@ -1290,7 +1290,7 @@ export const usePartyScanner = () => {
                                 characterId: detail.profile.characterId || altLiveMatch.match.characterId,
                                 name: detail.profile.characterName || altLiveMatch.match.name,
                                 class: detail.profile.className || altLiveMatch.match.job || 'Unknown',
-                                cp: detail.profile.noa_score || 0,
+                                cp: detail.profile.pve_score || 0,
                                 gearScore: detail.item_level || 0,
                                 server: detail.profile.serverName || altLiveMatch.match.server,
                                 level: detail.profile.characterLevel || altLiveMatch.match.level,
@@ -1312,7 +1312,7 @@ export const usePartyScanner = () => {
                         characterId: altLiveMatch.match.characterId,
                         name: altLiveMatch.match.name,
                         class: altLiveMatch.match.job || 'Unknown',
-                        cp: altLiveMatch.match.noa_score || 0,
+                        cp: altLiveMatch.match.pve_score || 0,
                         gearScore: altLiveMatch.match.item_level || 0,
                         server: altLiveMatch.match.server,
                         level: altLiveMatch.match.level,
@@ -1371,7 +1371,7 @@ export const usePartyScanner = () => {
                         characterId: localMatch.characterId,
                         name: localMatch.name,
                         class: localMatch.job || 'Unknown',
-                        cp: localMatch.noa_score || 0,
+                        cp: localMatch.pve_score || 0,
                         gearScore: localMatch.item_level || 0,
                         server: localMatch.server,
                         level: localMatch.level,
@@ -1394,7 +1394,7 @@ export const usePartyScanner = () => {
                         characterId: liveMatch.characterId,
                         name: liveMatch.name,
                         class: liveMatch.job || 'Unknown',
-                        cp: liveMatch.noa_score || 0,
+                        cp: liveMatch.pve_score || 0,
                         gearScore: liveMatch.item_level || 0,
                         server: liveMatch.server,
                         level: liveMatch.level,
@@ -1433,7 +1433,7 @@ export const usePartyScanner = () => {
                             characterId: localMatch.characterId,
                             name: localMatch.name,
                             class: localMatch.job || 'Unknown',
-                            cp: localMatch.noa_score || 0,
+                            cp: localMatch.pve_score || 0,
                             gearScore: localMatch.item_level || 0,
                             server: localMatch.server,
                             level: localMatch.level,
@@ -1459,7 +1459,7 @@ export const usePartyScanner = () => {
                             characterId: liveMatch.characterId,
                             name: liveMatch.name,
                             class: liveMatch.job || 'Unknown',
-                            cp: liveMatch.noa_score || 0,
+                            cp: liveMatch.pve_score || 0,
                             gearScore: liveMatch.item_level || 0,
                             server: liveMatch.server,
                             level: liveMatch.level,
@@ -2032,7 +2032,7 @@ export const usePartyScanner = () => {
 
                 // HITON 전투력 - 새로운 전투력 계산 시스템 사용
                 const combatPowerResult = calculateCombatPowerFromStats(aggregatedStats, data.stats);
-                const hitonCP = combatPowerResult.totalScore || data.profile?.noa_score || member.cp;
+                const hitonCP = combatPowerResult.totalScore || data.profile?.pve_score || member.cp;
 
                 // 통합 스탯 추출
                 const attackPower = getAggregatedStat('공격력');

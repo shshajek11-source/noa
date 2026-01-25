@@ -166,8 +166,8 @@ export function useCharacterSearch(options: UseCharacterSearchOptions = {}): Use
                 addResults(liveResults.value.list)
             }
 
-            // 정렬 (noa_score 기준)
-            combined.sort((a, b) => (b.noa_score ?? 0) - (a.noa_score ?? 0))
+            // 정렬 (pve_score 기준)
+            combined.sort((a, b) => (b.pve_score ?? 0) - (a.pve_score ?? 0))
 
             // 최대 개수 제한
             const finalResults = combined.slice(0, maxResults)

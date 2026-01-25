@@ -263,7 +263,7 @@ function RankingMiniItem({ character, rank, raceColor, showClass, showServer }: 
 
             {/* HITON Score */}
             <div className={styles.charScore}>
-                {(character.noa_score || character.hiton_score || 0).toLocaleString()}
+                {(character.pve_score || character.hiton_score || 0).toLocaleString()}
             </div>
         </Link>
     )
