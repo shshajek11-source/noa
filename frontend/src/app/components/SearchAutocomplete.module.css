@@ -281,7 +281,7 @@
 @media (max-width: 1024px) {
     .container {
         position: fixed;
-        top: 60px;
+        top: 110px;
         left: 0;
         right: 0;
         max-height: 50vh;
