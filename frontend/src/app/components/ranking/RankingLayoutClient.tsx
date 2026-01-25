@@ -25,21 +25,22 @@ export default function RankingLayoutClient({
     }, [])
 
     const tabs = [
-        { name: 'HITON 전투력', path: '/ranking/noa' },
-        { name: '콘텐츠 랭킹', path: '/ranking/content' },
+        { name: '전투력', path: '/ranking' },
+        { name: '컨텐츠', path: '/ranking/content' },
     ]
 
     // 현재 타입 결정
-    const getCurrentType = () => {
+    const getCurrentType = (): 'combat' | 'content' => {
         if (pathname?.includes('/content')) return 'content'
-        if (pathname?.includes('/cp')) return 'cp'
-        return 'hiton'
+        return 'combat'
     }
 
     // 모바일 뷰
     if (isMobile) {
         return <RankingMobile type={getCurrentType()} />
     }
+
+    const currentType = getCurrentType()
 
     // PC 뷰
     return (
@@ -51,7 +52,8 @@ export default function RankingLayoutClient({
             {/* Ranking Type Tags */}
             <div className={styles.tabNav}>
                 {tabs.map((tab) => {
-                    const isActive = pathname === tab.path || (tab.path === '/ranking/noa' && pathname === '/ranking')
+                    const isActive = pathname === tab.path ||
+                        (tab.path === '/ranking' && (pathname === '/ranking/noa' || pathname === '/ranking/cp'))
                     return (
                         <Link
                             key={tab.path}
@@ -65,7 +67,7 @@ export default function RankingLayoutClient({
             </div>
 
             {/* Filter Bar */}
-            <RankingFilterBar />
+            <RankingFilterBar type={currentType} />
 
             {/* Content (Table) - Adaptive */}
             <div className={styles.rankingCard}>

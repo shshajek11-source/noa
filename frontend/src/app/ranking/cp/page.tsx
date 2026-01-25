@@ -1,12 +1,8 @@
-import RankingTable from '../../components/ranking/RankingTable'
-import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
+// /ranking/cp → /ranking 리다이렉트 (하위 호환)
 export default function CpRankingPage() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <RankingTable type="cp" />
-        </Suspense>
-    )
+    redirect('/ranking')
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import styles from './RankingMobile.module.css'
@@ -9,22 +9,40 @@ import { SERVER_MAP } from '../../constants/servers'
 import { RankingCharacter } from '../../../types/character'
 
 interface RankingMobileProps {
-    type: 'hiton' | 'cp' | 'content'
+    type: 'combat' | 'content' | 'hiton' | 'cp' // hiton, cp는 하위 호환
+}
+
+// 전투력 표시 유효성 검사
+const getValidScore = (char: RankingCharacter, scoreType: 'pve' | 'pvp'): number | null => {
+    const level = char.level || char.item_level || 0
+    const isValidLevel = level >= 45
+    const isAbnormalScore = char.pve_score === 177029 && char.pvp_score === 177029
+
+    if (!isValidLevel || isAbnormalScore) return null
+
+    if (scoreType === 'pve') {
+        return char.pve_score || 0
+    }
+    return char.pvp_score || 0
 }
 
 export default function RankingMobile({ type }: RankingMobileProps) {
     const router = useRouter()
-    const searchParams = useSearchParams()
     const [data, setData] = useState<RankingCharacter[]>([])
     const [loading, setLoading] = useState(true)
     const [page, setPage] = useState(1)
     const [hasMore, setHasMore] = useState(false)
     const [isLoadingMore, setIsLoadingMore] = useState(false)
 
+    // 타입 정규화
+    const normalizedType = (type === 'hiton' || type === 'cp') ? 'combat' : type
+    const isCombatTab = normalizedType === 'combat'
+
     // 필터 상태
     const [selectedServer, setSelectedServer] = useState('all')
     const [selectedRace, setSelectedRace] = useState('all')
-    const [activeType, setActiveType] = useState(type)
+    const [activeType, setActiveType] = useState<'combat' | 'content'>(normalizedType)
+    const [sortBy, setSortBy] = useState<'pve' | 'pvp'>('pve')
 
     const servers = [
         { id: 'all', name: '전체 서버' },
@@ -42,7 +60,7 @@ export default function RankingMobile({ type }: RankingMobileProps) {
     useEffect(() => {
         setPage(1)
         fetchRanking(1, true)
-    }, [activeType, selectedServer, selectedRace])
+    }, [activeType, selectedServer, selectedRace, sortBy])
 
     const fetchRanking = async (pageNum: number, isReset: boolean = false) => {
         if (isReset) {
@@ -53,10 +71,13 @@ export default function RankingMobile({ type }: RankingMobileProps) {
 
         try {
             const params = new URLSearchParams()
-            const apiType = activeType === 'hiton' ? 'noa' : activeType
-            params.set('type', apiType)
+            params.set('type', activeType)
             params.set('page', pageNum.toString())
             params.set('limit', '30')
+
+            if (activeType === 'combat') {
+                params.set('sort', sortBy)
+            }
 
             if (selectedServer !== 'all') {
                 params.set('server', selectedServer)
@@ -69,15 +90,10 @@ export default function RankingMobile({ type }: RankingMobileProps) {
             const json = await res.json()
 
             if (json.data) {
-                const mappedData = json.data.map((char: any) => ({
-                    ...char,
-                    hiton_score: char.pve_score || char.hiton_score,
-                }))
-
                 if (isReset) {
-                    setData(mappedData)
+                    setData(json.data)
                 } else {
-                    setData(prev => [...prev, ...mappedData])
+                    setData(prev => [...prev, ...json.data])
                 }
 
                 const totalPages = json.meta?.totalPages || 0
@@ -98,43 +114,50 @@ export default function RankingMobile({ type }: RankingMobileProps) {
         fetchRanking(nextPage, false)
     }
 
-    const handleTypeChange = (newType: 'hiton' | 'content') => {
+    const handleTypeChange = (newType: 'combat' | 'content') => {
         setActiveType(newType)
-        if (newType === 'hiton') {
-            router.push('/ranking/noa')
+        if (newType === 'combat') {
+            router.push('/ranking')
         } else {
             router.push('/ranking/content')
         }
     }
 
-    const getScoreValue = (char: RankingCharacter) => {
-        switch (activeType) {
-            case 'hiton': return char.pve_score || char.hiton_score || 0
-            case 'cp': return char.pve_score || char.combat_power || 0
-            case 'content': return char.ranking_ap || 0
-            default: return 0
-        }
-    }
-
     return (
         <div className={styles.container}>
-
-
             {/* 랭킹 타입 탭 */}
             <div className={styles.typeTabs}>
                 <button
-                    className={`${styles.typeTab} ${activeType === 'hiton' ? styles.typeTabActive : ''}`}
-                    onClick={() => handleTypeChange('hiton')}
+                    className={`${styles.typeTab} ${activeType === 'combat' ? styles.typeTabActive : ''}`}
+                    onClick={() => handleTypeChange('combat')}
                 >
-                    PVE/PVP 전투력
+                    전투력
                 </button>
                 <button
                     className={`${styles.typeTab} ${activeType === 'content' ? styles.typeTabActive : ''}`}
                     onClick={() => handleTypeChange('content')}
                 >
-                    콘텐츠 랭킹
+                    컨텐츠
                 </button>
             </div>
+
+            {/* PVE/PVP 토글 (전투력 탭에서만) */}
+            {activeType === 'combat' && (
+                <div className={styles.sortToggle}>
+                    <button
+                        className={`${styles.sortBtn} ${sortBy === 'pve' ? styles.sortBtnActive : ''}`}
+                        onClick={() => setSortBy('pve')}
+                    >
+                        PVE
+                    </button>
+                    <button
+                        className={`${styles.sortBtn} ${sortBy === 'pvp' ? styles.sortBtnActive : ''}`}
+                        onClick={() => setSortBy('pvp')}
+                    >
+                        PVP
+                    </button>
+                </div>
+            )}
 
             {/* 필터 */}
             <div className={styles.filterBar}>
@@ -216,26 +239,32 @@ export default function RankingMobile({ type }: RankingMobileProps) {
                                     </div>
                                 </div>
                                 <div className={styles.charScore}>
-                                    {activeType === 'hiton' ? (
+                                    {activeType === 'combat' ? (
                                         <>
                                             <div className={styles.scoreRow}>
                                                 <span className={styles.scoreLabel}>PVE</span>
-                                                <span className={styles.scoreValue} style={{ color: '#4ade80' }}>
-                                                    {(char.pve_score || 0).toLocaleString()}
+                                                <span
+                                                    className={styles.scoreValue}
+                                                    style={{ color: sortBy === 'pve' ? '#f59e0b' : '#4ade80' }}
+                                                >
+                                                    {(getValidScore(char, 'pve') || 0).toLocaleString()}
                                                 </span>
                                             </div>
                                             <div className={styles.scoreRow}>
                                                 <span className={styles.scoreLabel}>PVP</span>
-                                                <span className={styles.scoreValue} style={{ color: '#f87171' }}>
-                                                    {(char.pvp_score || 0).toLocaleString()}
+                                                <span
+                                                    className={styles.scoreValue}
+                                                    style={{ color: sortBy === 'pvp' ? '#f59e0b' : '#f87171' }}
+                                                >
+                                                    {(getValidScore(char, 'pvp') || 0).toLocaleString()}
                                                 </span>
                                             </div>
                                         </>
                                     ) : (
                                         <div className={styles.scoreRow}>
-                                            <span className={styles.scoreLabel}>{activeType === 'cp' ? 'CP' : 'AP'}</span>
+                                            <span className={styles.scoreLabel}>AP</span>
                                             <span className={styles.scoreValue}>
-                                                {getScoreValue(char).toLocaleString()}
+                                                {(char.ranking_ap || 0).toLocaleString()}
                                             </span>
                                         </div>
                                     )}

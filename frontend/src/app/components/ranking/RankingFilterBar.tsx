@@ -7,7 +7,11 @@ import styles from './Ranking.module.css'
 import { SERVERS } from '../../constants/servers'
 import { CLASSES, RACES } from '../../constants/game-data'
 
-export default function RankingFilterBar() {
+interface RankingFilterBarProps {
+    type?: 'combat' | 'content'
+}
+
+export default function RankingFilterBar({ type = 'combat' }: RankingFilterBarProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -15,6 +19,7 @@ export default function RankingFilterBar() {
     const [race, setRace] = useState(searchParams.get('race') || '')
     const [className, setClassName] = useState(searchParams.get('class') || '')
     const [search, setSearch] = useState(searchParams.get('q') || '')
+    const [sort, setSort] = useState(searchParams.get('sort') || 'pve')
 
     // Debounce search
     useEffect(() => {
@@ -23,6 +28,11 @@ export default function RankingFilterBar() {
         }, 500)
         return () => clearTimeout(timer)
     }, [search])
+
+    // URL 변경 시 sort 상태 동기화
+    useEffect(() => {
+        setSort(searchParams.get('sort') || 'pve')
+    }, [searchParams])
 
     const handleFilterChange = (key: string, value: string) => {
         const params = new URLSearchParams(searchParams.toString())
@@ -37,18 +47,31 @@ export default function RankingFilterBar() {
         router.push(`?${params.toString()}`)
     }
 
-    // Common select style (could be in module, but simple inline override for specifics is ok or use class)
-    const selectStyle = {
-        background: '#0f1219',
-        color: '#d1d5db',
-        border: '1px solid #2d3a54',
-        borderRadius: '4px',
-        padding: '0.6rem 2rem 0.6rem 1rem',
-        cursor: 'pointer'
+    const handleSortChange = (newSort: 'pve' | 'pvp') => {
+        setSort(newSort)
+        handleFilterChange('sort', newSort)
     }
 
     return (
         <div className={styles.filterBar}>
+            {/* PVE/PVP 토글 (전투력 탭에서만) */}
+            {type === 'combat' && (
+                <div className={styles.sortToggle}>
+                    <button
+                        className={`${styles.sortBtn} ${sort === 'pve' ? styles.sortBtnActive : ''}`}
+                        onClick={() => handleSortChange('pve')}
+                    >
+                        PVE
+                    </button>
+                    <button
+                        className={`${styles.sortBtn} ${sort === 'pvp' ? styles.sortBtnActive : ''}`}
+                        onClick={() => handleSortChange('pvp')}
+                    >
+                        PVP
+                    </button>
+                </div>
+            )}
+
             <div className={styles.selectGroup}>
                 <select
                     value={server}

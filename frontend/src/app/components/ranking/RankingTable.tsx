@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, memo } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -18,13 +18,13 @@ const getValidScore = (char: RankingCharacter, scoreType: 'pve' | 'pvp'): number
     if (!isValidLevel || isAbnormalScore) return null
 
     if (scoreType === 'pve') {
-        return char.pve_score || char.hiton_score || 0
+        return char.pve_score || 0
     }
     return char.pvp_score || 0
 }
 
 interface RankingTableProps {
-    type: 'hiton' | 'cp' | 'content'
+    type: 'combat' | 'content' | 'hiton' | 'cp' // hiton, cp는 하위 호환
 }
 
 const RankingSkeleton = () => (
@@ -36,7 +36,8 @@ const RankingSkeleton = () => (
                     <th>캐릭터</th>
                     <th style={{ width: '100px', textAlign: 'center' }}>서버/종족</th>
                     <th style={{ width: '80px', textAlign: 'center' }}>아이템Lv</th>
-                    <th style={{ width: '120px', textAlign: 'right' }}>HITON 전투력</th>
+                    <th style={{ width: '90px', textAlign: 'right' }}>PVE</th>
+                    <th style={{ width: '90px', textAlign: 'right' }}>PVP</th>
                 </tr>
             </thead>
             <tbody>
@@ -60,9 +61,11 @@ const RankingSkeleton = () => (
                         <td style={{ textAlign: 'center' }}>
                             <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '40px', margin: '0 auto' }}></div>
                         </td>
-
                         <td style={{ textAlign: 'right' }}>
-                            <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '80px', marginLeft: 'auto' }}></div>
+                            <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '60px', marginLeft: 'auto' }}></div>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                            <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '60px', marginLeft: 'auto' }}></div>
                         </td>
                     </tr>
                 ))}
@@ -79,6 +82,10 @@ export default function RankingTable({ type }: RankingTableProps) {
     const [hasMore, setHasMore] = useState(false)
     const [isLoadingMore, setIsLoadingMore] = useState(false)
 
+    // 타입 정규화 (hiton, cp → combat)
+    const normalizedType = (type === 'hiton' || type === 'cp') ? 'combat' : type
+    const isCombatTab = normalizedType === 'combat'
+
     // searchParams를 문자열로 변환하여 실제 값이 변경될 때만 트리거
     const searchParamsString = searchParams.toString()
 
@@ -86,7 +93,7 @@ export default function RankingTable({ type }: RankingTableProps) {
     useEffect(() => {
         setPage(1)
         fetchRanking(1, true)
-    }, [searchParamsString, type])
+    }, [searchParamsString, normalizedType])
 
     const fetchRanking = async (pageNum: number, isReset: boolean = false) => {
         if (isReset) {
@@ -97,9 +104,7 @@ export default function RankingTable({ type }: RankingTableProps) {
 
         try {
             const params = new URLSearchParams(searchParams.toString())
-            // noa → hiton 매핑 (API 호환성)
-            const apiType = type === 'hiton' ? 'noa' : type
-            params.set('type', apiType)
+            params.set('type', normalizedType)
             params.set('page', pageNum.toString())
             params.set('limit', '50')
 
@@ -107,16 +112,10 @@ export default function RankingTable({ type }: RankingTableProps) {
             const json = await res.json()
 
             if (json.data) {
-                // pve_score를 hiton_score로 매핑
-                const mappedData = json.data.map((char: any) => ({
-                    ...char,
-                    hiton_score: char.pve_score || char.hiton_score,
-                }))
-
                 if (isReset) {
-                    setData(mappedData)
+                    setData(json.data)
                 } else {
-                    setData(prev => [...prev, ...mappedData])
+                    setData(prev => [...prev, ...json.data])
                 }
 
                 const totalPages = json.meta?.totalPages || 0
@@ -145,17 +144,8 @@ export default function RankingTable({ type }: RankingTableProps) {
         return <span className={styles.rankNumber}>{rank}</span>
     }
 
-    // HITON 탭인 경우에만 확장 컬럼 표시
-    const isHitonTab = type === 'hiton'
-
-    const getScoreValue = (char: RankingCharacter) => {
-        switch (type) {
-            case 'hiton': return char.hiton_score?.toLocaleString() || 0
-            case 'cp': return (char.pve_score || char.combat_power)?.toLocaleString() || 0
-            case 'content': return char.ranking_ap?.toLocaleString() || 0
-            default: return 0
-        }
-    }
+    // 현재 정렬 기준
+    const currentSort = searchParams.get('sort') || 'pve'
 
     if (loading && page === 1) {
         return <RankingSkeleton />
@@ -177,18 +167,21 @@ export default function RankingTable({ type }: RankingTableProps) {
                 <table className={styles.rankingTable}>
                     <thead>
                         <tr>
-                            {/* 변동 제거됨 */}
                             <th style={{ width: '60px', textAlign: 'center' }}>순위</th>
                             <th>캐릭터</th>
                             <th style={{ width: '100px', textAlign: 'center' }}>서버/종족</th>
-                            {isHitonTab && <th style={{ width: '80px', textAlign: 'center' }}>아이템Lv</th>}
-                            {isHitonTab && (
+                            {isCombatTab && <th style={{ width: '80px', textAlign: 'center' }}>아이템Lv</th>}
+                            {isCombatTab && (
                                 <>
-                                    <th style={{ width: '90px', textAlign: 'right' }}>PVE</th>
-                                    <th style={{ width: '90px', textAlign: 'right' }}>PVP</th>
+                                    <th style={{ width: '90px', textAlign: 'right' }}>
+                                        <span style={{ color: currentSort === 'pve' ? '#f59e0b' : undefined }}>PVE</span>
+                                    </th>
+                                    <th style={{ width: '90px', textAlign: 'right' }}>
+                                        <span style={{ color: currentSort === 'pvp' ? '#f59e0b' : undefined }}>PVP</span>
+                                    </th>
                                 </>
                             )}
-                            {!isHitonTab && <th style={{ textAlign: 'right' }}>{type === 'cp' ? '전투력' : '어비스 포인트'}</th>}
+                            {!isCombatTab && <th style={{ textAlign: 'right' }}>어비스 포인트</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -248,7 +241,7 @@ export default function RankingTable({ type }: RankingTableProps) {
                                             {char.race_name === 'Elyos' ? '천족' : '마족'}
                                         </div>
                                     </td>
-                                    {isHitonTab && (
+                                    {isCombatTab && (
                                         <td style={{ textAlign: 'center' }}>
                                             <div className={styles.itemLevelValue}>
                                                 {char.item_level ?? '-'}
@@ -256,15 +249,21 @@ export default function RankingTable({ type }: RankingTableProps) {
                                         </td>
                                     )}
 
-                                    {isHitonTab ? (
+                                    {isCombatTab ? (
                                         <>
                                             <td style={{ textAlign: 'right' }}>
-                                                <div className={styles.scoreValue} style={{ color: '#4ade80' }}>
+                                                <div
+                                                    className={styles.scoreValue}
+                                                    style={{ color: currentSort === 'pve' ? '#f59e0b' : '#4ade80' }}
+                                                >
                                                     {getValidScore(char, 'pve')?.toLocaleString() ?? '-'}
                                                 </div>
                                             </td>
                                             <td style={{ textAlign: 'right' }}>
-                                                <div className={styles.scoreValue} style={{ color: '#f87171' }}>
+                                                <div
+                                                    className={styles.scoreValue}
+                                                    style={{ color: currentSort === 'pvp' ? '#f59e0b' : '#f87171' }}
+                                                >
                                                     {getValidScore(char, 'pvp')?.toLocaleString() ?? '-'}
                                                 </div>
                                             </td>
@@ -272,7 +271,7 @@ export default function RankingTable({ type }: RankingTableProps) {
                                     ) : (
                                         <td style={{ textAlign: 'right' }}>
                                             <div className={styles.scoreValue}>
-                                                {getScoreValue(char)}
+                                                {char.ranking_ap?.toLocaleString() || 0}
                                             </div>
                                         </td>
                                     )}
@@ -295,10 +294,6 @@ export default function RankingTable({ type }: RankingTableProps) {
                             <div className={styles.cardHeader}>
                                 <div className={styles.rankBadge}>
                                     <span className={`${styles.rankNumberMobile} ${rankClass}`}>#{currentRank}</span>
-                                    {/* Rank Change could go here */}
-                                </div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-disabled)' }}>
-                                    {/* Optional: Add badge or extra info */}
                                 </div>
                             </div>
 
@@ -328,18 +323,24 @@ export default function RankingTable({ type }: RankingTableProps) {
                                             <span className={styles.statTag} style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)' }}>
                                                 Lv.{char.item_level || '-'}
                                             </span>
-                                            {isHitonTab ? (
+                                            {isCombatTab ? (
                                                 <>
-                                                    <span className={styles.statTag} style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)' }}>
-                                                        P {getValidScore(char, 'pvp')?.toLocaleString() ?? '-'}
-                                                    </span>
-                                                    <span className={styles.statTag} style={{ color: '#3b82f6', background: 'rgba(59, 130, 246, 0.1)' }}>
+                                                    <span className={styles.statTag} style={{
+                                                        color: currentSort === 'pve' ? '#f59e0b' : '#4ade80',
+                                                        background: currentSort === 'pve' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(74, 222, 128, 0.1)'
+                                                    }}>
                                                         E {getValidScore(char, 'pve')?.toLocaleString() ?? '-'}
+                                                    </span>
+                                                    <span className={styles.statTag} style={{
+                                                        color: currentSort === 'pvp' ? '#f59e0b' : '#f87171',
+                                                        background: currentSort === 'pvp' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(248, 113, 113, 0.1)'
+                                                    }}>
+                                                        P {getValidScore(char, 'pvp')?.toLocaleString() ?? '-'}
                                                     </span>
                                                 </>
                                             ) : (
                                                 <span className={styles.statTag} style={{ color: '#FACC15', background: 'rgba(250, 204, 21, 0.1)' }}>
-                                                    {type === 'cp' ? 'CP' : 'AP'} {getScoreValue(char)}
+                                                    AP {char.ranking_ap?.toLocaleString() || 0}
                                                 </span>
                                             )}
                                         </div>
@@ -351,19 +352,17 @@ export default function RankingTable({ type }: RankingTableProps) {
                 })}
             </div>
 
-            {
-                hasMore && (
-                    <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                        <button
-                            onClick={handleLoadMore}
-                            disabled={isLoadingMore}
-                            className={styles.loadMoreButton}
-                        >
-                            {isLoadingMore ? '불러오는 중...' : '더보기 (Next 50)'}
-                        </button>
-                    </div>
-                )
-            }
-        </div >
+            {hasMore && (
+                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                    <button
+                        onClick={handleLoadMore}
+                        disabled={isLoadingMore}
+                        className={styles.loadMoreButton}
+                    >
+                        {isLoadingMore ? '불러오는 중...' : '더보기 (Next 50)'}
+                    </button>
+                </div>
+            )}
+        </div>
     )
 }

@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
 
     // Filters
-    const type = searchParams.get('type') || 'noa' // noa, cp, content
+    const type = searchParams.get('type') || 'combat' // combat(전투력), content(컨텐츠)
+    const sort = searchParams.get('sort') || 'pve' // 정렬 기준: pve 또는 pvp
     const server = searchParams.get('server')
     const raceParam = searchParams.get('race')
     const className = searchParams.get('class')
@@ -76,16 +77,23 @@ export async function GET(request: NextRequest) {
 
         // Apply Sorting based on Type
         switch (type) {
+            case 'combat':
             case 'cp':
             case 'hiton':
+            case 'noa':
             case 'pve':
-                // PVE 전투력 기준 정렬
-                query = query.order('pve_score', { ascending: false, nullsFirst: false })
+                // 전투력 탭: sort 파라미터에 따라 PVE 또는 PVP 정렬
+                if (sort === 'pvp') {
+                    query = query.order('pvp_score', { ascending: false, nullsFirst: false })
+                } else {
+                    query = query.order('pve_score', { ascending: false, nullsFirst: false })
+                }
                 break
             case 'pvp':
-                // PVP 전투력 기준 정렬
+                // PVP 전투력 기준 정렬 (하위 호환)
                 query = query.order('pvp_score', { ascending: false, nullsFirst: false })
                 break
+            case 'content':
             case 'ap':
                 // 어비스 포인트 기준 정렬
                 query = query.order('ranking_ap', { ascending: false })
