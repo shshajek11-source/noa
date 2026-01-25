@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { supabaseApi, CharacterSearchResult } from '../../../lib/supabaseApi'
@@ -21,6 +21,26 @@ export default function MobileHeader() {
     const [isSearching, setIsSearching] = useState(false)
     const [showResults, setShowResults] = useState(false)
     const [searchWarning, setSearchWarning] = useState<string | undefined>(undefined)
+    const searchWrapperRef = useRef<HTMLDivElement>(null)
+
+    // 외부 클릭 시 검색결과 닫기
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target as Node)) {
+                setShowResults(false)
+            }
+        }
+
+        if (showResults) {
+            document.addEventListener('mousedown', handleClickOutside)
+            document.addEventListener('touchstart', handleClickOutside)
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+            document.removeEventListener('touchstart', handleClickOutside)
+        }
+    }, [showResults])
 
     // Debounce Search
     useEffect(() => {
@@ -127,7 +147,7 @@ export default function MobileHeader() {
 
             {/* 검색창 - 별도 줄 */}
             <div className={styles.searchRow}>
-                <div className={styles.searchWrapper}>
+                <div className={styles.searchWrapper} ref={searchWrapperRef}>
                     <div className={styles.searchBar}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2">
                             <circle cx="11" cy="11" r="8" />
