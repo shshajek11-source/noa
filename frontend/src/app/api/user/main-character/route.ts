@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     // Get user's main character
     const { data: ledgerUser } = await supabase
       .from('ledger_users')
-      .select('main_character_id, main_character_server, main_character_name, main_character_class, main_character_level, main_character_race, main_character_item_level, main_character_hit_score, main_character_image_url')
+      .select('main_character_id, main_character_server, main_character_name, main_character_class, main_character_level, main_character_race, main_character_item_level, main_character_hit_score, main_character_pve_score, main_character_pvp_score, main_character_image_url')
       .eq('auth_user_id', user.id)
       .single()
 
@@ -43,6 +43,8 @@ export async function GET(request: NextRequest) {
         race: ledgerUser.main_character_race,
         item_level: ledgerUser.main_character_item_level,
         hit_score: ledgerUser.main_character_hit_score,
+        pve_score: ledgerUser.main_character_pve_score,
+        pvp_score: ledgerUser.main_character_pvp_score,
         imageUrl: ledgerUser.main_character_image_url
       }
     })
@@ -67,9 +69,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { characterId, server, name, className, level, race, item_level, hit_score, imageUrl } = await request.json()
+    const { characterId, server, name, className, level, race, item_level, hit_score, pve_score, pvp_score, imageUrl } = await request.json()
 
-    console.log('[Main Character API] Saving:', { characterId, server, name, className, level, race, item_level, hit_score, imageUrl })
+    console.log('[Main Character API] Saving:', { characterId, server, name, className, level, race, item_level, hit_score, pve_score, pvp_score, imageUrl })
 
     // Check if this character is already set as main character by another user
     if (server && name) {
@@ -131,6 +133,8 @@ export async function POST(request: NextRequest) {
         main_character_race: race ?? null,
         main_character_item_level: item_level ?? null,
         main_character_hit_score: hit_score ?? null,
+        main_character_pve_score: pve_score ?? null,
+        main_character_pvp_score: pvp_score ?? null,
         main_character_image_url: imageUrl ?? null,
         updated_at: new Date().toISOString()
       })
@@ -221,6 +225,8 @@ export async function POST(request: NextRequest) {
         race,
         item_level,
         hit_score,
+        pve_score,
+        pvp_score,
         imageUrl
       } : null
     })

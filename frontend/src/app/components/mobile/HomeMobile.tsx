@@ -199,12 +199,29 @@ export default function HomeMobile() {
                         className={styles.mainCharCard}
                         onClick={() => router.push(`/c/${mainCharacter.server}/${mainCharacter.name}`)}
                     >
+                        {/* 프로필 이미지 */}
+                        <div className={styles.mainCharAvatar}>
+                            {mainCharacter.imageUrl ? (
+                                <img
+                                    src={mainCharacter.imageUrl}
+                                    alt={mainCharacter.name}
+                                    className={styles.mainCharAvatarImg}
+                                />
+                            ) : (
+                                <span className={styles.mainCharAvatarPlaceholder}>
+                                    {mainCharacter.name?.charAt(0) || '?'}
+                                </span>
+                            )}
+                        </div>
                         <div className={styles.mainCharInfo}>
                             <span className={styles.mainCharServer}>{mainCharacter.server}</span>
                             <h2 className={styles.mainCharName}>{mainCharacter.name}</h2>
                             <div className={styles.mainCharBadges}>
                                 <span className={styles.badge}>Lv.{mainCharacter.level}</span>
                                 <span className={styles.badgeHighlight}>{mainCharacter.className}</span>
+                                {mainCharacter.item_level && (
+                                    <span className={styles.badgeItemLevel}>IL {mainCharacter.item_level}</span>
+                                )}
                             </div>
                         </div>
                         <div className={styles.mainCharStats}>

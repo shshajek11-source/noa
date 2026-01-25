@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     // 1. 유저의 모든 캐릭터 조회
     const { data: characters, error: charError } = await supabase
       .from('ledger_characters')
-      .select('id, name, faction')
+      .select('id, name, race')
       .eq('user_id', user.id)
 
     if (charError) throw charError
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
     const characterStats = characters.map(c => ({
       id: c.id,
       name: c.name,
-      faction: c.faction || 'light',
+      race: c.race || '천족',
       income: characterIncomeMap.get(c.id) || 0
     })).sort((a, b) => b.income - a.income)
 

@@ -358,6 +358,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               race: character.race,
               item_level: character.item_level,
               hit_score: character.hit_score,
+              pve_score: character.pve_score,
+              pvp_score: character.pvp_score,
               imageUrl: character.imageUrl
             }
           : {
@@ -369,6 +371,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               race: null,
               item_level: null,
               hit_score: null,
+              pve_score: null,
+              pvp_score: null,
               imageUrl: null
             }
       )

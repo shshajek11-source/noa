@@ -33,7 +33,7 @@ interface ContentStats {
 interface CharacterStat {
     id: string
     name: string
-    faction: string
+    race: string
     income: number
 }
 
@@ -368,7 +368,7 @@ export default function MonthlyStatsPage() {
                                 <span
                                     className={styles.factionDot}
                                     style={{
-                                        backgroundColor: char.faction === 'light' ? '#2DD4BF' : '#A78BFA'
+                                        backgroundColor: char.race === '천족' || char.race?.toLowerCase() === 'elyos' ? '#2DD4BF' : '#A78BFA'
                                     }}
                                 />
                                 {char.name}

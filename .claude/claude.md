@@ -58,3 +58,8 @@ export async function GET(request: NextRequest) {
 cd C:\projects\hiton2
 git add . && git commit -m "fix: 설명" && git push
 ```
+
+## 컨텍스트 표시
+- 모든 답변 마지막에 컨텍스트 사용량 표시
+- 형식: `[##########----------] 50%`
+- 80% 초과 시: "지금 /compact가 필요합니다" 경고 추가
