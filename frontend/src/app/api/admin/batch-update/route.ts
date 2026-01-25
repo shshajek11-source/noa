@@ -6,7 +6,7 @@ import { aggregateStats } from '../../../../lib/statsAggregator'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // Vercel serverless timeout (최대 60초)
 
-const BATCH_SIZE = 50 // 한 번에 조회할 캐릭터 수 (분당 1000명 목표: 50명 × 20회/분)
+const BATCH_SIZE = 10 // 한 번에 조회할 캐릭터 수 (외부 API 호출이므로 작게 유지)
 
 // 차단/에러 타입 정의
 type ErrorType = 'blocked' | 'rate_limit' | 'maintenance' | 'network' | 'unknown'
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
             .from('characters')
             .select('character_id, server_id, name')
             .or('stats.is.null,pve_score.is.null')
-            .order('updated_at', { ascending: true, nullsFirst: true })
+            .order('character_id', { ascending: true })  // PK 인덱스 활용
             .limit(BATCH_SIZE)
 
         if (error) {
@@ -196,10 +196,10 @@ export async function GET(request: NextRequest) {
             await new Promise(resolve => setTimeout(resolve, 50))
         }
 
-        // 남은 캐릭터 수 확인
+        // 남은 캐릭터 수 확인 (estimated 사용으로 속도 개선)
         const { count } = await supabase
             .from('characters')
-            .select('*', { count: 'exact', head: true })
+            .select('character_id', { count: 'estimated', head: true })
             .or('stats.is.null,pve_score.is.null')
 
         const successCount = results.filter(r => r.success).length
