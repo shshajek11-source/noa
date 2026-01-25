@@ -65,6 +65,7 @@ export default function RankingMobile({ type }: RankingMobileProps) {
     ]
 
     useEffect(() => {
+        setData([])  // 이전 데이터 즉시 제거 → 로딩 스켈레톤 표시
         setPage(1)
         fetchRanking(1, true)
     }, [activeType, selectedServer, selectedRace, sortBy])

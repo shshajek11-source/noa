@@ -78,6 +78,7 @@ export default function RankingTable({ type }: RankingTableProps) {
 
     // Reset and fetch when filters change
     useEffect(() => {
+        setData([])  // 이전 데이터 즉시 제거 → 로딩 스켈레톤 표시
         setPage(1)
         fetchRanking(1, true)
     }, [searchParamsString, normalizedType])
