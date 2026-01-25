@@ -618,20 +618,20 @@ export default function MobileLedgerPage() {
         const weeklyData = charData.weeklyData || {};
         const missionCount = charData.missionCount || 0;
 
-        // 섹션1: 미션/지령서 진행률
+        // 섹션1: 미션/지령서 진행률 (완료/최대 형식)
         const missionProgress = MISSION_CONTENT_DEFS.map(def => {
-            let remaining = 0;
+            let completed = 0;
             let max = def.maxPerChar;
 
             if (def.id === 'mission') {
-                remaining = Math.max(0, def.maxPerChar - missionCount);
+                completed = Math.min(missionCount, def.maxPerChar);
             } else if (def.id === 'weekly_order') {
-                remaining = Math.max(0, def.maxPerChar - (weeklyData.weeklyOrderCount || 0));
+                completed = Math.min(weeklyData.weeklyOrderCount || 0, def.maxPerChar);
             } else if (def.id === 'abyss_order') {
-                remaining = Math.max(0, def.maxPerChar - (weeklyData.abyssOrderCount || 0));
+                completed = Math.min(weeklyData.abyssOrderCount || 0, def.maxPerChar);
             }
 
-            return { ...def, current: remaining, max, bonus: 0 };
+            return { ...def, current: completed, max, bonus: 0 };
         });
 
         // 섹션2: 던전 컨텐츠 진행률 (이용권)
@@ -2175,11 +2175,12 @@ export default function MobileLedgerPage() {
                                                 {/* 펼쳐진 상태일 때만 컨텐츠 표시 */}
                                                 {isExpanded && (
                                                     <>
-                                                        {/* 섹션1: 미션/지령서 */}
+                                                        {/* 섹션1: 미션/지령서 (완료/최대 형식) */}
                                                         <div className={styles.progressLabel}>미션/지령서</div>
                                                         <div className={styles.chipContainerGrid}>
                                                             {progress.mission.map(content => {
-                                                                const isComplete = content.current <= 0 && (content.bonus || 0) <= 0;
+                                                                // 미션은 완료/최대 형식이므로 current >= max 일 때 완료
+                                                                const isComplete = content.current >= content.max;
                                                                 return (
                                                                     <div
                                                                         key={content.id}
