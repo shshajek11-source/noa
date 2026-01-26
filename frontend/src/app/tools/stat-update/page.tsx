@@ -335,11 +335,6 @@ export default function StatUpdatePage() {
   const isOcrProcessingRef = useRef(false)
   const [queueStatus, setQueueStatus] = useState<string | null>(null)  // 큐 상태 표시
 
-  // 클라이언트 마운트 후 device_id 표시
-  useEffect(() => {
-    setDeviceIdDisplay(getDeviceId() || '없음')
-  }, [])
-
   // 즐겨찾기 로드
   useEffect(() => {
     loadFavorites()
