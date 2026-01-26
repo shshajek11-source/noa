@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import useSWR from 'swr'
+import { useCallback } from 'react'
 import { FavoriteItem } from '../components/FavoriteItemsPanel'
 
 interface UseFavoriteItemsProps {
@@ -10,36 +11,32 @@ interface UseFavoriteItemsProps {
 }
 
 export function useFavoriteItems({ getAuthHeader, isReady, characterId }: UseFavoriteItemsProps) {
-  const [favorites, setFavorites] = useState<FavoriteItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchFavorites = useCallback(async () => {
-    if (!characterId || !isReady) return
-
-    setIsLoading(true)
-    try {
-      const res = await fetch(`/api/ledger/favorite-items?characterId=${characterId}`, {
-        headers: getAuthHeader()
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setFavorites(data)
-      } else {
-        // If API doesn't exist yet, just use empty array
-        setFavorites([])
-      }
-    } catch (e: any) {
-      console.error('Fetch favorites error:', e)
-      setFavorites([])
-    } finally {
-      setIsLoading(false)
+  // SWR fetcher
+  const fetcher = useCallback(async (url: string) => {
+    const res = await fetch(url, {
+      headers: getAuthHeader()
+    })
+    if (!res.ok) {
+      return []  // API가 없으면 빈 배열 반환
     }
-  }, [characterId, isReady, getAuthHeader])
+    return res.json()
+  }, [getAuthHeader])
 
-  useEffect(() => {
-    fetchFavorites()
-  }, [fetchFavorites])
+  // SWR key
+  const swrKey = isReady && characterId
+    ? `/api/ledger/favorite-items?characterId=${characterId}`
+    : null
+
+  // SWR hook
+  const { data: favorites = [], error, isLoading, mutate } = useSWR<FavoriteItem[]>(
+    swrKey,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 2000,
+      fallbackData: []
+    }
+  )
 
   const addFavorite = async (itemId: string, itemName: string, itemGrade: string, itemCategory: string, iconUrl?: string) => {
     if (!isReady || !characterId) return null
@@ -66,10 +63,10 @@ export function useFavoriteItems({ getAuthHeader, isReady, characterId }: UseFav
       }
 
       const newFavorite = await res.json()
-      setFavorites(prev => [...prev, newFavorite])
+      // 낙관적 업데이트
+      await mutate([...favorites, newFavorite], { revalidate: true })
       return newFavorite
     } catch (e: any) {
-      setError(e.message)
       console.error('Add favorite error:', e)
       return null
     }
@@ -79,19 +76,22 @@ export function useFavoriteItems({ getAuthHeader, isReady, characterId }: UseFav
     if (!isReady) return false
 
     try {
+      // 낙관적 업데이트: 먼저 UI에서 제거
+      const filtered = favorites.filter(f => f.id !== id)
+      await mutate(filtered, false)
+
       const res = await fetch(`/api/ledger/favorite-items?id=${id}`, {
         method: 'DELETE',
         headers: getAuthHeader()
       })
 
       if (!res.ok) {
+        await mutate()  // 실패 시 원복
         throw new Error('Failed to remove favorite')
       }
 
-      setFavorites(prev => prev.filter(f => f.id !== id))
       return true
     } catch (e: any) {
-      setError(e.message)
       console.error('Remove favorite error:', e)
       return false
     }
@@ -104,10 +104,10 @@ export function useFavoriteItems({ getAuthHeader, isReady, characterId }: UseFav
   return {
     favorites,
     isLoading,
-    error,
+    error: error?.message || null,
     addFavorite,
     removeFavorite,
     isFavorite,
-    refetch: fetchFavorites
+    refetch: mutate
   }
 }
