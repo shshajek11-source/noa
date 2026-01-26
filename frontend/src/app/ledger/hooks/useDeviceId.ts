@@ -156,13 +156,18 @@ export function useDeviceId() {
 
   // Return auth headers for requests
   // Google 로그인 시: Authorization 헤더 사용 (크로스 기기 동기화)
+  // 비로그인 시: X-Device-ID 헤더 사용
   const getAuthHeaderCallback = useCallback((): Record<string, string> => {
-    // Google 로그인된 경우 항상 Authorization 헤더 사용
+    // Google 로그인된 경우 Authorization 헤더 사용
     if (session?.access_token) {
       return { 'Authorization': `Bearer ${session.access_token}` }
     }
+    // 비로그인 시 device_id로 인증
+    if (deviceId) {
+      return { 'X-Device-ID': deviceId }
+    }
     return {}
-  }, [session?.access_token])
+  }, [session?.access_token, deviceId])
 
   return {
     deviceId,
