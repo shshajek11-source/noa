@@ -235,8 +235,8 @@ export default function MobileLedgerPage() {
     // 종족별 서버 목록 필터링
     const filteredServers = SERVERS.filter(s =>
         selectedRace === 'ELYOS' ? s.id.startsWith('1') :
-        selectedRace === 'ASMODIANS' ? s.id.startsWith('2') :
-        true
+            selectedRace === 'ASMODIANS' ? s.id.startsWith('2') :
+                true
     );
 
     // 수정 가능 여부
@@ -1777,8 +1777,8 @@ export default function MobileLedgerPage() {
                 // 종족 처리
                 const raceValue = c.race === 1 ? '천족' : c.race === 2 ? '마족' :
                     c.race === 'Elyos' || c.race === '천족' ? '천족' :
-                    c.race === 'Asmodian' || c.race === '마족' ? '마족' :
-                    c.race_name || c.raceName || '';
+                        c.race === 'Asmodian' || c.race === '마족' ? '마족' :
+                            c.race_name || c.raceName || '';
 
                 combined.push({
                     characterId: charId,
@@ -2131,6 +2131,19 @@ export default function MobileLedgerPage() {
                         <>
                             {/* 스토리 스타일 캐릭터 목록 */}
                             <div className={styles.storyContainer}>
+                                {/* 캐릭터 추가 버튼 */}
+                                <div
+                                    className={styles.storyItem}
+                                    onClick={() => setShowAddModal(true)}
+                                >
+                                    <div className={styles.storyAvatarWrapper}>
+                                        <div className={`${styles.storyAvatar} ${styles.storyAvatarAdd}`}>
+                                            <span className={styles.addIcon}>+</span>
+                                        </div>
+                                    </div>
+                                    <div className={styles.storyName}>추가</div>
+                                </div>
+
                                 {characters.map((character, index) => (
                                     <div
                                         key={character.id}
@@ -2153,18 +2166,6 @@ export default function MobileLedgerPage() {
                                         <div className={styles.storyJob}>{character.class_name || '알수없음'}</div>
                                     </div>
                                 ))}
-                                {/* 캐릭터 추가 버튼 */}
-                                <div
-                                    className={styles.storyItem}
-                                    onClick={() => setShowAddModal(true)}
-                                >
-                                    <div className={styles.storyAvatarWrapper}>
-                                        <div className={`${styles.storyAvatar} ${styles.storyAvatarAdd}`}>
-                                            <span className={styles.addIcon}>+</span>
-                                        </div>
-                                    </div>
-                                    <div className={styles.storyName}>추가</div>
-                                </div>
                             </div>
 
                             <div className={styles.divider}></div>
@@ -2519,10 +2520,10 @@ export default function MobileLedgerPage() {
                                     </div>
                                 </div>
                                 <div className={styles.wmProgressTrack}>
-                                    {[...Array(10)].map((_, i) => (
+                                    {[...Array(20)].map((_, i) => (
                                         <div
                                             key={i}
-                                            className={`${styles.wmBlock} ${i < Math.min(10, weeklyContent.abyssOrderCount) ? styles.filled : ''}`}
+                                            className={`${styles.wmBlock} ${i < weeklyContent.abyssOrderCount ? styles.filled : ''}`}
                                         ></div>
                                     ))}
                                 </div>
@@ -3069,53 +3070,53 @@ export default function MobileLedgerPage() {
 
                             {/* 아이템 목록 */}
                             {soldItems.length === 0 ? (
-                                    <div className={styles.noItemsBox}>
-                                        <div className={styles.noItemsText}>등록된 아이템이 없습니다</div>
-                                    </div>
-                                ) : (
-                                    <div className={styles.soldItemsGrid}>
-                                        {soldItems.map((item) => (
-                                            <div
-                                                key={item.id}
-                                                className={styles.soldItemCard}
+                                <div className={styles.noItemsBox}>
+                                    <div className={styles.noItemsText}>등록된 아이템이 없습니다</div>
+                                </div>
+                            ) : (
+                                <div className={styles.soldItemsGrid}>
+                                    {soldItems.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className={styles.soldItemCard}
+                                        >
+                                            <button
+                                                className={styles.soldItemDeleteBtn}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (confirm(`"${item.item_name}"을(를) 삭제하시겠습니까?`)) {
+                                                        deleteItem(item.id);
+                                                    }
+                                                }}
                                             >
-                                                <button
-                                                    className={styles.soldItemDeleteBtn}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (confirm(`"${item.item_name}"을(를) 삭제하시겠습니까?`)) {
-                                                            deleteItem(item.id);
-                                                        }
-                                                    }}
-                                                >
-                                                    ×
-                                                </button>
-                                                <div
-                                                    className={styles.soldItemIcon}
-                                                    style={{ borderColor: GRADE_COLORS[item.item_grade] || '#9CA3AF' }}
-                                                >
-                                                    {item.icon_url ? (
-                                                        <img src={item.icon_url} alt={item.item_name} />
-                                                    ) : (
-                                                        <span>📦</span>
-                                                    )}
-                                                    {item.quantity > 1 && (
-                                                        <span className={styles.soldItemQuantity}>x{item.quantity}</span>
-                                                    )}
-                                                </div>
-                                                <div
-                                                    className={styles.soldItemName}
-                                                    style={{ color: GRADE_COLORS[item.item_grade] || '#E5E7EB' }}
-                                                >
-                                                    {item.item_name}
-                                                </div>
-                                                <div className={styles.soldItemPrice}>
-                                                    +{item.sold_price?.toLocaleString() || 0} 키나
-                                                </div>
+                                                ×
+                                            </button>
+                                            <div
+                                                className={styles.soldItemIcon}
+                                                style={{ borderColor: GRADE_COLORS[item.item_grade] || '#9CA3AF' }}
+                                            >
+                                                {item.icon_url ? (
+                                                    <img src={item.icon_url} alt={item.item_name} />
+                                                ) : (
+                                                    <span>📦</span>
+                                                )}
+                                                {item.quantity > 1 && (
+                                                    <span className={styles.soldItemQuantity}>x{item.quantity}</span>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            <div
+                                                className={styles.soldItemName}
+                                                style={{ color: GRADE_COLORS[item.item_grade] || '#E5E7EB' }}
+                                            >
+                                                {item.item_name}
+                                            </div>
+                                            <div className={styles.soldItemPrice}>
+                                                +{item.sold_price?.toLocaleString() || 0} 키나
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 
