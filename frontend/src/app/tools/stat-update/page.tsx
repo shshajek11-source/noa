@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { Search, ImagePlus, Loader2, Check, X, Edit3, Star, StarOff, Plus, Trash2, ChevronDown, Upload, Eye, Clock, Bug, TrendingUp, TrendingDown, HelpCircle, AlertTriangle } from 'lucide-react'
+import { Search, ImagePlus, Loader2, Check, X, Edit3, Star, StarOff, Plus, Trash2, ChevronDown, Upload, Clock, TrendingUp, TrendingDown, HelpCircle, AlertTriangle } from 'lucide-react'
 import { supabaseApi, CharacterSearchResult, SERVER_NAME_TO_ID } from '@/lib/supabaseApi'
 import { calculateDualCombatPower, CombatStats } from '@/lib/combatPower'
 import styles from './stat-update.module.css'
@@ -280,8 +280,6 @@ export default function StatUpdatePage() {
   // 검토 모달 상태
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
   const [editingStatIndex, setEditingStatIndex] = useState<{ slotId: SlotId, index: number } | null>(null)
-  const [showReviewDebug, setShowReviewDebug] = useState(false)  // 검토 모달 디버그
-  const [showMultiScaleDebug, setShowMultiScaleDebug] = useState<SlotId | null>(null)  // 멀티스케일 결과 보기
 
   // 기존 스탯 수정 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -293,18 +291,11 @@ export default function StatUpdatePage() {
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 디버그 상태
-  const [debugLogs, setDebugLogs] = useState<string[]>([])
-  const [showDebug, setShowDebug] = useState(false)
-  const [deviceIdDisplay, setDeviceIdDisplay] = useState<string>('없음')
-
   // 사용 가이드 모달 상태
   const [showGuide, setShowGuide] = useState(false)
 
-  const addDebugLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString()
-    setDebugLogs(prev => [...prev, `[${timestamp}] ${message}`])
-  }
+  // 디버그 로그 (no-op)
+  const addDebugLog = (_message: string) => { /* disabled */ }
 
   // 값 비교 함수: 숫자로 변환하여 비교
   const compareValues = (newValue: string, oldValue: string): 'up' | 'down' | 'same' | 'new' => {
@@ -1888,18 +1879,6 @@ export default function StatUpdatePage() {
                           <Check size={12} /> {slots[slot.id].stats.length}개 인식
                         </span>
                       )}
-                      {slots[slot.id].multiScaleResults && slots[slot.id].multiScaleResults!.length > 0 && (
-                        <button
-                          className={styles.scanDetailBtn}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setShowMultiScaleDebug(slot.id)
-                          }}
-                          title="스캔 상세 보기"
-                        >
-                          <Eye size={12} /> 스캔 상세
-                        </button>
-                      )}
                       {slots[slot.id].updatedAt && (
                         <span className={styles.updatedAt}>
                           <Clock size={12} /> {slots[slot.id].updatedAt}
@@ -1954,18 +1933,9 @@ export default function StatUpdatePage() {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>스탯 검토</h2>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                  className={`${styles.debugToggleBtn} ${showReviewDebug ? styles.active : ''}`}
-                  onClick={() => setShowReviewDebug(!showReviewDebug)}
-                  title="디버그 모드"
-                >
-                  <Bug size={16} />
-                </button>
-                <button className={styles.modalClose} onClick={() => setIsReviewModalOpen(false)}>
-                  <X size={20} />
-                </button>
-              </div>
+              <button className={styles.modalClose} onClick={() => setIsReviewModalOpen(false)}>
+                <X size={20} />
+              </button>
             </div>
 
             <div className={styles.modalContent}>
@@ -2049,67 +2019,6 @@ export default function StatUpdatePage() {
                         </div>
                       </div>
                     </div>
-
-                    {/* 디버그 패널 */}
-                    {showReviewDebug && slots[slot.id].rawText && (
-                      <div className={styles.reviewDebugPanel}>
-                        <div className={styles.reviewDebugHeader}>
-                          <span>🔍 OCR 원본 텍스트 (슬롯: {slot.id})</span>
-                          <span className={styles.reviewDebugCharCount}>
-                            {slots[slot.id].rawText?.length || 0}자
-                          </span>
-                        </div>
-                        <pre className={styles.reviewDebugText}>
-                          {slots[slot.id].rawText}
-                        </pre>
-
-                        {/* 스탯 검색 분석 */}
-                        <div className={styles.reviewDebugAnalysis}>
-                          <strong>스탯 검색 분석:</strong>
-                          <div>
-                            {['전투 속도', '이동 속도', '질주 속도', '비행 속도'].map(statName => {
-                              const rawText = slots[slot.id].rawText || ''
-                              const found = rawText.includes(statName) || rawText.includes(statName.replace(' ', ''))
-                              // 해당 스탯이 추출 결과에 있는지 확인
-                              const extracted = slots[slot.id].stats.some(s => s.name === statName)
-                              return (
-                                <div key={statName} style={{ marginLeft: '8px', fontSize: '11px' }}>
-                                  <span style={{ color: found ? '#4ade80' : '#f87171' }}>
-                                    {found ? '✓' : '✗'}
-                                  </span>
-                                  {' '}{statName}: 텍스트에 {found ? '있음' : '없음'}
-                                  {found && (
-                                    <span style={{ color: extracted ? '#4ade80' : '#f87171', marginLeft: '8px' }}>
-                                      → 추출 {extracted ? '성공' : '실패'}
-                                    </span>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </div>
-
-                          {/* "이동" 문자열 주변 분석 */}
-                          {(slots[slot.id].rawText || '').includes('이동') && (
-                            <div style={{ marginTop: '8px' }}>
-                              <strong>&quot;이동&quot; 주변 20자:</strong>
-                              <pre style={{ fontSize: '10px', background: '#1a1a1a', padding: '4px', marginTop: '4px' }}>
-                                {(() => {
-                                  const text = slots[slot.id].rawText || ''
-                                  const idx = text.indexOf('이동')
-                                  if (idx === -1) return '없음'
-                                  const start = Math.max(0, idx - 5)
-                                  const end = Math.min(text.length, idx + 15)
-                                  const snippet = text.substring(start, end)
-                                  // 유니코드 코드포인트 표시
-                                  const codes = snippet.split('').map(c => `${c}(${c.charCodeAt(0).toString(16)})`).join(' ')
-                                  return `"${snippet}"\n유니코드: ${codes}`
-                                })()}
-                              </pre>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )
               })}
@@ -2254,84 +2163,6 @@ export default function StatUpdatePage() {
         </div>
       )}
 
-      {/* 멀티스케일 스캔 결과 모달 */}
-      {showMultiScaleDebug && slots[showMultiScaleDebug]?.multiScaleResults && (
-        <div className={styles.modalOverlay} onClick={() => setShowMultiScaleDebug(null)}>
-          <div className={styles.multiScaleModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>
-                멀티스케일 스캔 결과 - {STAT_SLOTS.find(s => s.id === showMultiScaleDebug)?.label}
-              </h2>
-              <button className={styles.modalClose} onClick={() => setShowMultiScaleDebug(null)}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className={styles.multiScaleContent}>
-              {slots[showMultiScaleDebug].multiScaleResults!.map((result) => (
-                <div key={result.scale} className={styles.scaleResult}>
-                  <div className={styles.scaleHeader}>
-                    <span className={styles.scaleLabel}>{result.scale}x 스케일</span>
-                    <span className={styles.scaleStatCount}>{result.stats.length}개 인식</span>
-                  </div>
-
-                  {/* 인식된 스탯 목록 */}
-                  <div className={styles.scaleStats}>
-                    {result.stats.length === 0 ? (
-                      <span className={styles.noStats}>인식된 스탯 없음</span>
-                    ) : (
-                      result.stats.map((stat, idx) => (
-                        <div key={idx} className={styles.scaleStat}>
-                          <span className={styles.scaleStatName}>{stat.name}</span>
-                          <span className={styles.scaleStatValue}>{stat.value}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* OCR 원본 텍스트 (축약) */}
-                  <details className={styles.rawTextDetails}>
-                    <summary>OCR 원본 텍스트</summary>
-                    <pre className={styles.rawTextPre}>{result.rawText || '(없음)'}</pre>
-                  </details>
-                </div>
-              ))}
-
-              {/* 다수결 결과 요약 */}
-              <div className={styles.votingSummary}>
-                <h3>다수결 결과</h3>
-                <p className={styles.votingDescription}>
-                  각 스탯별로 4개 스케일에서 가장 많이 나온 값이 최종 선택됩니다.
-                </p>
-                <div className={styles.finalStats}>
-                  {slots[showMultiScaleDebug].stats.filter(s => s.isRecognized).map((stat, idx) => {
-                    // 각 스케일에서 해당 스탯의 값 수집
-                    const votes = slots[showMultiScaleDebug].multiScaleResults!
-                      .map(r => r.stats.find(s => s.name === stat.name)?.value)
-                      .filter(Boolean) as string[]
-
-                    const voteCounts = new Map<string, number>()
-                    votes.forEach(v => voteCounts.set(v, (voteCounts.get(v) || 0) + 1))
-
-                    const voteDisplay = Array.from(voteCounts.entries())
-                      .map(([v, c]) => `${v}(${c}표)`)
-                      .join(', ')
-
-                    return (
-                      <div key={idx} className={styles.finalStat}>
-                        <span className={styles.finalStatName}>{stat.name}</span>
-                        <span className={styles.finalStatVotes}>{voteDisplay || '-'}</span>
-                        <span className={styles.finalStatValue}>→ {stat.value}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 사용 가이드 모달 */}
       {showGuide && (
         <div className={styles.modalOverlay} onClick={() => setShowGuide(false)}>
@@ -2440,30 +2271,6 @@ export default function StatUpdatePage() {
         title="OCR Worker"
       />
 
-      {/* 디버그 패널 (개발용) */}
-      {showDebug && (
-        <div className={styles.debugPanel}>
-          <div className={styles.debugHeader}>
-            <span>Debug Panel</span>
-            <button onClick={() => setDebugLogs([])}>Clear</button>
-            <button onClick={() => setShowDebug(false)}>Close</button>
-          </div>
-          <div className={styles.debugContent}>
-            <div>Device ID: {deviceIdDisplay}</div>
-            <div>선택된 캐릭터: {selectedCharacter?.characterName || '없음'}</div>
-            <div>활성 슬롯: {activeSlot || '없음'}</div>
-            {debugLogs.map((log, idx) => (
-              <div key={idx}>{log}</div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!showDebug && (
-        <button className={styles.debugToggle} onClick={() => setShowDebug(true)}>
-          Debug
-        </button>
-      )}
     </main>
   )
 }
