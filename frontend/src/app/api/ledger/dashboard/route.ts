@@ -2,22 +2,33 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase, getUserFromRequestWithDevice } from '../../../../lib/auth'
 import { getKoreanGameDate } from '../../../../lib/koreanDate'
 
-// 주간 키 계산 (수요일 기준 YYYY-Www 형식)
+// 주간 키 계산 (수요일 새벽 5시 기준, dateUtils.ts와 동일 로직)
 function getWeekKey(dateStr: string): string {
-  const date = new Date(dateStr)
-  // 수요일(3)을 기준으로 주 계산
-  const dayOfWeek = date.getDay()
-  // 가장 가까운 수요일 찾기
-  const daysToWed = dayOfWeek >= 3 ? dayOfWeek - 3 : dayOfWeek + 4
-  const wednesday = new Date(date)
-  wednesday.setDate(date.getDate() - daysToWed)
+  const adjusted = new Date(dateStr)
 
-  // ISO 주차 계산
-  const startOfYear = new Date(wednesday.getFullYear(), 0, 1)
-  const days = Math.floor((wednesday.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000))
-  const weekNum = Math.ceil((days + startOfYear.getDay() + 1) / 7)
+  // 5시 이전이면 전날로 계산
+  if (adjusted.getHours() < 5) {
+    adjusted.setDate(adjusted.getDate() - 1)
+  }
 
-  return `${wednesday.getFullYear()}-W${String(weekNum).padStart(2, '0')}`
+  // 수요일(3)을 주의 시작으로 계산
+  const dayOfWeek = adjusted.getDay()
+
+  // 수요일 기준으로 며칠이 지났는지 계산
+  // 수(3)->0, 목(4)->1, 금(5)->2, 토(6)->3, 일(0)->4, 월(1)->5, 화(2)->6
+  const daysSinceWednesday = (dayOfWeek + 4) % 7
+
+  // 이번 주 수요일 찾기
+  const weekStart = new Date(adjusted)
+  weekStart.setDate(adjusted.getDate() - daysSinceWednesday)
+
+  // 연도와 주차 계산
+  const year = weekStart.getFullYear()
+  const startOfYear = new Date(year, 0, 1)
+  const daysSinceStart = Math.floor((weekStart.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000))
+  const weekNumber = Math.ceil((daysSinceStart + 1) / 7)
+
+  return `${year}-W${String(weekNumber).padStart(2, '0')}`
 }
 
 // 배치 API: 모든 캐릭터의 대시보드 데이터를 한 번에 조회
