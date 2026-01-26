@@ -78,7 +78,8 @@ export default function ProgressBar({
 }: ProgressBarProps) {
   const [timeUntilReset, setTimeUntilReset] = useState('')
 
-  // 진행률 계산
+  // 진행률 계산 (남은 횟수 방식)
+  const remainingCount = maxCount - currentCount
   const percentage = (currentCount / maxCount) * 100
   const isCompleted = currentCount >= maxCount
 
@@ -118,7 +119,7 @@ export default function ProgressBar({
             전체 완료 하기
           </button>
           <span className={styles.count}>
-            {currentCount}/{maxCount}
+            {remainingCount}/{maxCount}
           </span>
           <div className={styles.buttons}>
             <button
