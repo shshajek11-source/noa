@@ -21,7 +21,6 @@ interface ContentProgress {
 interface CharacterStatus {
   character: LedgerCharacter
   todayIncome: number
-  weeklyIncome: number
   sellingItemCount: number
   soldItemCount: number
   weeklyContents: ContentProgress[]
@@ -148,10 +147,6 @@ function CharacterRow({ status, onCharacterClick }: { status: CharacterStatus; o
           <div className={styles.stat}>
             <span className={styles.statLabel}>오늘</span>
             <span className={styles.statValue}>{formatKina(status.todayIncome)}</span>
-          </div>
-          <div className={styles.stat}>
-            <span className={styles.statLabel}>주간</span>
-            <span className={styles.statValue}>{formatKina(status.weeklyIncome)}</span>
           </div>
           <div className={styles.stat}>
             <span className={styles.statLabel}>판매중</span>

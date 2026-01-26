@@ -90,7 +90,7 @@ export default function LedgerPage() {
   // 선택한 날짜의 수입 (하단 네비게이션 바용)
   const [selectedDateIncome, setSelectedDateIncome] = useState({
     dailyIncome: 0,
-    weeklyIncome: 0
+    monthlyIncome: 0
   })
 
   // 수입 새로고침 트리거 (던전 클리어/아이템 판매 시 증가)
@@ -414,7 +414,6 @@ export default function LedgerPage() {
   // 대시보드용 전체 통계 계산
   const [dashboardStats, setDashboardStats] = useState({
     totalTodayIncome: 0,
-    totalWeeklyIncome: 0,
     unsoldItemCount: 0,
     unsoldItemsByGrade: {
       common: 0,
@@ -463,7 +462,6 @@ export default function LedgerPage() {
 
       const stats = {
         totalTodayIncome: data.totals?.todayIncome || 0,
-        totalWeeklyIncome: data.totals?.weeklyIncome || 0,
         unsoldItemCount: data.totals?.unsoldItemCount || 0,
         unsoldItemsByGrade: data.totals?.unsoldItemsByGrade || {
           common: 0, rare: 0, heroic: 0, legendary: 0, ultimate: 0
@@ -493,27 +491,27 @@ export default function LedgerPage() {
   useEffect(() => {
     const loadSelectedDateIncome = async () => {
       if (!isReady || !selectedCharacterId) {
-        setSelectedDateIncome({ dailyIncome: 0, weeklyIncome: 0 })
+        setSelectedDateIncome({ dailyIncome: 0, monthlyIncome: 0 })
         return
       }
 
       try {
         const authHeaders = getAuthHeader()
 
-        // 선택한 날짜의 일일/주간 통계 병렬로 가져오기
-        const [dailyRes, weeklyRes] = await Promise.all([
+        // 선택한 날짜의 일일/월간 통계 병렬로 가져오기
+        const [dailyRes, monthlyRes] = await Promise.all([
           fetch(
             `/api/ledger/stats?characterId=${selectedCharacterId}&type=daily&date=${selectedDate}`,
             { headers: authHeaders }
           ),
           fetch(
-            `/api/ledger/stats?characterId=${selectedCharacterId}&type=weekly&date=${selectedDate}`,
+            `/api/ledger/stats?characterId=${selectedCharacterId}&type=monthly&date=${selectedDate}`,
             { headers: authHeaders }
           )
         ])
 
         let dailyIncome = 0
-        let weeklyIncome = 0
+        let monthlyIncome = 0
 
         if (dailyRes.ok) {
           const data = await dailyRes.json()
@@ -521,16 +519,16 @@ export default function LedgerPage() {
           dailyIncome = data.totalIncome || 0
         }
 
-        if (weeklyRes.ok) {
-          const data = await weeklyRes.json()
-          // API 응답 필드: totalIncome (주간 합계)
-          weeklyIncome = data.totalIncome || 0
+        if (monthlyRes.ok) {
+          const data = await monthlyRes.json()
+          // API 응답 필드: totalIncome (월간 합계)
+          monthlyIncome = data.totalIncome || 0
         }
 
-        setSelectedDateIncome({ dailyIncome, weeklyIncome })
+        setSelectedDateIncome({ dailyIncome, monthlyIncome })
       } catch (error) {
         console.error('Failed to load selected date income:', error)
-        setSelectedDateIncome({ dailyIncome: 0, weeklyIncome: 0 })
+        setSelectedDateIncome({ dailyIncome: 0, monthlyIncome: 0 })
       }
     }
 
@@ -862,7 +860,6 @@ export default function LedgerPage() {
         <DashboardSummary
           characters={characters}
           totalTodayIncome={dashboardStats.totalTodayIncome}
-          totalWeeklyIncome={dashboardStats.totalWeeklyIncome}
           unsoldItemCount={dashboardStats.unsoldItemCount}
           unsoldItemsByGrade={dashboardStats.unsoldItemsByGrade}
           onCharacterClick={setActiveTab}
@@ -1061,7 +1058,7 @@ export default function LedgerPage() {
       {activeTab !== 'dashboard' && selectedCharacterId && (
         <BottomNavBar
           todayIncome={selectedDateIncome.dailyIncome}
-          weeklyIncome={selectedDateIncome.weeklyIncome}
+          monthlyIncome={selectedDateIncome.monthlyIncome}
           selectedDate={selectedDate}
           onDateClick={() => setShowDateModal(true)}
           onChargeClick={() => setShowChargePopup(true)}

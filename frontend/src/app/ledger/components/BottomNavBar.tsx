@@ -6,7 +6,7 @@ import styles from './BottomNavBar.module.css'
 
 interface BottomNavBarProps {
   todayIncome: number
-  weeklyIncome: number
+  monthlyIncome: number
   selectedDate: string
   onDateClick: () => void
   onChargeClick: () => void
@@ -14,7 +14,7 @@ interface BottomNavBarProps {
 
 export default function BottomNavBar({
   todayIncome,
-  weeklyIncome,
+  monthlyIncome,
   selectedDate,
   onDateClick,
   onChargeClick
@@ -61,8 +61,8 @@ export default function BottomNavBar({
           {/* 일일 수입 */}
           <AnimatedIncome icon="💰" label="일일수입" amount={todayIncome} />
 
-          {/* 주간 수입 */}
-          <AnimatedIncome icon="📈" label="주간수입" amount={weeklyIncome} />
+          {/* 월간 수입 */}
+          <AnimatedIncome icon="📈" label="월간수입" amount={monthlyIncome} />
 
           {/* 설정&충전 버튼 */}
           <button className={styles.chargeBtn} onClick={onChargeClick}>

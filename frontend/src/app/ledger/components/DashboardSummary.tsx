@@ -40,7 +40,6 @@ interface ContentProgress {
 interface CharacterStatus {
   character: LedgerCharacter
   todayIncome: number
-  weeklyIncome: number
   sellingItemCount: number
   soldItemCount: number
   weeklyContents: ContentProgress[]
@@ -50,7 +49,6 @@ interface CharacterStatus {
 interface DashboardSummaryProps {
   characters: LedgerCharacter[]
   totalTodayIncome: number
-  totalWeeklyIncome: number
   unsoldItemCount: number
   unsoldItemsByGrade: {
     legendary: number
@@ -170,7 +168,6 @@ const CACHE_TTL = 5 * 60 * 1000
 function DashboardSummary({
   characters,
   totalTodayIncome,
-  totalWeeklyIncome,
   unsoldItemCount,
   unsoldItemsByGrade,
   onCharacterClick,
@@ -364,7 +361,6 @@ function DashboardSummary({
       charStatuses.push({
         character: char,
         todayIncome: charData.todayIncome ?? 0,
-        weeklyIncome: charData.weeklyIncome ?? 0,
         sellingItemCount: sellingCount,
         soldItemCount: soldCount,
         weeklyContents: weeklyProgressForChar,
