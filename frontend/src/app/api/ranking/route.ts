@@ -52,10 +52,10 @@ export async function GET(request: NextRequest) {
             profile_image
         `.replace(/\s+/g, '')
 
-        // count: 'estimated' 사용 (정확한 카운트 대신 추정치로 속도 개선)
+        // count 제거 (타임아웃 방지 - 대용량 테이블에서 count가 느림)
         let query = supabase
             .from('characters')
-            .select(selectColumns, { count: 'estimated' })
+            .select(selectColumns)
 
         // Apply Filters
         if (server) query = query.eq('server_id', parseInt(server))
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
         // Apply Pagination
         query = query.range(start, end)
 
-        const { data, count, error } = await query
+        const { data, error } = await query
 
         if (error) {
             console.error('[Ranking API] sorting error:', error)
@@ -139,10 +139,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
             data,
             meta: {
-                total: count,
                 page,
                 limit,
-                totalPages: count ? Math.ceil(count / limit) : 0
+                hasMore: data && data.length === limit  // 다음 페이지 여부만 반환
             }
         })
 
