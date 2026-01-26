@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Download, Smartphone } from 'lucide-react'
+import { X, Download, Smartphone, Share, PlusSquare } from 'lucide-react'
 
 const STORAGE_KEY = 'app_download_popup_dismissed'
 
 // APK 다운로드 URL (GitHub Releases)
-const APK_DOWNLOAD_URL = 'https://github.com/shshajek-cpu/sugo-gg/releases/latest/download/app-debug.apk'
+const APK_DOWNLOAD_URL = 'https://github.com/shshajek-cpu/sugo-gg/releases/latest/download/app-release.apk'
 
 export default function AppDownloadPopup() {
   const [isVisible, setIsVisible] = useState(false)
@@ -18,7 +18,11 @@ export default function AppDownloadPopup() {
     const dismissed = localStorage.getItem(STORAGE_KEY)
     const isInApp = window.navigator.userAgent.includes('SUGO-App')
 
-    if (dismissed || isInApp) return
+    // iOS standalone 모드 (홈 화면에서 실행) 감지
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      || (window.navigator as any).standalone === true
+
+    if (dismissed || isInApp || isStandalone) return
 
     // 모바일 OS 감지
     const ua = navigator.userAgent.toLowerCase()
@@ -43,12 +47,7 @@ export default function AppDownloadPopup() {
   }
 
   const handleDownload = () => {
-    if (isAndroid) {
-      window.location.href = APK_DOWNLOAD_URL
-    } else if (isIOS) {
-      // iOS는 App Store 링크 (추후 등록 시)
-      alert('iOS 앱은 준비 중입니다.')
-    }
+    window.location.href = APK_DOWNLOAD_URL
   }
 
   if (!isVisible) return null
@@ -67,26 +66,48 @@ export default function AppDownloadPopup() {
         </div>
 
         {/* 제목 */}
-        <h3 style={styles.title}>SUGO.gg 앱 설치</h3>
+        <h3 style={styles.title}>
+          {isAndroid ? 'SUGO.gg 앱 설치' : '홈 화면에 추가'}
+        </h3>
 
-        {/* 설명 */}
-        <p style={styles.description}>
-          앱으로 더 빠르고 편리하게!<br />
-          홈 화면에서 바로 접속하세요.
-        </p>
-
-        {/* 다운로드 버튼 */}
+        {/* Android 안내 */}
         {isAndroid && (
-          <button onClick={handleDownload} style={styles.downloadBtn}>
-            <Download size={18} />
-            Android 앱 다운로드
-          </button>
+          <>
+            <p style={styles.description}>
+              앱으로 더 빠르고 편리하게!<br />
+              홈 화면에서 바로 접속하세요.
+            </p>
+            <button onClick={handleDownload} style={styles.downloadBtn}>
+              <Download size={18} />
+              Android 앱 다운로드
+            </button>
+          </>
         )}
 
+        {/* iOS 안내 */}
         {isIOS && (
-          <button style={styles.downloadBtnDisabled} disabled>
-            iOS 앱 준비 중
-          </button>
+          <>
+            <p style={styles.description}>
+              앱처럼 사용하려면<br />
+              홈 화면에 추가하세요!
+            </p>
+            <div style={styles.iosSteps}>
+              <div style={styles.iosStep}>
+                <div style={styles.iosStepNumber}>1</div>
+                <div style={styles.iosStepContent}>
+                  <Share size={16} color="#f59e0b" />
+                  <span>하단의 <strong>공유</strong> 버튼 탭</span>
+                </div>
+              </div>
+              <div style={styles.iosStep}>
+                <div style={styles.iosStepNumber}>2</div>
+                <div style={styles.iosStepContent}>
+                  <PlusSquare size={16} color="#f59e0b" />
+                  <span><strong>홈 화면에 추가</strong> 선택</span>
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
         {/* 다시 보지 않기 */}
@@ -182,5 +203,40 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '13px',
     cursor: 'pointer',
     textDecoration: 'underline',
+  },
+  iosSteps: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    marginBottom: '20px',
+    textAlign: 'left',
+  },
+  iosStep: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px',
+    backgroundColor: '#1a1a1a',
+    borderRadius: '8px',
+  },
+  iosStepNumber: {
+    width: '24px',
+    height: '24px',
+    backgroundColor: '#f59e0b',
+    color: '#000',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '13px',
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  iosStepContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    color: '#E5E7EB',
+    fontSize: '14px',
   },
 }
