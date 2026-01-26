@@ -97,8 +97,7 @@ async function getDailyStats(characterId: string, date: string) {
     .select('sold_price')
     .eq('ledger_character_id', characterId)
     .not('sold_price', 'is', null)
-    .gte('updated_at', `${date}T00:00:00`)
-    .lt('updated_at', `${date}T23:59:59`)
+    .eq('sold_date', date)
 
   const itemIncome = soldItems?.reduce((sum, i) => sum + (i.sold_price || 0), 0) || 0
 
@@ -145,11 +144,11 @@ async function getWeeklyStats(characterId: string, date: string) {
   // 주간 아이템 판매 수입
   const { data: soldItems } = await supabase
     .from('ledger_items')
-    .select('sold_price, updated_at, item_name')
+    .select('sold_price, sold_date, item_name')
     .eq('ledger_character_id', characterId)
     .not('sold_price', 'is', null)
-    .gte('updated_at', `${startDate}T00:00:00`)
-    .lte('updated_at', `${endDate}T23:59:59`)
+    .gte('sold_date', startDate)
+    .lte('sold_date', endDate)
 
   console.log(`[Stats] getWeeklyStats - contentRecords:`, contentRecords?.length, 'dungeonRecords:', dungeonRecords?.length, 'soldItems:', soldItems?.length)
 
@@ -193,8 +192,8 @@ async function getWeeklyStats(characterId: string, date: string) {
 
   // 아이템 판매 수입 집계
   soldItems?.forEach(r => {
-    const itemDate = r.updated_at.split('T')[0]
-    const existing = dailyMap.get(itemDate)
+    if (!r.sold_date) return
+    const existing = dailyMap.get(r.sold_date)
     if (existing) {
       existing.itemIncome += r.sold_price || 0
     }
@@ -255,11 +254,11 @@ async function getMonthlyStats(characterId: string, date: string) {
   // 월간 아이템 판매 수입
   const { data: soldItems } = await supabase
     .from('ledger_items')
-    .select('sold_price, updated_at')
+    .select('sold_price, sold_date')
     .eq('ledger_character_id', characterId)
     .not('sold_price', 'is', null)
-    .gte('updated_at', `${startDate}T00:00:00`)
-    .lte('updated_at', `${endDate}T23:59:59`)
+    .gte('sold_date', startDate)
+    .lte('sold_date', endDate)
 
   // 일별 데이터 집계
   const dailyMap = new Map<string, { contentIncome: number; dungeonIncome: number; itemIncome: number }>()
@@ -301,8 +300,8 @@ async function getMonthlyStats(characterId: string, date: string) {
 
   // 아이템 판매 수입 집계
   soldItems?.forEach(r => {
-    const itemDate = r.updated_at.split('T')[0]
-    const existing = dailyMap.get(itemDate)
+    if (!r.sold_date) return
+    const existing = dailyMap.get(r.sold_date)
     if (existing) {
       existing.itemIncome += r.sold_price || 0
     }
