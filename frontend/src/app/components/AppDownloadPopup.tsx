@@ -5,13 +5,8 @@ import { X, Download, Smartphone } from 'lucide-react'
 
 const STORAGE_KEY = 'app_download_popup_dismissed'
 
-// APK 다운로드 URL 설정
-// 옵션 1: GitHub Releases (권장)
-// const APK_DOWNLOAD_URL = 'https://github.com/shshajek-cpu/sugo-gg/releases/latest/download/sugo-app.apk'
-// 옵션 2: Google Drive 공유 링크
-// const APK_DOWNLOAD_URL = 'https://drive.google.com/uc?export=download&id=YOUR_FILE_ID'
-// 옵션 3: public 폴더 (Vercel 용량 제한 주의)
-const APK_DOWNLOAD_URL = '/downloads/sugo-app.apk'
+// APK 다운로드 URL (GitHub Releases)
+const APK_DOWNLOAD_URL = 'https://github.com/shshajek-cpu/sugo-gg/releases/latest/download/sugo-app.apk'
 
 export default function AppDownloadPopup() {
   const [isVisible, setIsVisible] = useState(false)
