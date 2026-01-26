@@ -9,328 +9,6 @@ import StatsComparison from './components/StatsComparison'
 // 모달 지연 로딩 (장비 슬롯 클릭 시에만 로드)
 const ItemSelectModal = dynamic(() => import('./components/ItemSelectModal'), { ssr: false })
 
-// 디버그 패널 컴포넌트
-function DebugPanel({
-  character,
-  simulatedEquipment,
-  simulatedAccessories,
-  selectedSlot,
-  hasChanges,
-  isLoading,
-  apiLogs,
-}: {
-  character: SimulatorCharacter | null
-  simulatedEquipment: SimulatorEquipment[]
-  simulatedAccessories: SimulatorEquipment[]
-  selectedSlot: { slotPos: number; slotName: string } | null
-  hasChanges: boolean
-  isLoading: boolean
-  apiLogs: string[]
-}) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'state' | 'equipment' | 'logs' | 'items'>('state')
-
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        style={{
-          position: 'fixed',
-          bottom: '20px',
-          right: '20px',
-          padding: '8px 16px',
-          backgroundColor: '#ef4444',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontSize: '12px',
-          fontWeight: 600,
-          zIndex: 9999,
-        }}
-      >
-        DEBUG
-      </button>
-    )
-  }
-
-  return (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      width: '400px',
-      maxHeight: '500px',
-      backgroundColor: '#1a1a2e',
-      border: '2px solid #ef4444',
-      borderRadius: '12px',
-      zIndex: 9999,
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
-      {/* 헤더 */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 16px',
-        backgroundColor: '#ef4444',
-        color: '#fff',
-      }}>
-        <span style={{ fontWeight: 700, fontSize: '14px' }}>DEBUG PANEL</span>
-        <button
-          onClick={() => setIsOpen(false)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#fff',
-            cursor: 'pointer',
-            fontSize: '18px',
-          }}
-        >
-          ×
-        </button>
-      </div>
-
-      {/* 탭 */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #333' }}>
-        {(['state', 'equipment', 'items', 'logs'] as const).map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              flex: 1,
-              padding: '8px',
-              backgroundColor: activeTab === tab ? '#333' : 'transparent',
-              color: activeTab === tab ? '#fff' : '#888',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '12px',
-            }}
-          >
-            {tab === 'state' ? '상태' : tab === 'equipment' ? '장비' : tab === 'items' ? '필드' : '로그'}
-          </button>
-        ))}
-      </div>
-
-      {/* 내용 */}
-      <div style={{
-        flex: 1,
-        overflow: 'auto',
-        padding: '12px',
-        fontSize: '11px',
-        fontFamily: 'monospace',
-        color: '#ccc',
-      }}>
-        {activeTab === 'state' && (
-          <div>
-            <div style={{ marginBottom: '12px' }}>
-              <strong style={{ color: '#ef4444' }}>캐릭터:</strong>
-              <div style={{ marginLeft: '8px', marginTop: '4px' }}>
-                {character ? (
-                  <>
-                    <div>이름: {character.name}</div>
-                    <div>서버: {character.server} (ID: {character.serverId})</div>
-                    <div>직업: {character.className}</div>
-                    <div>레벨: {character.level}</div>
-                    <div>템렙: {character.itemLevel?.toLocaleString()}</div>
-                    <div>전투력: {character.combatPower?.toLocaleString()}</div>
-                  </>
-                ) : (
-                  <span style={{ color: '#666' }}>없음</span>
-                )}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '12px' }}>
-              <strong style={{ color: '#ef4444' }}>상태값:</strong>
-              <div style={{ marginLeft: '8px', marginTop: '4px' }}>
-                <div>isLoading: <span style={{ color: isLoading ? '#10b981' : '#666' }}>{String(isLoading)}</span></div>
-                <div>hasChanges: <span style={{ color: hasChanges ? '#10b981' : '#666' }}>{String(hasChanges)}</span></div>
-                <div>selectedSlot: {selectedSlot ? `${selectedSlot.slotName} (pos: ${selectedSlot.slotPos})` : 'null'}</div>
-              </div>
-            </div>
-
-            <div>
-              <strong style={{ color: '#ef4444' }}>장비 개수:</strong>
-              <div style={{ marginLeft: '8px', marginTop: '4px' }}>
-                <div>원본 장비: {character?.equipment?.length || 0}개</div>
-                <div>원본 장신구: {character?.accessories?.length || 0}개</div>
-                <div>시뮬 장비: {simulatedEquipment.length}개</div>
-                <div>시뮬 장신구: {simulatedAccessories.length}개</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'equipment' && (
-          <div>
-            <div style={{ marginBottom: '12px' }}>
-              <strong style={{ color: '#f59e0b' }}>시뮬레이션 장비:</strong>
-              {simulatedEquipment.length === 0 ? (
-                <div style={{ color: '#666', marginTop: '4px' }}>없음</div>
-              ) : (
-                simulatedEquipment.map((eq, i) => (
-                  <div key={i} style={{ marginLeft: '8px', marginTop: '4px', padding: '4px', backgroundColor: '#252530', borderRadius: '4px' }}>
-                    <div style={{ color: '#f59e0b' }}>[{eq.slotName}] {eq.name}</div>
-                    <div style={{ fontSize: '10px', color: '#888' }}>
-                      pos: {eq.slotPos} | grade: {eq.grade || '-'} | 템렙: {eq.itemLevel || '-'}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div>
-              <strong style={{ color: '#8b5cf6' }}>시뮬레이션 장신구:</strong>
-              {simulatedAccessories.length === 0 ? (
-                <div style={{ color: '#666', marginTop: '4px' }}>없음</div>
-              ) : (
-                simulatedAccessories.map((eq, i) => (
-                  <div key={i} style={{ marginLeft: '8px', marginTop: '4px', padding: '4px', backgroundColor: '#252530', borderRadius: '4px' }}>
-                    <div style={{ color: '#8b5cf6' }}>[{eq.slotName}] {eq.name}</div>
-                    <div style={{ fontSize: '10px', color: '#888' }}>
-                      pos: {eq.slotPos} | grade: {eq.grade || '-'} | 템렙: {eq.itemLevel || '-'}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'items' && (
-          <div>
-            <div style={{ marginBottom: '8px', color: '#f59e0b', fontSize: '10px' }}>
-              API 원본 필드 + detail (아이템 상세 API)
-            </div>
-            {!character?.equipment?.length ? (
-              <div style={{ color: '#666' }}>장비 데이터 없음</div>
-            ) : (
-              character.equipment.slice(0, 3).map((eq, i) => (
-                <div key={i} style={{
-                  marginBottom: '10px',
-                  padding: '6px',
-                  backgroundColor: '#252530',
-                  borderRadius: '4px',
-                  borderLeft: '2px solid #10b981',
-                }}>
-                  <div style={{ color: '#10b981', fontWeight: 600, marginBottom: '4px' }}>
-                    [{eq.slotName || eq.slotPos}] {eq.name}
-                  </div>
-
-                  {/* 기본 필드 */}
-                  <div style={{ fontSize: '9px', color: '#999', lineHeight: 1.4, marginBottom: '6px' }}>
-                    <div style={{ color: '#f59e0b', fontWeight: 600, marginBottom: '2px' }}>기본 필드:</div>
-                    {eq._raw ? (
-                      Object.entries(eq._raw)
-                        .filter(([key]) => !['detail'].includes(key))
-                        .map(([key, val]) => (
-                          <div key={key} style={{ marginBottom: '1px', paddingLeft: '8px' }}>
-                            <span style={{ color: '#f59e0b' }}>{key}:</span>{' '}
-                            <span style={{ color: '#ccc' }}>
-                              {typeof val === 'object' ? JSON.stringify(val) : String(val ?? 'null')}
-                            </span>
-                          </div>
-                        ))
-                    ) : (
-                      <div style={{ color: '#666', paddingLeft: '8px' }}>_raw 없음</div>
-                    )}
-                  </div>
-
-                  {/* detail 필드 */}
-                  <div style={{ fontSize: '9px', color: '#999', lineHeight: 1.4 }}>
-                    <div style={{ color: '#8b5cf6', fontWeight: 600, marginBottom: '2px' }}>detail (아이템 상세):</div>
-                    {eq.detail ? (
-                      <div style={{ paddingLeft: '8px' }}>
-                        {eq.detail.options && eq.detail.options.length > 0 && (
-                          <div style={{ marginBottom: '4px' }}>
-                            <span style={{ color: '#3b82f6' }}>options:</span>
-                            {eq.detail.options.map((opt, j) => (
-                              <div key={j} style={{ paddingLeft: '8px', color: '#ccc' }}>
-                                {opt.name}: {opt.value}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {eq.detail.randomOptions && eq.detail.randomOptions.length > 0 && (
-                          <div style={{ marginBottom: '4px' }}>
-                            <span style={{ color: '#3b82f6' }}>randomOptions:</span>
-                            {eq.detail.randomOptions.map((opt, j) => (
-                              <div key={j} style={{ paddingLeft: '8px', color: '#ccc' }}>
-                                {opt.name}: {opt.value}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {eq.detail.manastones && eq.detail.manastones.length > 0 && (
-                          <div style={{ marginBottom: '4px' }}>
-                            <span style={{ color: '#3b82f6' }}>manastones:</span>
-                            {eq.detail.manastones.map((m, j) => (
-                              <div key={j} style={{ paddingLeft: '8px', color: '#ccc' }}>
-                                {m.type}: {m.value} ({m.grade})
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {/* _raw 전체 표시 (디버그용) */}
-                        {(eq.detail as any)._raw && (
-                          <div style={{ marginTop: '4px' }}>
-                            <span style={{ color: '#ef4444' }}>_raw 전체:</span>
-                            <pre style={{
-                              fontSize: '8px',
-                              color: '#888',
-                              margin: '2px 0 0 8px',
-                              maxHeight: '100px',
-                              overflow: 'auto',
-                              whiteSpace: 'pre-wrap',
-                              wordBreak: 'break-all'
-                            }}>
-                              {JSON.stringify((eq.detail as any)._raw, null, 1)}
-                            </pre>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div style={{ color: '#666', paddingLeft: '8px' }}>detail 없음</div>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-            {(character?.equipment?.length || 0) > 3 && (
-              <div style={{ color: '#666', fontSize: '10px', textAlign: 'center' }}>
-                ... 외 {(character?.equipment?.length || 0) - 3}개 아이템
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'logs' && (
-          <div>
-            {apiLogs.length === 0 ? (
-              <div style={{ color: '#666' }}>로그 없음</div>
-            ) : (
-              apiLogs.map((log, i) => (
-                <div key={i} style={{
-                  padding: '4px 8px',
-                  marginBottom: '4px',
-                  backgroundColor: '#252530',
-                  borderRadius: '4px',
-                  borderLeft: '2px solid #3b82f6',
-                }}>
-                  {log}
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // Types
 export interface SimulatorEquipmentOption {
   name: string
@@ -425,18 +103,9 @@ export default function SimulatorPage() {
   const [simulatedArcana, setSimulatedArcana] = useState<SimulatorEquipment[]>([])
   const [selectedSlot, setSelectedSlot] = useState<{ slotPos: number; slotName: string } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [apiLogs, setApiLogs] = useState<string[]>([])
-
-  // 디버그 로그 추가 함수
-  const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString('ko-KR')
-    setApiLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 49)])
-  }
 
   // 캐릭터 선택 핸들러
   const handleCharacterSelect = (char: SimulatorCharacter) => {
-    addLog(`캐릭터 선택: ${char.name} (${char.server})`)
-    addLog(`장비 ${char.equipment.length}개, 장신구 ${char.accessories.length}개, 아르카나 ${char.arcana.length}개 로드됨`)
     setCharacter(char)
     // 시뮬레이션용 장비 복사
     setSimulatedEquipment([...char.equipment])
@@ -450,7 +119,6 @@ export default function SimulatorPage() {
   // 초기화 핸들러
   const handleReset = () => {
     if (character) {
-      addLog('장비 초기화됨')
       setSimulatedEquipment([...character.equipment])
       setSimulatedAccessories([...character.accessories])
       const runes = character.accessories.filter(a => a.slotPos === 23 || a.slotPos === 24)
@@ -461,15 +129,12 @@ export default function SimulatorPage() {
 
   // 장비 슬롯 클릭 핸들러
   const handleSlotClick = (slotPos: number, slotName: string) => {
-    addLog(`슬롯 선택: ${slotName} (pos: ${slotPos})`)
     setSelectedSlot({ slotPos, slotName })
   }
 
   // 아이템 선택 핸들러
   const handleItemSelect = (item: SimulatorEquipment) => {
     if (!selectedSlot) return
-
-    addLog(`아이템 변경: ${selectedSlot.slotName} → ${item.name}`)
 
     const slotPos = selectedSlot.slotPos
     const newItem = { ...item, slotPos: selectedSlot.slotPos, slotName: selectedSlot.slotName }
@@ -677,17 +342,6 @@ export default function SimulatorPage() {
           onClose={() => setSelectedSlot(null)}
         />
       )}
-
-      {/* 디버그 패널 */}
-      <DebugPanel
-        character={character}
-        simulatedEquipment={simulatedEquipment}
-        simulatedAccessories={simulatedAccessories}
-        selectedSlot={selectedSlot}
-        hasChanges={hasChanges}
-        isLoading={isLoading}
-        apiLogs={apiLogs}
-      />
     </div>
   )
 }

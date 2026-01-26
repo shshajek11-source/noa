@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { calculateCombatPowerFromStats, CombatPowerResult, extractCombatStats } from '../../lib/combatPower'
+import { calculateCombatPowerFromStats } from '../../lib/combatPower'
 import { aggregateStats } from '../../lib/statsAggregator'
 import styles from './CombatPowerDisplay.module.css'
 
@@ -21,17 +21,11 @@ export default function CombatPowerDisplay({
   equippedTitleId
 }: CombatPowerDisplayProps) {
   const [showDetails, setShowDetails] = useState(false)
-  const [showDebug, setShowDebug] = useState(false)
 
   // 스탯 집계
   const aggregatedStats = useMemo(() => {
     return aggregateStats(equipment, titles, daevanion, stats, equippedTitleId)
   }, [equipment, titles, daevanion, stats, equippedTitleId])
-
-  // 전투력 계산용 스탯 추출
-  const combatStats = useMemo(() => {
-    return extractCombatStats(aggregatedStats, stats)
-  }, [aggregatedStats, stats])
 
   // 전투력 계산
   const combatPower = useMemo(() => {
@@ -141,89 +135,6 @@ export default function CombatPowerDisplay({
               DPS × 다단히트 × 스킬보너스 × 1000
             </span>
           </div>
-
-          {/* 디버그 토글 버튼 */}
-          <button
-            onClick={() => setShowDebug(!showDebug)}
-            style={{
-              marginTop: '0.75rem',
-              padding: '0.4rem 0.8rem',
-              background: showDebug ? '#EF4444' : '#374151',
-              border: 'none',
-              borderRadius: '4px',
-              color: 'white',
-              fontSize: '0.7rem',
-              cursor: 'pointer',
-              width: '100%'
-            }}
-          >
-            {showDebug ? '디버그 닫기' : '디버그 보기'}
-          </button>
-
-          {/* 디버그 패널 */}
-          {showDebug && (
-            <div style={{
-              marginTop: '0.75rem',
-              padding: '0.75rem',
-              background: '#111318',
-              border: '1px solid #374151',
-              borderRadius: '6px',
-              fontSize: '0.65rem',
-              color: '#9CA3AF',
-              maxHeight: '300px',
-              overflowY: 'auto'
-            }}>
-              <div style={{ color: '#FACC15', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                전투력 계산 디버그
-              </div>
-
-              {/* 입력 데이터 수 */}
-              <div style={{ marginBottom: '0.5rem', padding: '0.5rem', background: '#1F2937', borderRadius: '4px' }}>
-                <div style={{ color: '#60A5FA', marginBottom: '0.25rem' }}>입력 데이터</div>
-                <div>장비 수: {equipment?.length || 0}개</div>
-                <div>집계된 스탯 수: {aggregatedStats?.length || 0}개</div>
-              </div>
-
-              {/* 추출된 전투력 스탯 */}
-              <div style={{ marginBottom: '0.5rem', padding: '0.5rem', background: '#1F2937', borderRadius: '4px' }}>
-                <div style={{ color: '#10B981', marginBottom: '0.25rem' }}>추출된 스탯 (전투력 계산용) - 퍼센트만 사용</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
-                  <div>공격력: {combatStats.attackPower}</div>
-                  <div>PVE공격력: {combatStats.pveAttackPower}</div>
-                  <div>공격력증가: +{combatStats.attackIncrease}%</div>
-                  <div>보스공격력: {combatStats.bossAttackPower}</div>
-                  <div>PVP공격력: {combatStats.pvpAttackPower}</div>
-                  <div style={{ color: '#F59E0B' }}>피해증폭: +{combatStats.damageAmplification}%</div>
-                  <div style={{ color: '#F59E0B' }}>PVE피해증폭: +{combatStats.pveDamageAmplification}%</div>
-                  <div style={{ color: '#F59E0B' }}>보스피해증폭: +{combatStats.bossDamageAmplification}%</div>
-                  <div style={{ color: '#F59E0B' }}>PVP피해증폭: +{combatStats.pvpDamageAmplification}%</div>
-                  <div>치명타: {combatStats.criticalHit}</div>
-                  <div>정확: {combatStats.accuracy}</div>
-                  <div style={{ color: '#F59E0B' }}>치명타피해증폭: +{combatStats.criticalDamageAmplification}%</div>
-                  <div style={{ color: '#F59E0B' }}>전투속도: +{combatStats.combatSpeed}%</div>
-                  <div style={{ color: '#F59E0B' }}>스킬보너스: +{combatStats.skillBonus}%</div>
-                  <div style={{ color: '#F59E0B' }}>강타: +{combatStats.smash}%</div>
-                  <div style={{ color: '#F59E0B' }}>다단히트: +{combatStats.multiHit}%</div>
-                </div>
-              </div>
-
-              {/* 집계된 모든 스탯 */}
-              <div style={{ padding: '0.5rem', background: '#1F2937', borderRadius: '4px' }}>
-                <div style={{ color: '#F59E0B', marginBottom: '0.25rem' }}>집계된 전체 스탯</div>
-                <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                  {aggregatedStats.map((stat, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #374151', padding: '0.15rem 0' }}>
-                      <span>{stat.name}</span>
-                      <span style={{ color: '#E5E7EB' }}>
-                        {stat.totalValue > 0 ? stat.totalValue : ''}
-                        {stat.totalPercentage > 0 ? ` +${stat.totalPercentage}%` : ''}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

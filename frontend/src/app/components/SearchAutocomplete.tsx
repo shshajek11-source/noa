@@ -78,19 +78,6 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
     const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
     const [selectedRace, setSelectedRace] = useState<'all' | 'Elyos' | 'Asmodian'>('all')
 
-    // 디버그 로그
-    const [debugLogs, setDebugLogs] = useState<string[]>([])
-    const [showDebug, setShowDebug] = useState(false)
-    const addDebugLog = (msg: string) => {
-        const timestamp = new Date().toLocaleTimeString()
-        setDebugLogs(prev => [...prev.slice(-50), `[${timestamp}] ${msg}`])
-    }
-    const copyDebugLogs = () => {
-        const text = debugLogs.join('\n')
-        navigator.clipboard.writeText(text)
-        alert('디버그 로그가 복사되었습니다!')
-    }
-
     // 백그라운드 상세 조회 로직
     useEffect(() => {
         if (!isVisible || results.length === 0 || !onDetailsFetched) return
@@ -142,9 +129,7 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                     if (cancelled) break
                     if (result.status === 'fulfilled') {
                         const { char, detail, error } = result.value
-                        if (error) {
-                            addDebugLog(`ERROR: ${char.name} → ${error.message || error}`)
-                        } else if (detail) {
+                        if (!error && detail) {
                             onDetailsFetched({
                                 ...char,
                                 item_level: detail.item_level,
@@ -173,7 +158,6 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
     const resultsKey = results.length > 0 ? `${results[0]?.characterId}-${results.length}` : ''
     useEffect(() => {
         fetchedIdsRef.current.clear()
-        setDebugLogs([])
     }, [resultsKey])
 
     const filteredAndSortedResults = useMemo(() => {
@@ -306,43 +290,6 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                             >
                                 공식 홈페이지에서 찾기
                             </button>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* 디버그 패널 */}
-            <div className={styles.debugPanel}>
-                <div className={styles.debugHeader}>
-                    <button
-                        onClick={() => setShowDebug(!showDebug)}
-                        className={styles.debugToggle}
-                    >
-                        {showDebug ? '▼ 디버그 숨기기' : '▶ 디버그 보기'} ({debugLogs.length})
-                    </button>
-                    {showDebug && (
-                        <button
-                            onClick={copyDebugLogs}
-                            className={styles.refreshButton}
-                            style={{ padding: '2px 8px', fontSize: '10px' }}
-                        >
-                            로그 복사
-                        </button>
-                    )}
-                </div>
-                {showDebug && (
-                    <div className={styles.debugContent}>
-                        {debugLogs.length === 0 ? (
-                            <div>로그 없음</div>
-                        ) : (
-                            debugLogs.map((log, i) => (
-                                <div key={i} style={{
-                                    color: log.includes('ERROR') ? '#f87171' :
-                                        log.includes('SUCCESS') ? '#4ade80' : '#9ca3af'
-                                }}>
-                                    {log}
-                                </div>
-                            ))
                         )}
                     </div>
                 )}

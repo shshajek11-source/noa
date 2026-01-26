@@ -39,8 +39,6 @@ const formatNumber = (num: number) => {
 
 export default function ProfileSection({ character, arcana, onArcanaClick, stats, equipment, topPower, titles, daevanion, equippedTitleId, ocrStats }: ProfileSectionProps) {
     const [hoveredArcana, setHoveredArcana] = useState<any | null>(null)
-    const [showDebug, setShowDebug] = useState(false)
-    const [copied, setCopied] = useState(false)
     const savedScoreRef = useRef<string | null>(null) // 중복 저장 방지
 
     // PVE/PVP 전투력 계산
@@ -172,125 +170,8 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
         return Math.floor(totalLevel / itemsWithLevel.length)
     }, [character, equipment])
 
-    // 디버그 데이터 생성
-    const debugData = useMemo(() => {
-        return {
-            characterId: character?.characterId,
-            characterName: character?.characterName || character?.name,
-            calculatedCombatPower: combatPower,
-            combatPowerResult: dualCombatPower,
-            equipmentCount: equipment?.length || 0,
-            equipment: equipment?.map((item: any) => ({
-                slot: item.slot || item.slotPosName,
-                name: item.name,
-                slotPos: item.slotPos || item.raw?.slotPos,
-                breakthrough: item.breakthrough || item.exceedLevel || item.raw?.exceedLevel,
-                itemLevel: item.itemLevel,
-                manastones: item.manastones || item.manastoneList,
-                detail: item.detail ? {
-                    mainStats: item.detail._raw?.mainStats || item.detail.mainStats,
-                    subStats: item.detail._raw?.subStats || item.detail.subStats,
-                    magicStoneStat: item.detail._raw?.magicStoneStat,
-                    options: item.detail.options,
-                    randomOptions: item.detail.randomOptions
-                } : null
-            })),
-            titles: titles,
-            daevanion: daevanion,
-            stats: stats,
-            equippedTitleId: equippedTitleId,
-            ocrStats: ocrStats
-        }
-    }, [character, combatPower, dualCombatPower, equipment, titles, daevanion, stats, equippedTitleId, ocrStats])
-
-    // 복사 함수
-    const copyDebugData = () => {
-        const jsonStr = JSON.stringify(debugData, null, 2)
-        navigator.clipboard.writeText(jsonStr).then(() => {
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-        })
-    }
-
     return (
         <div className={styles.container}>
-            {/* Debug Toggle Button */}
-            <button
-                onClick={() => setShowDebug(!showDebug)}
-                style={{
-                    position: 'absolute',
-                    top: '8px',
-                    right: '8px',
-                    padding: '4px 8px',
-                    fontSize: '11px',
-                    background: showDebug ? '#EF4444' : '#374151',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    zIndex: 100,
-                    opacity: 0.8
-                }}
-            >
-                {showDebug ? 'Close Debug' : 'Debug'}
-            </button>
-
-            {/* Debug Panel */}
-            {showDebug && (
-                <div style={{
-                    position: 'absolute',
-                    top: '40px',
-                    right: '8px',
-                    width: '400px',
-                    maxHeight: '500px',
-                    background: '#1F2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    zIndex: 99,
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
-                }}>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '8px 12px',
-                        background: '#111827',
-                        borderBottom: '1px solid #374151'
-                    }}>
-                        <span style={{ color: '#FACC15', fontWeight: 600, fontSize: '12px' }}>
-                            Debug Data (Combat Power: {formatNumber(combatPower)})
-                        </span>
-                        <button
-                            onClick={copyDebugData}
-                            style={{
-                                padding: '4px 12px',
-                                fontSize: '11px',
-                                background: copied ? '#10B981' : '#3B82F6',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            {copied ? 'Copied!' : 'Copy JSON'}
-                        </button>
-                    </div>
-                    <pre style={{
-                        padding: '12px',
-                        margin: 0,
-                        fontSize: '10px',
-                        color: '#9CA3AF',
-                        overflow: 'auto',
-                        maxHeight: '440px',
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-all'
-                    }}>
-                        {JSON.stringify(debugData, null, 2)}
-                    </pre>
-                </div>
-            )}
-
             {/* 3D Character Showcase */}
             <div className={styles.showcaseWrapper}>
                 <CharacterShowcase

@@ -462,14 +462,6 @@ export default function CharacterDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // 디버그 로그 (상태에만 저장, 콘솔 출력 없음)
-  const [debugLogs, setDebugLogs] = useState<string[]>([])
-  const [showDebugPanel, setShowDebugPanel] = useState(false)
-  const addDebugLog = (msg: string) => {
-    const timestamp = new Date().toLocaleTimeString()
-    setDebugLogs(prev => [...prev, `[${timestamp}] ${msg}`])
-  }
-
   // Mapped Data States
   const [mappedEquipment, setMappedEquipment] = useState<{
     equipment: any[],
@@ -494,19 +486,6 @@ export default function CharacterDetailPage() {
   const [mappedDaevanion, setMappedDaevanion] = useState<any>({})
   const [mappedRankings, setMappedRankings] = useState<any>({})
   const [mappedSkills, setMappedSkills] = useState<any>(null)
-
-  // 디버그 패널 상태
-  const [debugInfo, setDebugInfo] = useState<any>({})
-
-  // 전역 디버그 함수 등록 (window에 등록해서 어디서든 호출 가능)
-  useEffect(() => {
-    (window as any).setDebugInfo = (info: any) => {
-      setDebugInfo((prev: any) => ({ ...prev, ...info }))
-    }
-    return () => {
-      delete (window as any).setDebugInfo
-    }
-  }, [])
 
   // API params for DevanionBoard
   const [apiCharacterId, setApiCharacterId] = useState<string | undefined>(undefined)
@@ -1416,136 +1395,6 @@ export default function CharacterDetailPage() {
           }
         }
       `}</style>
-
-      {/* Debug Panel - 토글 가능 */}
-      {showDebugPanel && (
-        <div style={{
-          position: 'fixed',
-          top: '80px',
-          right: '20px',
-          width: '400px',
-          maxHeight: 'calc(100vh - 100px)',
-          overflowY: 'auto',
-          padding: '16px',
-          background: 'rgba(15, 17, 23, 0.98)',
-          border: '1px solid #374151',
-          borderRadius: '12px',
-          fontSize: '0.75rem',
-          color: '#9CA3AF',
-          zIndex: 9999,
-          boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#FACC15' }}>
-              🔧 디버그 패널
-            </div>
-            <button
-              onClick={() => setShowDebugPanel(false)}
-              style={{ background: 'transparent', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '1.2rem' }}
-            >×</button>
-          </div>
-
-          {/* Character Info */}
-          <div style={{ marginBottom: '12px', padding: '8px', background: '#1F2937', borderRadius: '6px' }}>
-            <div style={{ color: '#60A5FA', fontWeight: 'bold', marginBottom: '4px' }}>📋 캐릭터 정보</div>
-            <div>characterId: <span style={{ color: '#10B981' }}>{apiCharacterId || 'N/A'}</span></div>
-            <div>serverId: <span style={{ color: '#10B981' }}>{apiServerId || 'N/A'}</span></div>
-            <div>name: <span style={{ color: '#10B981' }}>{data?.name || 'N/A'}</span></div>
-            <div>item_level: <span style={{ color: '#10B981' }}>{data?.item_level || 'N/A'}</span></div>
-          </div>
-
-          {/* Daevanion Info */}
-          <div style={{ marginBottom: '12px', padding: '8px', background: '#1F2937', borderRadius: '6px' }}>
-            <div style={{ color: '#F59E0B', fontWeight: 'bold', marginBottom: '4px' }}>⚔️ 데바니온 정보</div>
-            <div>boardList 존재: <span style={{ color: mappedDaevanion?.boardList ? '#10B981' : '#EF4444' }}>{mappedDaevanion?.boardList ? 'YES' : 'NO'}</span></div>
-            <div>boardList 길이: <span style={{ color: '#10B981' }}>{mappedDaevanion?.boardList?.length || 0}</span></div>
-            {mappedDaevanion?.boardList && mappedDaevanion.boardList.length > 0 && (
-              <div style={{ marginTop: '8px' }}>
-                <div style={{ color: '#9CA3AF', marginBottom: '4px' }}>boardList 내용:</div>
-                <pre style={{
-                  background: '#111318',
-                  padding: '8px',
-                  borderRadius: '4px',
-                  overflow: 'auto',
-                  maxHeight: '150px',
-                  fontSize: '0.65rem',
-                  color: '#E5E7EB'
-                }}>
-                  {JSON.stringify(mappedDaevanion.boardList, null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
-
-          {/* Raw Daevanion */}
-          <div style={{ marginBottom: '12px', padding: '8px', background: '#1F2937', borderRadius: '6px' }}>
-            <div style={{ color: '#EC4899', fontWeight: 'bold', marginBottom: '4px' }}>📦 전체 Daevanion 데이터</div>
-            <pre style={{
-              background: '#111318',
-              padding: '8px',
-              borderRadius: '4px',
-              overflow: 'auto',
-              maxHeight: '200px',
-              fontSize: '0.65rem',
-              color: '#E5E7EB'
-            }}>
-              {JSON.stringify(mappedDaevanion, null, 2)}
-            </pre>
-          </div>
-
-          {/* Copy Button */}
-          <button
-            onClick={() => {
-              const debugData = {
-                characterId: apiCharacterId,
-                serverId: apiServerId,
-                name: data?.name,
-                item_level: data?.item_level,
-                daevanion: mappedDaevanion
-              }
-              navigator.clipboard.writeText(JSON.stringify(debugData, null, 2))
-              alert('디버그 정보가 클립보드에 복사되었습니다!')
-            }}
-            style={{
-              width: '100%',
-              padding: '8px',
-              background: '#2563EB',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
-            }}
-          >
-            📋 디버그 정보 복사
-          </button>
-        </div>
-      )}
-
-      {/* Debug Toggle Button */}
-      <button
-        onClick={() => setShowDebugPanel(!showDebugPanel)}
-        style={{
-          position: 'fixed',
-          top: '80px',
-          right: '20px',
-          width: '40px',
-          height: '40px',
-          background: showDebugPanel ? '#EF4444' : '#1F2937',
-          border: '1px solid #374151',
-          borderRadius: '8px',
-          color: '#FACC15',
-          cursor: 'pointer',
-          zIndex: showDebugPanel ? 1 : 9998,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '1.2rem'
-        }}
-        title="디버그 패널 토글"
-      >
-        🔧
-      </button>
 
       {/* FAB Buttons Container */}
       <div className="fab-container">

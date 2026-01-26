@@ -569,29 +569,6 @@ export default function CharacterUpdateModal({ isOpen, onClose }: CharacterUpdat
           </button>
         </div>
 
-        {/* 디버그 패널 */}
-        <div style={{
-          background: '#1a1a1a',
-          border: '1px solid #333',
-          borderRadius: '8px',
-          padding: '12px',
-          margin: '0 16px 16px',
-          fontSize: '0.75rem',
-          fontFamily: 'monospace'
-        }}>
-          <div style={{ color: '#f59e0b', marginBottom: '8px', fontWeight: 'bold' }}>🔧 DEBUG INFO</div>
-          <div style={{ color: '#9CA3AF' }}>
-            <div>isAuthenticated: <span style={{ color: isAuthenticated ? '#10B981' : '#ef4444' }}>{String(isAuthenticated)}</span></div>
-            <div>isAuthLoading: <span style={{ color: '#E5E7EB' }}>{String(isAuthLoading)}</span></div>
-            <div>session: <span style={{ color: session ? '#10B981' : '#ef4444' }}>{session ? 'exists' : 'null'}</span></div>
-            <div>access_token: <span style={{ color: session?.access_token ? '#10B981' : '#ef4444' }}>{session?.access_token ? `${session.access_token.substring(0, 20)}...` : 'null'}</span></div>
-            <div>selectedCharacter: <span style={{ color: '#E5E7EB' }}>{selectedCharacter ? selectedCharacter.characterName : 'null'}</span></div>
-            <div>recognizedStats: <span style={{ color: '#E5E7EB' }}>{recognizedStats.length}개</span></div>
-            <div>isSaving: <span style={{ color: '#E5E7EB' }}>{String(isSaving)}</span></div>
-            <div>error: <span style={{ color: error ? '#ef4444' : '#9CA3AF' }}>{error || 'null'}</span></div>
-          </div>
-        </div>
-
         {/* 로그인 필요 */}
         {!isAuthenticated ? (
           <div className={styles.content} style={{ textAlign: 'center', padding: '3rem 2rem' }}>
