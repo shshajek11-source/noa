@@ -1,0 +1,191 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { X, Download, Smartphone } from 'lucide-react'
+
+const STORAGE_KEY = 'app_download_popup_dismissed'
+
+// APK 다운로드 URL 설정
+// 옵션 1: GitHub Releases (권장)
+// const APK_DOWNLOAD_URL = 'https://github.com/shshajek-cpu/sugo-gg/releases/latest/download/sugo-app.apk'
+// 옵션 2: Google Drive 공유 링크
+// const APK_DOWNLOAD_URL = 'https://drive.google.com/uc?export=download&id=YOUR_FILE_ID'
+// 옵션 3: public 폴더 (Vercel 용량 제한 주의)
+const APK_DOWNLOAD_URL = '/downloads/sugo-app.apk'
+
+export default function AppDownloadPopup() {
+  const [isVisible, setIsVisible] = useState(false)
+  const [isAndroid, setIsAndroid] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
+
+  useEffect(() => {
+    // 이미 닫았거나 앱 내 웹뷰면 표시하지 않음
+    const dismissed = localStorage.getItem(STORAGE_KEY)
+    const isInApp = window.navigator.userAgent.includes('SUGO-App')
+
+    if (dismissed || isInApp) return
+
+    // 모바일 OS 감지
+    const ua = navigator.userAgent.toLowerCase()
+    const android = /android/.test(ua)
+    const ios = /iphone|ipad|ipod/.test(ua)
+
+    if (android || ios) {
+      setIsAndroid(android)
+      setIsIOS(ios)
+      // 1초 후 표시 (페이지 로드 완료 후)
+      setTimeout(() => setIsVisible(true), 1000)
+    }
+  }, [])
+
+  const handleClose = () => {
+    setIsVisible(false)
+  }
+
+  const handleDontShowAgain = () => {
+    localStorage.setItem(STORAGE_KEY, 'true')
+    setIsVisible(false)
+  }
+
+  const handleDownload = () => {
+    if (isAndroid) {
+      window.location.href = APK_DOWNLOAD_URL
+    } else if (isIOS) {
+      // iOS는 App Store 링크 (추후 등록 시)
+      alert('iOS 앱은 준비 중입니다.')
+    }
+  }
+
+  if (!isVisible) return null
+
+  return (
+    <div style={styles.overlay}>
+      <div style={styles.popup}>
+        {/* 닫기 버튼 */}
+        <button onClick={handleClose} style={styles.closeBtn}>
+          <X size={20} />
+        </button>
+
+        {/* 아이콘 */}
+        <div style={styles.iconWrapper}>
+          <Smartphone size={48} color="#f59e0b" />
+        </div>
+
+        {/* 제목 */}
+        <h3 style={styles.title}>SUGO.gg 앱 설치</h3>
+
+        {/* 설명 */}
+        <p style={styles.description}>
+          앱으로 더 빠르고 편리하게!<br />
+          홈 화면에서 바로 접속하세요.
+        </p>
+
+        {/* 다운로드 버튼 */}
+        {isAndroid && (
+          <button onClick={handleDownload} style={styles.downloadBtn}>
+            <Download size={18} />
+            Android 앱 다운로드
+          </button>
+        )}
+
+        {isIOS && (
+          <button style={styles.downloadBtnDisabled} disabled>
+            iOS 앱 준비 중
+          </button>
+        )}
+
+        {/* 다시 보지 않기 */}
+        <button onClick={handleDontShowAgain} style={styles.dontShowBtn}>
+          다시 보지 않기
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const styles: { [key: string]: React.CSSProperties } = {
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10000,
+    padding: '20px',
+  },
+  popup: {
+    backgroundColor: '#111',
+    borderRadius: '16px',
+    padding: '32px 24px',
+    maxWidth: '320px',
+    width: '100%',
+    textAlign: 'center',
+    position: 'relative',
+    border: '1px solid #333',
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    background: 'none',
+    border: 'none',
+    color: '#666',
+    cursor: 'pointer',
+    padding: '4px',
+  },
+  iconWrapper: {
+    marginBottom: '16px',
+  },
+  title: {
+    color: '#fff',
+    fontSize: '20px',
+    fontWeight: 600,
+    marginBottom: '12px',
+  },
+  description: {
+    color: '#9CA3AF',
+    fontSize: '14px',
+    lineHeight: 1.6,
+    marginBottom: '24px',
+  },
+  downloadBtn: {
+    width: '100%',
+    padding: '14px 20px',
+    backgroundColor: '#f59e0b',
+    color: '#000',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '15px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    marginBottom: '12px',
+  },
+  downloadBtnDisabled: {
+    width: '100%',
+    padding: '14px 20px',
+    backgroundColor: '#333',
+    color: '#666',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '15px',
+    fontWeight: 600,
+    cursor: 'not-allowed',
+    marginBottom: '12px',
+  },
+  dontShowBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#666',
+    fontSize: '13px',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+  },
+}

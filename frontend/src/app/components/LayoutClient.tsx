@@ -10,6 +10,7 @@ import { SyncProvider } from '../../context/SyncContext'
 import { AuthProvider } from '../../context/AuthContext'
 import GatePage from '../../components/GatePage'
 import Prefetcher from './Prefetcher'
+import AppDownloadPopup from './AppDownloadPopup'
 import { Agentation } from 'agentation'
 
 // 게이트 페이지 활성화 여부 (true: 비밀코드 입력 필요, false: 바로 접근 가능)
@@ -102,6 +103,9 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
 
                     {/* Footer */}
                     <Footer />
+
+                    {/* 앱 다운로드 팝업 - 모바일만 */}
+                    {isMobile && <AppDownloadPopup />}
 
                     {/* Agentation - 개발 환경에서만 활성화 */}
                     {process.env.NODE_ENV === 'development' && <Agentation />}
