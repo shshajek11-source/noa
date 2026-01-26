@@ -519,7 +519,7 @@ export default function ItemManagementTab({
                 className={styles.statusSelect}
               >
                 <option value="all">전체</option>
-                <option value="unsold">미판매</option>
+                <option value="unsold">판매대기</option>
                 <option value="sold">판매완료</option>
               </select>
             </div>
@@ -664,12 +664,12 @@ export default function ItemManagementTab({
               </div>
             ) : (
               <>
-                {/* 미판매 아이템 섹션 */}
+                {/* 판매대기 아이템 섹션 */}
                 {(statusFilter === 'all' || statusFilter === 'unsold') && unsoldByDate.length > 0 && (
                   <div className={styles.statusSection}>
                     <div className={styles.statusHeader}>
                       <span className={styles.statusIcon}>📦</span>
-                      <span className={styles.statusTitle}>미판매 아이템</span>
+                      <span className={styles.statusTitle}>판매대기 아이템</span>
                       <span className={styles.statusTotal}>{totalUnsold.toLocaleString()} 키나</span>
                     </div>
 
@@ -776,7 +776,7 @@ export default function ItemManagementTab({
             <div className={styles.summaryValue}>+{totalSold.toLocaleString()} 키나</div>
           </div>
           <div className={styles.summaryItem}>
-            <div className={styles.summaryLabel}>미판매</div>
+            <div className={styles.summaryLabel}>판매대기</div>
             <div className={styles.summaryValue}>{unsoldItems.length}개 / {totalUnsold.toLocaleString()} 키나</div>
           </div>
         </div>
