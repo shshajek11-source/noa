@@ -42,6 +42,10 @@ export default function Prefetcher() {
                 if (!pathname?.startsWith('/ledger')) {
                     // 가계부 캐릭터 목록 (인증 필요)
                     preload('/api/ledger/characters', silentFetcher)
+                    // 가계부 아이템 목록
+                    preload('/api/ledger/items', silentFetcher)
+                    // 컨텐츠 타입 목록
+                    preload('/api/ledger/content-types', silentFetcher)
                 }
             }
 
