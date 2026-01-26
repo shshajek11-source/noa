@@ -6,7 +6,7 @@ import { X, Download, Smartphone } from 'lucide-react'
 const STORAGE_KEY = 'app_download_popup_dismissed'
 
 // APK 다운로드 URL (GitHub Releases)
-const APK_DOWNLOAD_URL = 'https://github.com/shshajek-cpu/sugo-gg/releases/latest/download/sugo-app.apk'
+const APK_DOWNLOAD_URL = 'https://github.com/shshajek-cpu/sugo-gg/releases/latest/download/app-debug.apk'
 
 export default function AppDownloadPopup() {
   const [isVisible, setIsVisible] = useState(false)
