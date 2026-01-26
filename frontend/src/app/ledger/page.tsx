@@ -428,7 +428,7 @@ export default function LedgerPage() {
   // 대시보드 통계 로드 (배치 API 사용)
   const characterIds = characters.map(c => c.id).join(',')
   const dashboardCacheRef = useRef<{ data: any; timestamp: number; ids: string } | null>(null)
-  const DASHBOARD_CACHE_TTL = 5 * 60 * 1000 // 5분
+  const DASHBOARD_CACHE_TTL = 60 * 1000 // 1분
 
   const loadDashboardStats = useCallback(async () => {
     if (!isReady || characters.length === 0) return

@@ -117,7 +117,7 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
       }
 
       const updated = await res.json()
-      await mutate(items.map(i => i.id === id ? updated : i), false)
+      await mutate(items.map(i => i.id === id ? updated : i), { revalidate: true })
       return updated
     } catch (e: any) {
       console.error('[useLedgerItems] updateItem error:', e)
@@ -156,7 +156,7 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
       }
 
       const updated = await res.json()
-      await mutate(items.map(i => i.id === id ? updated : i), false)
+      await mutate(items.map(i => i.id === id ? updated : i), { revalidate: true })
       return updated
     } catch (e: any) {
       console.error('[useLedgerItems] sellItem error:', e)
@@ -193,7 +193,7 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
       }
 
       const updated = await res.json()
-      await mutate(items.map(i => i.id === id ? updated : i), false)
+      await mutate(items.map(i => i.id === id ? updated : i), { revalidate: true })
       return updated
     } catch (e: any) {
       console.error('[useLedgerItems] unsellItem error:', e)
@@ -218,6 +218,9 @@ export function useLedgerItems({ getAuthHeader, isReady, characterId, selectedDa
         await mutate()  // 실패 시 원복
         throw new Error('Failed to delete item')
       }
+
+      // 삭제 후 서버에서 재검증
+      await mutate(undefined, { revalidate: true })
 
       return true
     } catch (e: any) {

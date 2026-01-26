@@ -221,21 +221,23 @@ function DungeonContentSection({
     }
   }, [characterId, getAuthHeader, transcendBoss, transcendTier, expeditionCategory, expeditionBoss, sanctuaryBoss])
 
-  // 디바운스된 저장 (저장 완료 후 수입 새로고침 트리거)
+  // 디바운스된 저장 (UI는 즉시 업데이트, DB 저장은 디바운스)
   const debouncedSave = useCallback(() => {
+    // UI 즉시 업데이트 (낙관적 업데이트)
+    if (onTotalKinaChangeRef.current) {
+      const totalKina =
+        transcendRecords.reduce((sum, r) => sum + (r.kina || 0), 0) +
+        expeditionRecords.reduce((sum, r) => sum + (r.kina || 0), 0) +
+        sanctuaryRecords.reduce((sum, r) => sum + (r.kina || 0), 0)
+      onTotalKinaChangeRef.current(totalKina)
+    }
+
+    // DB 저장은 디바운스
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current)
     }
     saveTimeoutRef.current = setTimeout(async () => {
       await saveToDatabase()
-      // DB 저장 완료 후 부모에게 알림 (수입 새로고침 트리거)
-      if (onTotalKinaChangeRef.current) {
-        const totalKina =
-          transcendRecords.reduce((sum, r) => sum + (r.kina || 0), 0) +
-          expeditionRecords.reduce((sum, r) => sum + (r.kina || 0), 0) +
-          sanctuaryRecords.reduce((sum, r) => sum + (r.kina || 0), 0)
-        onTotalKinaChangeRef.current(totalKina)
-      }
     }, 100)
   }, [saveToDatabase, transcendRecords, expeditionRecords, sanctuaryRecords])
 

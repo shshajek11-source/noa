@@ -47,7 +47,7 @@ export function useContentRecords({ getAuthHeader, isReady, characterId, date }:
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      dedupingInterval: 60000 * 60  // 1시간 캐시
+      dedupingInterval: 60000 * 5  // 5분 캐시
     }
   )
 
