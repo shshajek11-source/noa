@@ -318,7 +318,7 @@ export default function HomeMobile() {
                         </div>
 
                         {/* 서브 캐릭터 목록 */}
-                        {subCharacters.map((char) => (
+                        {(subCharacters || []).map((char) => (
                             <div
                                 key={char.id}
                                 className={styles.subCharItem}
